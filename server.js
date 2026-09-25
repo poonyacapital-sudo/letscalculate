@@ -63,5 +63,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`CalcHub server running at http://localhost:${PORT}`);
+  console.log(`letscalculate.in server running at http://localhost:${PORT}`);
 });

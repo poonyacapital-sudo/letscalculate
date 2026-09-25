@@ -1,8 +1,8 @@
-# CalcHub - All-in-One Calculator Website
+# letscalculate.in - All-in-One Calculator Website
 
 > **Tagline:** *“Every Calculator You Need, All in One Place.”*
 
-CalcHub is a modern, fast, SEO-friendly, and responsive calculator platform providing an extensive suite of **80+ precision calculators** across 7 primary categories.
+letscalculate.in is a modern, fast, SEO-friendly, and responsive calculator platform providing an extensive suite of **80+ precision calculators** across 7 primary categories.
 
 ---
 

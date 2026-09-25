@@ -53,10 +53,9 @@ http.get('http://localhost:3000/', (res) => {
   let body = '';
   res.on('data', chunk => body += chunk);
   res.on('end', () => {
-    const hasTitle = body.includes('CalcHub');
-    const hasCategories = body.includes('Financial Calculators');
+    const hasTitle = body.includes('letscalculate.in');
     console.log(`HTML Response Length: ${body.length} bytes`);
-    console.log(`Contains 'CalcHub' branding: ${hasTitle ? 'YES' : 'NO'}`);
+    console.log(`Contains 'letscalculate.in' branding: ${hasTitle ? 'YES' : 'NO'}`);
     console.log('Verification Complete!');
   });
 }).on('error', (e) => {
