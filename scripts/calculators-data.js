@@ -92,10 +92,10 @@ const CALCULATORS_DATA = [
     formula: 'M = P * [r(1 + r)^n] / [(1 + r)^n - 1]',
     formulaDesc: 'Where M is monthly payment, P is principal loan amount, r is monthly interest rate (annual rate / 12), and n is total number of monthly payments.',
     fields: [
-      { id: 'principal', label: 'Loan Amount', type: 'number', default: 50000, min: 500, max: 10000000, step: 1000, prefix: '$' },
+      { id: 'principal', label: 'Loan Amount', type: 'number', default: 50000, min: 500, max: 10000000, step: 1000, prefix: '₹' },
       { id: 'rate', label: 'Annual Interest Rate', type: 'number', default: 6.5, min: 0.1, max: 36, step: 0.1, suffix: '%' },
       { id: 'tenureYears', label: 'Loan Term (Years)', type: 'number', default: 5, min: 1, max: 30, step: 1, suffix: 'Years' },
-      { id: 'extraPayment', label: 'Optional Extra Monthly Payment', type: 'number', default: 0, min: 0, max: 10000, step: 50, prefix: '$' }
+      { id: 'extraPayment', label: 'Optional Extra Monthly Payment', type: 'number', default: 0, min: 0, max: 10000, step: 50, prefix: '₹' }
     ],
     chartType: 'donut',
     faqs: [
@@ -114,7 +114,7 @@ const CALCULATORS_DATA = [
     formula: 'EMI = [P x R x (1+R)^N] / [(1+R)^N - 1]',
     formulaDesc: 'P = Principal loan amount, R = Monthly interest rate (Annual rate / 12 / 100), N = Number of monthly installments.',
     fields: [
-      { id: 'principal', label: 'Loan Amount', type: 'number', default: 100000, min: 1000, max: 50000000, step: 5000, prefix: '$' },
+      { id: 'principal', label: 'Loan Amount', type: 'number', default: 100000, min: 1000, max: 50000000, step: 5000, prefix: '₹' },
       { id: 'rate', label: 'Interest Rate (Annual)', type: 'number', default: 8.5, min: 0.5, max: 30, step: 0.1, suffix: '%' },
       { id: 'tenureMonths', label: 'Tenure (Months)', type: 'number', default: 36, min: 3, max: 360, step: 1, suffix: 'Mo' }
     ],
@@ -134,7 +134,7 @@ const CALCULATORS_DATA = [
     formula: 'Total Monthly = P&I + (Taxes / 12) + (Insurance / 12) + PMI',
     formulaDesc: 'Calculates the complete PITI (Principal, Interest, Taxes, and Insurance) payment breakdown.',
     fields: [
-      { id: 'homePrice', label: 'Home Purchase Price', type: 'number', default: 400000, min: 20000, max: 10000000, step: 5000, prefix: '$' },
+      { id: 'homePrice', label: 'Home Purchase Price', type: 'number', default: 400000, min: 20000, max: 10000000, step: 5000, prefix: '₹' },
       { id: 'downPaymentPercent', label: 'Down Payment (%)', type: 'number', default: 20, min: 0, max: 90, step: 1, suffix: '%' },
       { id: 'interestRate', label: 'Interest Rate', type: 'number', default: 6.8, min: 0.1, max: 18, step: 0.05, suffix: '%' },
       { id: 'loanTerm', label: 'Loan Term', type: 'select', default: '30', options: [
@@ -144,8 +144,8 @@ const CALCULATORS_DATA = [
         { label: '10 Years Fixed', value: '10' }
       ]},
       { id: 'propertyTaxRate', label: 'Annual Property Tax Rate', type: 'number', default: 1.2, min: 0, max: 5, step: 0.1, suffix: '%' },
-      { id: 'annualInsurance', label: 'Annual Homeowners Insurance', type: 'number', default: 1400, min: 0, max: 20000, step: 100, prefix: '$' },
-      { id: 'hoaFee', label: 'Monthly HOA Fees', type: 'number', default: 0, min: 0, max: 5000, step: 25, prefix: '$' }
+      { id: 'annualInsurance', label: 'Annual Homeowners Insurance', type: 'number', default: 1400, min: 0, max: 20000, step: 100, prefix: '₹' },
+      { id: 'hoaFee', label: 'Monthly HOA Fees', type: 'number', default: 0, min: 0, max: 5000, step: 25, prefix: '₹' }
     ],
     chartType: 'donut',
     faqs: [
@@ -163,9 +163,9 @@ const CALCULATORS_DATA = [
     formula: 'Financed Amount = (Price - Down Payment - Trade In) * (1 + Tax Rate) + Fees',
     formulaDesc: 'Then standard amortized payment formula applies.',
     fields: [
-      { id: 'vehiclePrice', label: 'Vehicle Purchase Price', type: 'number', default: 32000, min: 1000, max: 500000, step: 500, prefix: '$' },
-      { id: 'downPayment', label: 'Down Payment', type: 'number', default: 5000, min: 0, max: 500000, step: 500, prefix: '$' },
-      { id: 'tradeInValue', label: 'Trade-in Value', type: 'number', default: 2000, min: 0, max: 200000, step: 250, prefix: '$' },
+      { id: 'vehiclePrice', label: 'Vehicle Purchase Price', type: 'number', default: 32000, min: 1000, max: 500000, step: 500, prefix: '₹' },
+      { id: 'downPayment', label: 'Down Payment', type: 'number', default: 5000, min: 0, max: 500000, step: 500, prefix: '₹' },
+      { id: 'tradeInValue', label: 'Trade-in Value', type: 'number', default: 2000, min: 0, max: 200000, step: 250, prefix: '₹' },
       { id: 'salesTax', label: 'Sales Tax Rate', type: 'number', default: 7.0, min: 0, max: 20, step: 0.1, suffix: '%' },
       { id: 'interestRate', label: 'Interest Rate (APR)', type: 'number', default: 5.9, min: 0, max: 30, step: 0.1, suffix: '%' },
       { id: 'loanTermMonths', label: 'Term Length', type: 'select', default: '60', options: [
@@ -189,7 +189,7 @@ const CALCULATORS_DATA = [
     formula: 'Net Payout = Loan Amount - Origination Fee',
     formulaDesc: 'Shows actual funds received vs total amount repaid over time.',
     fields: [
-      { id: 'amount', label: 'Requested Amount', type: 'number', default: 15000, min: 500, max: 100000, step: 500, prefix: '$' },
+      { id: 'amount', label: 'Requested Amount', type: 'number', default: 15000, min: 500, max: 100000, step: 500, prefix: '₹' },
       { id: 'interestRate', label: 'Interest Rate', type: 'number', default: 10.5, min: 1, max: 36, step: 0.25, suffix: '%' },
       { id: 'termMonths', label: 'Loan Term (Months)', type: 'number', default: 36, min: 6, max: 84, step: 6, suffix: 'Mo' },
       { id: 'originationFeePercent', label: 'Origination Fee (%)', type: 'number', default: 3.0, min: 0, max: 10, step: 0.5, suffix: '%' }
@@ -207,7 +207,7 @@ const CALCULATORS_DATA = [
     formula: 'M = P * [r(1+r)^n] / [(1+r)^n - 1]',
     formulaDesc: 'Standard fixed-rate home mortgage amortization calculation.',
     fields: [
-      { id: 'propertyValue', label: 'Property Value', type: 'number', default: 350000, min: 10000, max: 10000000, step: 10000, prefix: '$' },
+      { id: 'propertyValue', label: 'Property Value', type: 'number', default: 350000, min: 10000, max: 10000000, step: 10000, prefix: '₹' },
       { id: 'loanPercent', label: 'Financing Percentage (LTV)', type: 'number', default: 80, min: 10, max: 100, step: 5, suffix: '%' },
       { id: 'interestRate', label: 'Annual Interest Rate', type: 'number', default: 6.75, min: 0.5, max: 20, step: 0.05, suffix: '%' },
       { id: 'tenureYears', label: 'Tenure (Years)', type: 'number', default: 25, min: 5, max: 30, step: 1, suffix: 'Years' }
@@ -225,7 +225,7 @@ const CALCULATORS_DATA = [
     formula: 'Simple: I = P*r*t | Compound: A = P*(1 + r/n)^(nt)',
     formulaDesc: 'Reveals the compounding multiplier advantage over linear growth.',
     fields: [
-      { id: 'principal', label: 'Principal Sum', type: 'number', default: 10000, min: 100, max: 10000000, step: 500, prefix: '$' },
+      { id: 'principal', label: 'Principal Sum', type: 'number', default: 10000, min: 100, max: 10000000, step: 500, prefix: '₹' },
       { id: 'rate', label: 'Annual Interest Rate', type: 'number', default: 7.0, min: 0.1, max: 50, step: 0.1, suffix: '%' },
       { id: 'years', label: 'Time Horizon (Years)', type: 'number', default: 10, min: 1, max: 50, step: 1, suffix: 'Yrs' }
     ],
@@ -242,7 +242,7 @@ const CALCULATORS_DATA = [
     formula: 'Interest = Principal * (Rate / 100) * Time',
     formulaDesc: 'Where Time is expressed in years or fraction of years.',
     fields: [
-      { id: 'principal', label: 'Principal Amount', type: 'number', default: 5000, min: 10, max: 10000000, step: 100, prefix: '$' },
+      { id: 'principal', label: 'Principal Amount', type: 'number', default: 5000, min: 10, max: 10000000, step: 100, prefix: '₹' },
       { id: 'rate', label: 'Annual Interest Rate (%)', type: 'number', default: 5.5, min: 0.1, max: 100, step: 0.1, suffix: '%' },
       { id: 'timeYears', label: 'Time Period (Years)', type: 'number', default: 3, min: 0.1, max: 50, step: 0.5, suffix: 'Years' }
     ],
@@ -259,8 +259,8 @@ const CALCULATORS_DATA = [
     formula: 'A = P(1 + r/n)^(nt) + PMT * [((1 + r/n)^(nt) - 1) / (r/n)]',
     formulaDesc: 'P = initial balance, PMT = regular deposit, r = interest rate, n = compound frequency, t = years.',
     fields: [
-      { id: 'principal', label: 'Initial Principal', type: 'number', default: 10000, min: 0, max: 10000000, step: 500, prefix: '$' },
-      { id: 'monthlyDeposit', label: 'Monthly Addition', type: 'number', default: 300, min: 0, max: 100000, step: 50, prefix: '$' },
+      { id: 'principal', label: 'Initial Principal', type: 'number', default: 10000, min: 0, max: 10000000, step: 500, prefix: '₹' },
+      { id: 'monthlyDeposit', label: 'Monthly Addition', type: 'number', default: 300, min: 0, max: 100000, step: 50, prefix: '₹' },
       { id: 'interestRate', label: 'Annual Return Rate (%)', type: 'number', default: 8.0, min: 0.1, max: 30, step: 0.1, suffix: '%' },
       { id: 'years', label: 'Investment Length (Years)', type: 'number', default: 20, min: 1, max: 50, step: 1, suffix: 'Years' },
       { id: 'compoundingFrequency', label: 'Compounding Frequency', type: 'select', default: '12', options: [
@@ -284,8 +284,8 @@ const CALCULATORS_DATA = [
     formula: 'Future Value = FV(rate, nper, pmt, pv)',
     formulaDesc: 'Computes future terminal asset valuation and total profit generated.',
     fields: [
-      { id: 'startingAmount', label: 'Starting Investment', type: 'number', default: 25000, min: 0, max: 10000000, step: 1000, prefix: '$' },
-      { id: 'contribution', label: 'Monthly Contribution', type: 'number', default: 500, min: 0, max: 50000, step: 50, prefix: '$' },
+      { id: 'startingAmount', label: 'Starting Investment', type: 'number', default: 25000, min: 0, max: 10000000, step: 1000, prefix: '₹' },
+      { id: 'contribution', label: 'Monthly Contribution', type: 'number', default: 500, min: 0, max: 50000, step: 50, prefix: '₹' },
       { id: 'annualReturn', label: 'Estimated Annual Return', type: 'number', default: 9.0, min: 1, max: 30, step: 0.5, suffix: '%' },
       { id: 'years', label: 'Investment Horizon', type: 'number', default: 15, min: 1, max: 40, step: 1, suffix: 'Years' }
     ],
@@ -302,7 +302,7 @@ const CALCULATORS_DATA = [
     formula: 'M = P * [((1 + i)^n - 1) / i] * (1 + i)',
     formulaDesc: 'Where P is monthly installment, i is monthly return rate, and n is total monthly installments.',
     fields: [
-      { id: 'monthlyInvestment', label: 'Monthly Investment Amount', type: 'number', default: 5000, min: 500, max: 1000000, step: 500, prefix: '$' },
+      { id: 'monthlyInvestment', label: 'Monthly Investment Amount', type: 'number', default: 5000, min: 500, max: 1000000, step: 500, prefix: '₹' },
       { id: 'expectedReturn', label: 'Expected Annual Return Rate', type: 'number', default: 12.0, min: 1, max: 35, step: 0.5, suffix: '%' },
       { id: 'timePeriod', label: 'Time Horizon (Years)', type: 'number', default: 10, min: 1, max: 35, step: 1, suffix: 'Years' }
     ],
@@ -319,7 +319,7 @@ const CALCULATORS_DATA = [
     formula: 'A = P * (1 + r)^t',
     formulaDesc: 'Annual compounding formula for one-time deposit P at annual rate r over t years.',
     fields: [
-      { id: 'totalInvestment', label: 'Lumpsum Investment', type: 'number', default: 100000, min: 1000, max: 50000000, step: 5000, prefix: '$' },
+      { id: 'totalInvestment', label: 'Lumpsum Investment', type: 'number', default: 100000, min: 1000, max: 50000000, step: 5000, prefix: '₹' },
       { id: 'returnRate', label: 'Expected Return Rate (Annual %)', type: 'number', default: 11.5, min: 1, max: 35, step: 0.5, suffix: '%' },
       { id: 'years', label: 'Tenure (Years)', type: 'number', default: 7, min: 1, max: 35, step: 1, suffix: 'Years' }
     ],
@@ -336,7 +336,7 @@ const CALCULATORS_DATA = [
     formula: 'F = P * [({(1 + i)^n} - 1) / i]',
     formulaDesc: 'Annual compounding with fixed government statutory interest rate.',
     fields: [
-      { id: 'yearlyDeposit', label: 'Yearly Deposit Amount', type: 'number', default: 150000, min: 500, max: 150000, step: 5000, prefix: '$' },
+      { id: 'yearlyDeposit', label: 'Yearly Deposit Amount', type: 'number', default: 150000, min: 500, max: 150000, step: 5000, prefix: '₹' },
       { id: 'interestRate', label: 'PPF Interest Rate', type: 'number', default: 7.1, min: 5.0, max: 12.0, step: 0.1, suffix: '%' },
       { id: 'tenureYears', label: 'Tenure (Years)', type: 'number', default: 15, min: 15, max: 30, step: 5, suffix: 'Years' }
     ],
@@ -353,7 +353,7 @@ const CALCULATORS_DATA = [
     formula: 'A = P * (1 + r/4)^(4*t)',
     formulaDesc: 'Standard quarterly compounded fixed term interest.',
     fields: [
-      { id: 'principal', label: 'FD Deposit Amount', type: 'number', default: 50000, min: 1000, max: 10000000, step: 5000, prefix: '$' },
+      { id: 'principal', label: 'FD Deposit Amount', type: 'number', default: 50000, min: 1000, max: 10000000, step: 5000, prefix: '₹' },
       { id: 'interestRate', label: 'Interest Rate (% p.a.)', type: 'number', default: 7.25, min: 1, max: 15, step: 0.1, suffix: '%' },
       { id: 'periodMonths', label: 'Tenure (Months)', type: 'number', default: 24, min: 3, max: 120, step: 3, suffix: 'Months' }
     ],
@@ -370,7 +370,7 @@ const CALCULATORS_DATA = [
     formula: 'M = P * n + P * n(n+1)/2 * (r/12) * (1/100)',
     formulaDesc: 'Computes cumulative monthly recurring deposits with accrued compound interest.',
     fields: [
-      { id: 'monthlyDeposit', label: 'Monthly Deposit', type: 'number', default: 5000, min: 500, max: 500000, step: 500, prefix: '$' },
+      { id: 'monthlyDeposit', label: 'Monthly Deposit', type: 'number', default: 5000, min: 500, max: 500000, step: 500, prefix: '₹' },
       { id: 'interestRate', label: 'Interest Rate (%)', type: 'number', default: 6.8, min: 1, max: 15, step: 0.1, suffix: '%' },
       { id: 'periodMonths', label: 'Tenure (Months)', type: 'number', default: 36, min: 6, max: 120, step: 6, suffix: 'Months' }
     ],
@@ -387,8 +387,8 @@ const CALCULATORS_DATA = [
     formula: 'CAGR = (Ending Value / Beginning Value)^(1 / n) - 1',
     formulaDesc: 'Where n is the total number of holding years.',
     fields: [
-      { id: 'initialValue', label: 'Beginning / Initial Value', type: 'number', default: 10000, min: 1, max: 100000000, step: 500, prefix: '$' },
-      { id: 'finalValue', label: 'Ending / Final Value', type: 'number', default: 28500, min: 1, max: 100000000, step: 500, prefix: '$' },
+      { id: 'initialValue', label: 'Beginning / Initial Value', type: 'number', default: 10000, min: 1, max: 100000000, step: 500, prefix: '₹' },
+      { id: 'finalValue', label: 'Ending / Final Value', type: 'number', default: 28500, min: 1, max: 100000000, step: 500, prefix: '₹' },
       { id: 'years', label: 'Holding Period (Years)', type: 'number', default: 5, min: 0.1, max: 50, step: 0.5, suffix: 'Years' }
     ],
     chartType: 'donut'
@@ -404,8 +404,8 @@ const CALCULATORS_DATA = [
     formula: 'ROI = [(Net Profit) / Cost of Investment] * 100%',
     formulaDesc: 'Also calculates annualized ROI when holding duration is provided.',
     fields: [
-      { id: 'investmentCost', label: 'Amount Invested (Cost)', type: 'number', default: 20000, min: 1, max: 100000000, step: 500, prefix: '$' },
-      { id: 'amountReturned', label: 'Amount Returned / Final Value', type: 'number', default: 29000, min: 0, max: 100000000, step: 500, prefix: '$' },
+      { id: 'investmentCost', label: 'Amount Invested (Cost)', type: 'number', default: 20000, min: 1, max: 100000000, step: 500, prefix: '₹' },
+      { id: 'amountReturned', label: 'Amount Returned / Final Value', type: 'number', default: 29000, min: 0, max: 100000000, step: 500, prefix: '₹' },
       { id: 'holdingYears', label: 'Investment Duration (Years)', type: 'number', default: 3, min: 0.1, max: 50, step: 0.5, suffix: 'Years' }
     ],
     chartType: 'donut'
@@ -424,8 +424,8 @@ const CALCULATORS_DATA = [
       { id: 'currentAge', label: 'Current Age', type: 'number', default: 30, min: 18, max: 80, step: 1, suffix: 'Yrs' },
       { id: 'retirementAge', label: 'Planned Retirement Age', type: 'number', default: 60, min: 30, max: 90, step: 1, suffix: 'Yrs' },
       { id: 'lifeExpectancy', label: 'Life Expectancy', type: 'number', default: 85, min: 65, max: 110, step: 1, suffix: 'Yrs' },
-      { id: 'currentSavings', label: 'Current Savings / Portfolio', type: 'number', default: 50000, min: 0, max: 10000000, step: 5000, prefix: '$' },
-      { id: 'monthlyExpenseRetirement', label: 'Desired Monthly Spending in Retirement', type: 'number', default: 4000, min: 500, max: 50000, step: 250, prefix: '$' },
+      { id: 'currentSavings', label: 'Current Savings / Portfolio', type: 'number', default: 50000, min: 0, max: 10000000, step: 5000, prefix: '₹' },
+      { id: 'monthlyExpenseRetirement', label: 'Desired Monthly Spending in Retirement', type: 'number', default: 4000, min: 500, max: 50000, step: 250, prefix: '₹' },
       { id: 'expectedInflation', label: 'Expected Inflation Rate (%)', type: 'number', default: 3.0, min: 0.5, max: 10, step: 0.5, suffix: '%' },
       { id: 'preRetirementReturn', label: 'Pre-Retirement Return (%)', type: 'number', default: 8.5, min: 1, max: 20, step: 0.5, suffix: '%' }
     ],
@@ -442,7 +442,7 @@ const CALCULATORS_DATA = [
     formula: 'Future Value = Present Value * (1 + inflation_rate)^years',
     formulaDesc: 'Shows how much purchasing power decreases over time.',
     fields: [
-      { id: 'presentAmount', label: 'Current Amount / Cost', type: 'number', default: 1000, min: 1, max: 10000000, step: 50, prefix: '$' },
+      { id: 'presentAmount', label: 'Current Amount / Cost', type: 'number', default: 1000, min: 1, max: 10000000, step: 50, prefix: '₹' },
       { id: 'inflationRate', label: 'Average Annual Inflation (%)', type: 'number', default: 3.5, min: 0.1, max: 30, step: 0.1, suffix: '%' },
       { id: 'years', label: 'Number of Years', type: 'number', default: 10, min: 1, max: 50, step: 1, suffix: 'Years' }
     ],
@@ -459,7 +459,7 @@ const CALCULATORS_DATA = [
     formula: 'Annual = Hourly * Hours/Week * 52 Weeks',
     formulaDesc: 'Breakdown across Hourly, Daily, Weekly, Bi-weekly, Monthly, and Annual pay.',
     fields: [
-      { id: 'salaryAmount', label: 'Pay Amount', type: 'number', default: 75000, min: 1, max: 5000000, step: 1000, prefix: '$' },
+      { id: 'salaryAmount', label: 'Pay Amount', type: 'number', default: 75000, min: 1, max: 5000000, step: 1000, prefix: '₹' },
       { id: 'payFrequency', label: 'Pay Frequency', type: 'select', default: 'annual', options: [
         { label: 'Annual (Per Year)', value: 'annual' },
         { label: 'Monthly (Per Month)', value: 'monthly' },
@@ -483,8 +483,8 @@ const CALCULATORS_DATA = [
     formula: 'Tax = Sum(Income in Bracket * Bracket Rate)',
     formulaDesc: 'Progressive marginal tax bracket model.',
     fields: [
-      { id: 'taxableIncome', label: 'Annual Gross Income', type: 'number', default: 85000, min: 0, max: 10000000, step: 1000, prefix: '$' },
-      { id: 'deductions', label: 'Deductions (Standard/Itemized)', type: 'number', default: 14600, min: 0, max: 500000, step: 500, prefix: '$' },
+      { id: 'taxableIncome', label: 'Annual Gross Income', type: 'number', default: 85000, min: 0, max: 10000000, step: 1000, prefix: '₹' },
+      { id: 'deductions', label: 'Deductions (Standard/Itemized)', type: 'number', default: 14600, min: 0, max: 500000, step: 500, prefix: '₹' },
       { id: 'filingStatus', label: 'Filing Status', type: 'select', default: 'single', options: [
         { label: 'Single', value: 'single' },
         { label: 'Married Filing Jointly', value: 'married' },
@@ -504,7 +504,7 @@ const CALCULATORS_DATA = [
     formula: 'Add GST: Net * (1 + R/100) | Remove GST: Gross / (1 + R/100)',
     formulaDesc: 'Accurately breaks down base amount and applicable tax components.',
     fields: [
-      { id: 'amount', label: 'Base Amount', type: 'number', default: 1000, min: 1, max: 10000000, step: 50, prefix: '$' },
+      { id: 'amount', label: 'Base Amount', type: 'number', default: 1000, min: 1, max: 10000000, step: 50, prefix: '₹' },
       { id: 'gstRate', label: 'GST Rate (%)', type: 'select', default: '18', options: [
         { label: '3% (Precious Metals)', value: '3' },
         { label: '5% (Essential Goods)', value: '5' },
@@ -530,7 +530,7 @@ const CALCULATORS_DATA = [
     formula: 'Tip Amount = Bill * (Tip % / 100) | Total Per Person = (Bill + Tip) / People',
     formulaDesc: 'Effortlessly split bills at restaurant dining.',
     fields: [
-      { id: 'billAmount', label: 'Bill Amount', type: 'number', default: 84.50, min: 0.1, max: 50000, step: 0.5, prefix: '$' },
+      { id: 'billAmount', label: 'Bill Amount', type: 'number', default: 84.50, min: 0.1, max: 50000, step: 0.5, prefix: '₹' },
       { id: 'tipPercent', label: 'Tip Percentage', type: 'number', default: 18, min: 0, max: 100, step: 1, suffix: '%' },
       { id: 'splitPeople', label: 'Number of People', type: 'number', default: 2, min: 1, max: 50, step: 1, suffix: 'Guests' }
     ],
@@ -547,7 +547,7 @@ const CALCULATORS_DATA = [
     formula: 'Final Price = Original Price * (1 - Discount% / 100)',
     formulaDesc: 'Includes optional extra secondary promo code discount.',
     fields: [
-      { id: 'originalPrice', label: 'Original Retail Price', type: 'number', default: 120, min: 1, max: 100000, step: 5, prefix: '$' },
+      { id: 'originalPrice', label: 'Original Retail Price', type: 'number', default: 120, min: 1, max: 100000, step: 5, prefix: '₹' },
       { id: 'discountPercent', label: 'Discount (%)', type: 'number', default: 25, min: 0, max: 100, step: 1, suffix: '%' },
       { id: 'extraPromoPercent', label: 'Additional Promo Code (%)', type: 'number', default: 0, min: 0, max: 50, step: 5, suffix: '%' }
     ],
@@ -564,8 +564,8 @@ const CALCULATORS_DATA = [
     formula: 'Margin = (Revenue - Cost) / Revenue | Markup = (Revenue - Cost) / Cost',
     formulaDesc: 'Essential metrics for commerce and pricing strategy.',
     fields: [
-      { id: 'cost', label: 'Cost of Goods (COGS)', type: 'number', default: 45, min: 0.01, max: 10000000, step: 1, prefix: '$' },
-      { id: 'revenue', label: 'Selling Price (Revenue)', type: 'number', default: 80, min: 0.01, max: 10000000, step: 1, prefix: '$' }
+      { id: 'cost', label: 'Cost of Goods (COGS)', type: 'number', default: 45, min: 0.01, max: 10000000, step: 1, prefix: '₹' },
+      { id: 'revenue', label: 'Selling Price (Revenue)', type: 'number', default: 80, min: 0.01, max: 10000000, step: 1, prefix: '₹' }
     ],
     chartType: 'donut'
   },
@@ -580,9 +580,9 @@ const CALCULATORS_DATA = [
     formula: 'Break-Even Units = Fixed Costs / (Price per Unit - Variable Cost per Unit)',
     formulaDesc: 'Calculates the safety margin and required sales units.',
     fields: [
-      { id: 'fixedCosts', label: 'Total Fixed Costs', type: 'number', default: 15000, min: 0, max: 10000000, step: 500, prefix: '$' },
-      { id: 'variableCostPerUnit', label: 'Variable Cost Per Unit', type: 'number', default: 18, min: 0.01, max: 100000, step: 1, prefix: '$' },
-      { id: 'unitPrice', label: 'Selling Price Per Unit', type: 'number', default: 45, min: 0.01, max: 100000, step: 1, prefix: '$' }
+      { id: 'fixedCosts', label: 'Total Fixed Costs', type: 'number', default: 15000, min: 0, max: 10000000, step: 500, prefix: '₹' },
+      { id: 'variableCostPerUnit', label: 'Variable Cost Per Unit', type: 'number', default: 18, min: 0.01, max: 100000, step: 1, prefix: '₹' },
+      { id: 'unitPrice', label: 'Selling Price Per Unit', type: 'number', default: 45, min: 0.01, max: 100000, step: 1, prefix: '₹' }
     ],
     chartType: 'donut'
   },
@@ -1412,7 +1412,7 @@ const CALCULATORS_DATA = [
       { id: 'startDate', label: 'Start Date', type: 'date', default: '2026-11-01' },
       { id: 'endDate', label: 'End Date', type: 'date', default: '2026-11-30' },
       { id: 'hoursPerDay', label: 'Working Hours Per Day', type: 'number', default: 8, min: 1, max: 24, step: 0.5, suffix: 'Hrs' },
-      { id: 'hourlyRate', label: 'Hourly Pay / Bill Rate', type: 'number', default: 55, min: 0, max: 1000, step: 5, prefix: '$' }
+      { id: 'hourlyRate', label: 'Hourly Pay / Bill Rate', type: 'number', default: 55, min: 0, max: 1000, step: 5, prefix: '₹' }
     ]
   },
   {
@@ -1705,7 +1705,7 @@ const CALCULATORS_DATA = [
     fields: [
       { id: 'wattage', label: 'Appliance Power (Watts)', type: 'number', default: 1500, min: 1, max: 10000, step: 50, suffix: 'W' },
       { id: 'hoursPerDay', label: 'Hours Used Per Day', type: 'number', default: 6, min: 0.1, max: 24, step: 0.5, suffix: 'Hrs' },
-      { id: 'costPerKWh', label: 'Electricity Rate per kWh', type: 'number', default: 0.16, min: 0.01, max: 1.50, step: 0.01, prefix: '$' }
+      { id: 'costPerKWh', label: 'Electricity Rate per kWh', type: 'number', default: 0.16, min: 0.01, max: 1.50, step: 0.01, prefix: '₹' }
     ],
     chartType: 'donut'
   },
@@ -1722,7 +1722,7 @@ const CALCULATORS_DATA = [
     fields: [
       { id: 'distance', label: 'Trip Distance (Miles / Km)', type: 'number', default: 280, min: 1, max: 10000, step: 10 },
       { id: 'efficiency', label: 'Fuel Economy (MPG or km/L)', type: 'number', default: 28, min: 1, max: 100, step: 1 },
-      { id: 'fuelPrice', label: 'Fuel Price per Gallon / Liter', type: 'number', default: 3.50, min: 0.5, max: 15, step: 0.05, prefix: '$' },
+      { id: 'fuelPrice', label: 'Fuel Price per Gallon / Liter', type: 'number', default: 3.50, min: 0.5, max: 15, step: 0.05, prefix: '₹' },
       { id: 'passengers', label: 'Number of Passengers (Split)', type: 'number', default: 3, min: 1, max: 15, step: 1 }
     ],
     chartType: 'donut'
@@ -1783,7 +1783,7 @@ const CALCULATORS_DATA = [
     formula: 'Total = Bill + (Bill * Tip%) + (Bill * Tax%) | Per Person = Total / Guests',
     formulaDesc: 'Clean per-person summary with optional rounding to nearest dollar.',
     fields: [
-      { id: 'billTotal', label: 'Pre-tax Food & Drinks Total', type: 'number', default: 145.00, min: 1, max: 10000, step: 5, prefix: '$' },
+      { id: 'billTotal', label: 'Pre-tax Food & Drinks Total', type: 'number', default: 145.00, min: 1, max: 10000, step: 5, prefix: '₹' },
       { id: 'tipPercent', label: 'Tip (%)', type: 'number', default: 20, min: 0, max: 50, step: 1, suffix: '%' },
       { id: 'taxPercent', label: 'Sales Tax (%)', type: 'number', default: 8.5, min: 0, max: 25, step: 0.1, suffix: '%' },
       { id: 'people', label: 'Number of Diners', type: 'number', default: 4, min: 1, max: 30, step: 1, suffix: 'People' }
@@ -1805,9 +1805,9 @@ const CALCULATORS_DATA = [
     formula: 'Gross Profit = Revenue - COGS | Net Profit = Gross Profit - Operating Expenses',
     formulaDesc: 'Foundational business income statement metrics.',
     fields: [
-      { id: 'revenue', label: 'Total Revenue', type: 'number', default: 120000, min: 0, max: 100000000, step: 1000, prefix: '$' },
-      { id: 'cogs', label: 'Cost of Goods Sold (COGS)', type: 'number', default: 45000, min: 0, max: 100000000, step: 1000, prefix: '$' },
-      { id: 'operatingExpenses', label: 'Operating Expenses (Rent, Salaries, Marketing)', type: 'number', default: 35000, min: 0, max: 100000000, step: 500, prefix: '$' }
+      { id: 'revenue', label: 'Total Revenue', type: 'number', default: 120000, min: 0, max: 100000000, step: 1000, prefix: '₹' },
+      { id: 'cogs', label: 'Cost of Goods Sold (COGS)', type: 'number', default: 45000, min: 0, max: 100000000, step: 1000, prefix: '₹' },
+      { id: 'operatingExpenses', label: 'Operating Expenses (Rent, Salaries, Marketing)', type: 'number', default: 35000, min: 0, max: 100000000, step: 500, prefix: '₹' }
     ],
     chartType: 'donut'
   },
@@ -1822,8 +1822,8 @@ const CALCULATORS_DATA = [
     formula: 'Gross Margin % = [(Selling Price - Cost) / Selling Price] * 100%',
     formulaDesc: 'Essential indicator of company pricing leverage.',
     fields: [
-      { id: 'costPrice', label: 'Unit Cost Price', type: 'number', default: 60, min: 0.1, max: 1000000, step: 1, prefix: '$' },
-      { id: 'sellingPrice', label: 'Unit Selling Price', type: 'number', default: 100, min: 0.1, max: 1000000, step: 1, prefix: '$' }
+      { id: 'costPrice', label: 'Unit Cost Price', type: 'number', default: 60, min: 0.1, max: 1000000, step: 1, prefix: '₹' },
+      { id: 'sellingPrice', label: 'Unit Selling Price', type: 'number', default: 100, min: 0.1, max: 1000000, step: 1, prefix: '₹' }
     ],
     chartType: 'donut'
   },
@@ -1838,7 +1838,7 @@ const CALCULATORS_DATA = [
     formula: 'Selling Price = Cost * (1 + Markup% / 100) | Profit = Selling Price - Cost',
     formulaDesc: 'Standard cost-plus pricing model.',
     fields: [
-      { id: 'cost', label: 'Product Cost', type: 'number', default: 40, min: 0.1, max: 1000000, step: 1, prefix: '$' },
+      { id: 'cost', label: 'Product Cost', type: 'number', default: 40, min: 0.1, max: 1000000, step: 1, prefix: '₹' },
       { id: 'markupPercent', label: 'Desired Markup (%)', type: 'number', default: 65, min: 0, max: 500, step: 5, suffix: '%' }
     ],
     chartType: 'donut'
@@ -1855,7 +1855,7 @@ const CALCULATORS_DATA = [
     formulaDesc: 'SaaS and retail revenue modeling.',
     fields: [
       { id: 'unitsSold', label: 'Units Sold / Active Subscribers', type: 'number', default: 850, min: 1, max: 10000000, step: 10 },
-      { id: 'pricePerUnit', label: 'Average Price / Monthly Subscription', type: 'number', default: 49, min: 0.1, max: 100000, step: 1, prefix: '$' },
+      { id: 'pricePerUnit', label: 'Average Price / Monthly Subscription', type: 'number', default: 49, min: 0.1, max: 100000, step: 1, prefix: '₹' },
       { id: 'isSubscription', label: 'Is this Monthly Recurring Revenue (MRR)?', type: 'select', default: 'yes', options: [
         { label: 'Yes (Calculate MRR & ARR)', value: 'yes' },
         { label: 'No (One-time transactional sales)', value: 'no' }
@@ -1874,9 +1874,9 @@ const CALCULATORS_DATA = [
     formula: 'Break-Even Units = Total Fixed Costs / (Price - Variable Cost)',
     formulaDesc: 'Contribution margin and break-even revenue analysis.',
     fields: [
-      { id: 'fixedCosts', label: 'Total Monthly Fixed Costs', type: 'number', default: 24000, min: 0, max: 10000000, step: 1000, prefix: '$' },
-      { id: 'unitPrice', label: 'Unit Selling Price', type: 'number', default: 120, min: 0.1, max: 100000, step: 5, prefix: '$' },
-      { id: 'unitVariableCost', label: 'Unit Variable Cost', type: 'number', default: 45, min: 0.01, max: 100000, step: 5, prefix: '$' }
+      { id: 'fixedCosts', label: 'Total Monthly Fixed Costs', type: 'number', default: 24000, min: 0, max: 10000000, step: 1000, prefix: '₹' },
+      { id: 'unitPrice', label: 'Unit Selling Price', type: 'number', default: 120, min: 0.1, max: 100000, step: 5, prefix: '₹' },
+      { id: 'unitVariableCost', label: 'Unit Variable Cost', type: 'number', default: 45, min: 0.01, max: 100000, step: 5, prefix: '₹' }
     ],
     chartType: 'donut'
   },
@@ -1891,9 +1891,9 @@ const CALCULATORS_DATA = [
     formula: 'Commission = Sales Volume * (Commission % / 100) + Base Salary',
     formulaDesc: 'Incentive compensation planning for sales teams.',
     fields: [
-      { id: 'salesVolume', label: 'Total Sales Volume', type: 'number', default: 150000, min: 0, max: 50000000, step: 5000, prefix: '$' },
+      { id: 'salesVolume', label: 'Total Sales Volume', type: 'number', default: 150000, min: 0, max: 50000000, step: 5000, prefix: '₹' },
       { id: 'commissionRate', label: 'Commission Rate (%)', type: 'number', default: 8.5, min: 0, max: 50, step: 0.5, suffix: '%' },
-      { id: 'baseSalary', label: 'Base Salary (Monthly)', type: 'number', default: 4000, min: 0, max: 500000, step: 250, prefix: '$' }
+      { id: 'baseSalary', label: 'Base Salary (Monthly)', type: 'number', default: 4000, min: 0, max: 500000, step: 250, prefix: '₹' }
     ],
     chartType: 'donut'
   },
@@ -1908,7 +1908,7 @@ const CALCULATORS_DATA = [
     formula: 'Sales Tax = Price * (Tax Rate / 100) | Total = Price + Sales Tax',
     formulaDesc: 'Retail merchant and customer sales tax reconciliation.',
     fields: [
-      { id: 'amount', label: 'Price Amount', type: 'number', default: 250, min: 0.01, max: 10000000, step: 10, prefix: '$' },
+      { id: 'amount', label: 'Price Amount', type: 'number', default: 250, min: 0.01, max: 10000000, step: 10, prefix: '₹' },
       { id: 'taxRate', label: 'Sales Tax Rate (%)', type: 'number', default: 8.25, min: 0, max: 30, step: 0.05, suffix: '%' },
       { id: 'type', label: 'Tax Mode', type: 'select', default: 'exclusive', options: [
         { label: 'Amount is Pre-Tax (Add Sales Tax)', value: 'exclusive' },
@@ -1928,9 +1928,9 @@ const CALCULATORS_DATA = [
     formula: 'Net GST Payable = Output GST (on Sales) - Input GST Credit (on Purchases)',
     formulaDesc: 'Goods and Services Tax compliance reconciliation.',
     fields: [
-      { id: 'salesAmount', label: 'Gross Sales / Turnover', type: 'number', default: 500000, min: 0, max: 100000000, step: 10000, prefix: '$' },
+      { id: 'salesAmount', label: 'Gross Sales / Turnover', type: 'number', default: 500000, min: 0, max: 100000000, step: 10000, prefix: '₹' },
       { id: 'salesGstRate', label: 'Sales GST Rate (%)', type: 'number', default: 18, min: 0, max: 28, step: 1, suffix: '%' },
-      { id: 'purchaseAmount', label: 'Purchases / Expenses (with GST)', type: 'number', default: 280000, min: 0, max: 100000000, step: 10000, prefix: '$' },
+      { id: 'purchaseAmount', label: 'Purchases / Expenses (with GST)', type: 'number', default: 280000, min: 0, max: 100000000, step: 10000, prefix: '₹' },
       { id: 'purchaseGstRate', label: 'Purchase GST Rate (%)', type: 'number', default: 18, min: 0, max: 28, step: 1, suffix: '%' }
     ],
     chartType: 'donut'
@@ -1966,7 +1966,7 @@ const CALCULATORS_DATA = [
     formula: 'M = P * [r(1+r)^n] / [(1+r)^n - 1]',
     formulaDesc: 'Commercial term debt amortization.',
     fields: [
-      { id: 'principal', label: 'Commercial Loan Amount', type: 'number', default: 250000, min: 5000, max: 50000000, step: 10000, prefix: '$' },
+      { id: 'principal', label: 'Commercial Loan Amount', type: 'number', default: 250000, min: 5000, max: 50000000, step: 10000, prefix: '₹' },
       { id: 'interestRate', label: 'Annual Interest Rate (%)', type: 'number', default: 7.5, min: 1, max: 30, step: 0.1, suffix: '%' },
       { id: 'tenureYears', label: 'Loan Term (Years)', type: 'number', default: 5, min: 1, max: 25, step: 1, suffix: 'Years' }
     ],
@@ -1983,8 +1983,8 @@ const CALCULATORS_DATA = [
     formula: 'ROI = [(Net Profit) / Total Expenditure] * 100%',
     formulaDesc: 'Capital allocation decision analysis.',
     fields: [
-      { id: 'cost', label: 'Total Project / Campaign Cost', type: 'number', default: 35000, min: 1, max: 10000000, step: 1000, prefix: '$' },
-      { id: 'returns', label: 'Gross Revenue Generated', type: 'number', default: 78000, min: 0, max: 50000000, step: 1000, prefix: '$' }
+      { id: 'cost', label: 'Total Project / Campaign Cost', type: 'number', default: 35000, min: 1, max: 10000000, step: 1000, prefix: '₹' },
+      { id: 'returns', label: 'Gross Revenue Generated', type: 'number', default: 78000, min: 0, max: 50000000, step: 1000, prefix: '₹' }
     ],
     chartType: 'donut'
   },
@@ -1999,8 +1999,8 @@ const CALCULATORS_DATA = [
     formula: 'CAGR = (End Value / Start Value)^(1 / Years) - 1',
     formulaDesc: 'Standard growth rate metric for pitch decks and investor reports.',
     fields: [
-      { id: 'startRev', label: 'Starting Year Revenue', type: 'number', default: 500000, min: 1, max: 1000000000, step: 10000, prefix: '$' },
-      { id: 'endRev', label: 'Ending Year Revenue', type: 'number', default: 1850000, min: 1, max: 1000000000, step: 10000, prefix: '$' },
+      { id: 'startRev', label: 'Starting Year Revenue', type: 'number', default: 500000, min: 1, max: 1000000000, step: 10000, prefix: '₹' },
+      { id: 'endRev', label: 'Ending Year Revenue', type: 'number', default: 1850000, min: 1, max: 1000000000, step: 10000, prefix: '₹' },
       { id: 'years', label: 'Number of Fiscal Years', type: 'number', default: 4, min: 0.5, max: 30, step: 0.5, suffix: 'Years' }
     ],
     chartType: 'donut'
@@ -2016,11 +2016,11 @@ const CALCULATORS_DATA = [
     formula: 'Total Cost = Base Salary + Taxes + Health Benefits + Retirement + Overhead',
     formulaDesc: 'Typically 1.25x to 1.4x of the base salary.',
     fields: [
-      { id: 'baseSalary', label: 'Annual Base Salary', type: 'number', default: 85000, min: 10000, max: 2000000, step: 1000, prefix: '$' },
+      { id: 'baseSalary', label: 'Annual Base Salary', type: 'number', default: 85000, min: 10000, max: 2000000, step: 1000, prefix: '₹' },
       { id: 'payrollTaxPercent', label: 'Payroll Taxes (FICA, Medicare, Unemployment) (%)', type: 'number', default: 8.5, min: 0, max: 25, step: 0.5, suffix: '%' },
-      { id: 'annualBenefits', label: 'Health, Dental & Vision Insurance (Annual)', type: 'number', default: 7200, min: 0, max: 50000, step: 200, prefix: '$' },
+      { id: 'annualBenefits', label: 'Health, Dental & Vision Insurance (Annual)', type: 'number', default: 7200, min: 0, max: 50000, step: 200, prefix: '₹' },
       { id: 'retirementMatchPercent', label: 'Retirement / 401(k) Match (%)', type: 'number', default: 4.0, min: 0, max: 15, step: 0.5, suffix: '%' },
-      { id: 'overheadAnnual', label: 'Equipment, Software, Office Overhead (Annual)', type: 'number', default: 4000, min: 0, max: 50000, step: 250, prefix: '$' }
+      { id: 'overheadAnnual', label: 'Equipment, Software, Office Overhead (Annual)', type: 'number', default: 4000, min: 0, max: 50000, step: 250, prefix: '₹' }
     ],
     chartType: 'donut'
   }
