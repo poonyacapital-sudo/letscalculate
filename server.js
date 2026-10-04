@@ -4,7 +4,10 @@ const path = require('path');
 const xlsx = require('xlsx');
 
 const PORT = process.env.PORT || 3000;
-const EXCEL_PATH = path.join(__dirname, 'letscalculate.in_data.xlsx');
+let EXCEL_PATH = path.join(__dirname, 'letscalculate.in_data.xlsx');
+if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+  EXCEL_PATH = path.join('/tmp', 'letscalculate.in_data.xlsx');
+}
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=UTF-8',
@@ -75,7 +78,17 @@ function appendSignupToExcel(signupData) {
     workbook.SheetNames.push(sheetName);
   }
 
-  xlsx.writeFile(workbook, EXCEL_PATH);
+  try {
+    xlsx.writeFile(workbook, EXCEL_PATH);
+  } catch (writeErr) {
+    if (writeErr.code === 'EROFS' || (writeErr.message && writeErr.message.includes('read-only'))) {
+      EXCEL_PATH = path.join('/tmp', 'letscalculate.in_data.xlsx');
+      xlsx.writeFile(workbook, EXCEL_PATH);
+    } else {
+      throw writeErr;
+    }
+  }
+
   console.log(`[EXCEL] Successfully stored signup: ${newEntry['Full Name']} (${newEntry['Mobile Number']}) in letscalculate.in_data.xlsx`);
   return newEntry;
 }
