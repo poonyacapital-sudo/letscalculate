@@ -5,6 +5,7 @@
  */
 
 // SVG Icon Helper
+// SVG Icon Helper
 function getIconSvg(iconName, size = 20) {
   const icons = {
     'wallet': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>`,
@@ -27,7 +28,13 @@ function getIconSvg(iconName, size = 20) {
     'moon': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`,
     'x': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`,
     'check': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
-    'alert-triangle': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>`
+    'alert-triangle': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>`,
+    'user': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+    'lock': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+    'mail': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`,
+    'log-out': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>`,
+    'sparkles': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>`,
+    'shield-check': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>`
   };
   return icons[iconName] || icons['calculator'];
 }
@@ -37,10 +44,113 @@ const AppState = {
   theme: localStorage.getItem('letscalculate_theme') || 'dark',
   favorites: JSON.parse(localStorage.getItem('letscalculate_favs') || '[]'),
   history: JSON.parse(localStorage.getItem('letscalculate_history') || '[]'),
+  currentUser: JSON.parse(localStorage.getItem('letscalculate_user') || 'null'),
+  accounts: JSON.parse(localStorage.getItem('letscalculate_accounts') || '[]'),
   currentCalculator: null,
   calcInputs: {},
   countdownInterval: null,
   worldClockInterval: null,
+
+  isLoggedIn() {
+    return !!this.currentUser;
+  },
+
+  signup(name, email, password) {
+    if (!name || name.trim().length < 2) {
+      throw new Error('Please enter your full name (at least 2 characters).');
+    }
+    if (!email || !email.includes('@') || !email.includes('.')) {
+      throw new Error('Please enter a valid email address.');
+    }
+    if (!password || password.length < 6) {
+      throw new Error('Password must be at least 6 characters long.');
+    }
+    const cleanEmail = email.toLowerCase().trim();
+    if (this.accounts.some(acc => acc.email.toLowerCase() === cleanEmail)) {
+      throw new Error('An account with this email already exists. Please log in.');
+    }
+    const newAccount = {
+      name: name.trim(),
+      email: cleanEmail,
+      password: password,
+      createdAt: new Date().toISOString()
+    };
+    this.accounts.push(newAccount);
+    localStorage.setItem('letscalculate_accounts', JSON.stringify(this.accounts));
+
+    this.currentUser = {
+      name: newAccount.name,
+      email: newAccount.email,
+      joinedDate: new Date().toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }),
+      plan: 'Free Lifetime Member'
+    };
+    localStorage.setItem('letscalculate_user', JSON.stringify(this.currentUser));
+    AppUI.updateHeaderBadges();
+    return this.currentUser;
+  },
+
+  login(email, password) {
+    if (!email || !password) {
+      throw new Error('Please enter both your email and password.');
+    }
+    const cleanEmail = email.toLowerCase().trim();
+    let account = this.accounts.find(a => a.email.toLowerCase() === cleanEmail && a.password === password);
+    if (!account && cleanEmail === 'demo@letscalculate.in') {
+      account = { name: 'Demo User', email: 'demo@letscalculate.in' };
+    }
+
+    if (!account) {
+      const emailExists = this.accounts.some(a => a.email.toLowerCase() === cleanEmail);
+      if (emailExists) {
+        throw new Error('Incorrect password. Please try again.');
+      }
+      // Auto-register for smooth onboarding
+      const name = cleanEmail.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      return this.signup(name, email, password);
+    }
+
+    this.currentUser = {
+      name: account.name || 'Member',
+      email: account.email,
+      joinedDate: new Date().toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }),
+      plan: 'Free Lifetime Member'
+    };
+    localStorage.setItem('letscalculate_user', JSON.stringify(this.currentUser));
+    AppUI.updateHeaderBadges();
+    return this.currentUser;
+  },
+
+  demoLogin() {
+    this.currentUser = {
+      name: 'Demo User',
+      email: 'demo@letscalculate.in',
+      joinedDate: new Date().toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }),
+      plan: 'Free Lifetime Member'
+    };
+    localStorage.setItem('letscalculate_user', JSON.stringify(this.currentUser));
+    AppUI.updateHeaderBadges();
+    return this.currentUser;
+  },
+
+  continueAsGuest() {
+    this.currentUser = {
+      name: 'Guest User',
+      email: 'guest@letscalculate.in',
+      joinedDate: 'Guest Session',
+      plan: 'Guest Pass'
+    };
+    localStorage.setItem('letscalculate_user', JSON.stringify(this.currentUser));
+    AppUI.updateHeaderBadges();
+    return this.currentUser;
+  },
+
+  logout() {
+    this.currentUser = null;
+    localStorage.removeItem('letscalculate_user');
+    AppUI.updateHeaderBadges();
+    AppUI.showToast('You have been logged out.');
+    window.location.hash = '#/';
+  },
 
   toggleTheme() {
     this.theme = this.theme === 'dark' ? 'light' : 'dark';
@@ -192,6 +302,39 @@ const AppUI = {
       favBadge.textContent = AppState.favorites.length;
       favBadge.style.display = AppState.favorites.length > 0 ? 'inline-block' : 'none';
     }
+
+    const authContainer = document.getElementById('header-auth-container');
+    if (authContainer) {
+      if (AppState.isLoggedIn()) {
+        const user = AppState.currentUser;
+        const initial = (user.name || 'U').charAt(0).toUpperCase();
+        const firstName = user.name ? user.name.split(' ')[0] : 'Member';
+        authContainer.innerHTML = `
+          <div class="user-pill-dropdown-wrap">
+            <a href="#/profile" class="header-user-btn" title="View Profile (${user.name})">
+              <span class="avatar-circle">${initial}</span>
+              <span class="user-name-text">${firstName}</span>
+              <span class="user-tier-badge">FREE</span>
+            </a>
+            <button type="button" class="btn-header-logout" id="quick-logout-btn" title="Sign Out">
+              ${getIconSvg('log-out', 16)}
+            </button>
+          </div>
+        `;
+        document.getElementById('quick-logout-btn')?.addEventListener('click', (e) => {
+          e.preventDefault();
+          AppState.logout();
+        });
+      } else {
+        authContainer.innerHTML = `
+          <a href="#/login" class="btn-auth-signin">Sign In</a>
+          <a href="#/signup" class="btn-auth-signup">
+            ${getIconSvg('sparkles', 14)}
+            <span>Sign Up Free</span>
+          </a>
+        `;
+      }
+    }
   },
 
   showToast(message, icon = 'check') {
@@ -219,14 +362,28 @@ const AppUI = {
     if (AppState.countdownInterval) clearInterval(AppState.countdownInterval);
     if (AppState.worldClockInterval) clearInterval(AppState.worldClockInterval);
 
-    let hash = window.location.hash || '#/';
-    if (hash.includes('?')) {
-      hash = hash.split('?')[0];
+    let rawHash = window.location.hash || '#/';
+    let queryString = '';
+    if (rawHash.includes('?')) {
+      const parts = rawHash.split('?');
+      rawHash = parts[0];
+      queryString = parts[1] || '';
     }
+    let hash = rawHash;
     if (hash.length > 2 && hash.endsWith('/')) {
       hash = hash.slice(0, -1);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Update active nav link
+    document.querySelectorAll('.nav-links .nav-item').forEach(item => {
+      const link = item.querySelector('a');
+      if (link && link.getAttribute('href') === hash) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
+      }
+    });
 
     if (hash === '#/' || hash === '#' || hash === '') {
       this.renderHomePage();
@@ -237,7 +394,21 @@ const AppUI = {
       this.renderCategoryPage(catId);
     } else if (hash.startsWith('#/calculator/')) {
       const calcId = hash.replace('#/calculator/', '');
-      this.renderCalculatorPage(calcId);
+      if (!AppState.isLoggedIn()) {
+        this.renderAuthPage({ mode: 'signup', redirectCalcId: calcId });
+      } else {
+        this.renderCalculatorPage(calcId);
+      }
+    } else if (hash === '#/signup') {
+      const params = new URLSearchParams(queryString);
+      const redirectCalcId = params.get('redirect') || null;
+      this.renderAuthPage({ mode: 'signup', redirectCalcId });
+    } else if (hash === '#/login') {
+      const params = new URLSearchParams(queryString);
+      const redirectCalcId = params.get('redirect') || null;
+      this.renderAuthPage({ mode: 'login', redirectCalcId });
+    } else if (hash === '#/profile' || hash === '#/account') {
+      this.renderProfilePage();
     } else if (hash === '#/favorites') {
       this.renderFavoritesPage();
     } else {
@@ -294,8 +465,47 @@ const AppUI = {
             <a href="#/calculator/scientific-calculator" class="quick-tag">Scientific</a>
             <a href="#/calculator/age-calculator" class="quick-tag">Age Calculator</a>
           </div>
+
+          <!-- Hero Auth CTA Row -->
+          ${!AppState.isLoggedIn() ? `
+            <div style="display: flex; justify-content: center; gap: 0.75rem; margin-top: 1.75rem; flex-wrap: wrap;">
+              <a href="#/signup" class="btn-auth-signup" style="font-size: 0.95rem; padding: 0.65rem 1.4rem;">
+                ${getIconSvg('sparkles', 16)} Sign Up Free to Unlock 80+ Calculators
+              </a>
+              <a href="#/login" class="btn-secondary" style="padding: 0.65rem 1.15rem; font-size: 0.92rem;">
+                Sign In
+              </a>
+            </div>
+          ` : `
+            <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem; align-items: center; color: var(--emerald); font-size: 0.92rem; font-weight: 600;">
+              ${getIconSvg('check', 18)}
+              <span>Welcome back, ${AppState.currentUser.name.split(' ')[0]}! All 80+ calculators unlocked for free.</span>
+            </div>
+          `}
         </div>
       </section>
+
+      <!-- Free Signup Conversion Promo -->
+      ${!AppState.isLoggedIn() ? `
+        <section class="container">
+          <div class="auth-promo-card">
+            <div class="auth-promo-text">
+              <span class="auth-badge-pill">${getIconSvg('sparkles', 14)} 100% Free Forever</span>
+              <h3>Create Your Free Account</h3>
+              <p>Join thousands calculating every day. Unlock all 80+ precision tools, save your calculation history locally, and star your favorite calculators for 1-click access.</p>
+            </div>
+            <div class="auth-promo-btns">
+              <a href="#/signup" class="btn-auth-signup" style="font-size: 1rem; padding: 0.75rem 1.4rem;">
+                ${getIconSvg('sparkles', 18)}
+                <span>Sign Up Free (Instant)</span>
+              </a>
+              <a href="#/login" class="btn-secondary" style="font-size: 0.92rem; padding: 0.75rem 1.25rem;">
+                Sign In
+              </a>
+            </div>
+          </div>
+        </section>
+      ` : ''}
 
       <!-- Main Categories Section -->
       <section class="container" style="padding-top: 1rem;">
@@ -390,6 +600,326 @@ const AppUI = {
     });
 
     this.bindCardEvents();
+  },
+
+  // ==========================================
+  // VIEW: AUTH PAGE (FREE SIGNUP & LOGIN)
+  // ==========================================
+  renderAuthPage({ mode = 'signup', redirectCalcId = null } = {}) {
+    let targetCalc = null;
+    if (redirectCalcId) {
+      targetCalc = getCalculatorById(redirectCalcId);
+    }
+
+    const pageTitle = mode === 'signup' 
+      ? (targetCalc ? `Sign Up Free to Access ${targetCalc.title}` : 'Sign Up Free - Unlock 80+ Calculators') 
+      : 'Log In - letscalculate.in';
+    document.title = `${pageTitle} | letscalculate.in`;
+
+    const mainEl = document.getElementById('app-main');
+    if (!mainEl) return;
+
+    let bannerBadge = '⚡ 100% FREE FOREVER';
+    let bannerTitle = 'Create Your Free Account';
+    let bannerDesc = 'Unlock instant access to all 80+ precision calculators, save calculation history, and bookmark your frequent tools.';
+
+    if (targetCalc) {
+      bannerBadge = '🔒 FREE ACCESS REQUIRED';
+      bannerTitle = `Sign Up Free to Access ${targetCalc.title}`;
+      bannerDesc = `Join thousands using letscalculate.in. Create your free account in seconds to unlock ${targetCalc.title} with full interactive charts, step-by-step formulas, and saved history.`;
+    } else if (mode === 'login') {
+      bannerBadge = '👋 WELCOME BACK';
+      bannerTitle = 'Sign In to letscalculate.in';
+      bannerDesc = 'Access your saved calculations, bookmarks, and all 80+ unlocked tools.';
+    }
+
+    mainEl.innerHTML = `
+      <div class="auth-page-container">
+        <div class="auth-glow-bg"></div>
+        <div class="auth-card">
+          <div class="auth-header">
+            <div class="auth-badge-pill">
+              ${getIconSvg('sparkles', 14)}
+              <span>${bannerBadge}</span>
+            </div>
+            <h1 class="auth-title">${bannerTitle}</h1>
+            <p class="auth-subtitle">${bannerDesc}</p>
+          </div>
+
+          <!-- Auth Tab Switcher -->
+          <div class="auth-tabs" role="tablist">
+            <button type="button" class="auth-tab-btn ${mode === 'signup' ? 'active' : ''}" id="tab-btn-signup">
+              ${getIconSvg('sparkles', 16)} Sign Up Free
+            </button>
+            <button type="button" class="auth-tab-btn ${mode === 'login' ? 'active' : ''}" id="tab-btn-login">
+              ${getIconSvg('user', 16)} Log In
+            </button>
+          </div>
+
+          <!-- Alert error container -->
+          <div id="auth-alert" style="display: none; padding: 0.75rem 1rem; border-radius: var(--radius-md); background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.3); color: #fb7185; font-size: 0.88rem; margin-bottom: 1.25rem;"></div>
+
+          <!-- Signup Form -->
+          <form class="auth-form" id="signup-form" style="display: ${mode === 'signup' ? 'flex' : 'none'};">
+            <div class="auth-form-group">
+              <label class="auth-label" for="signup-name">Full Name</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon">${getIconSvg('user', 18)}</span>
+                <input type="text" id="signup-name" class="auth-input" placeholder="e.g. Rahul Sharma" required autocomplete="name">
+              </div>
+            </div>
+
+            <div class="auth-form-group">
+              <label class="auth-label" for="signup-email">Email Address</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon">${getIconSvg('mail', 18)}</span>
+                <input type="email" id="signup-email" class="auth-input" placeholder="name@example.com" required autocomplete="email">
+              </div>
+            </div>
+
+            <div class="auth-form-group">
+              <label class="auth-label" for="signup-password">Create Password</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon">${getIconSvg('lock', 18)}</span>
+                <input type="password" id="signup-password" class="auth-input" placeholder="At least 6 characters" required autocomplete="new-password" minlength="6">
+              </div>
+            </div>
+
+            <label class="auth-checkbox-row">
+              <input type="checkbox" id="signup-terms" checked required>
+              <span>I agree to Terms & Free Fair Use Policy. 100% Free forever (No card needed).</span>
+            </label>
+
+            <button type="submit" class="btn-auth-submit">
+              ${getIconSvg('sparkles', 18)}
+              <span>Create Free Account & Access</span>
+            </button>
+          </form>
+
+          <!-- Login Form -->
+          <form class="auth-form" id="login-form" style="display: ${mode === 'login' ? 'flex' : 'none'};">
+            <div class="auth-form-group">
+              <label class="auth-label" for="login-email">Email Address</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon">${getIconSvg('mail', 18)}</span>
+                <input type="email" id="login-email" class="auth-input" placeholder="name@example.com" required autocomplete="email">
+              </div>
+            </div>
+
+            <div class="auth-form-group">
+              <label class="auth-label" for="login-password">Password</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon">${getIconSvg('lock', 18)}</span>
+                <input type="password" id="login-password" class="auth-input" placeholder="Your password" required autocomplete="current-password">
+              </div>
+            </div>
+
+            <button type="submit" class="btn-auth-submit">
+              ${getIconSvg('user', 18)}
+              <span>Sign In & Continue</span>
+            </button>
+          </form>
+
+          <!-- Instant Demo & Frictionless Access -->
+          <div class="auth-divider">Or 1-Click Fast Access</div>
+
+          <button type="button" class="btn-demo-login" id="instant-demo-btn">
+            ${getIconSvg('sparkles', 18)}
+            <span>Instant Demo Login (1-Click Test)</span>
+          </button>
+
+          <div class="auth-guest-row">
+            <span>Just want a quick calculation? </span>
+            <button type="button" class="auth-guest-link" id="continue-guest-btn" style="background:none;border:none;padding:0;">Continue as Guest</button>
+          </div>
+
+          <!-- Feature Highlights -->
+          <div class="auth-features-list">
+            <div class="auth-feature-item">
+              ${getIconSvg('check', 16)}
+              <span>80+ Precision Tools</span>
+            </div>
+            <div class="auth-feature-item">
+              ${getIconSvg('check', 16)}
+              <span>Save History Locally</span>
+            </div>
+            <div class="auth-feature-item">
+              ${getIconSvg('check', 16)}
+              <span>100% Free Forever</span>
+            </div>
+            <div class="auth-feature-item">
+              ${getIconSvg('check', 16)}
+              <span>No Card Required</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Event Handlers
+    const tabSignup = document.getElementById('tab-btn-signup');
+    const tabLogin = document.getElementById('tab-btn-login');
+    const signupForm = document.getElementById('signup-form');
+    const loginForm = document.getElementById('login-form');
+    const alertBox = document.getElementById('auth-alert');
+
+    const showAlert = (msg) => {
+      if (alertBox) {
+        alertBox.textContent = msg;
+        alertBox.style.display = 'block';
+      }
+    };
+    const hideAlert = () => {
+      if (alertBox) alertBox.style.display = 'none';
+    };
+
+    const switchTab = (targetMode) => {
+      hideAlert();
+      if (targetMode === 'signup') {
+        tabSignup?.classList.add('active');
+        tabLogin?.classList.remove('active');
+        if (signupForm) signupForm.style.display = 'flex';
+        if (loginForm) loginForm.style.display = 'none';
+      } else {
+        tabLogin?.classList.add('active');
+        tabSignup?.classList.remove('active');
+        if (loginForm) loginForm.style.display = 'flex';
+        if (signupForm) signupForm.style.display = 'none';
+      }
+    };
+
+    tabSignup?.addEventListener('click', () => switchTab('signup'));
+    tabLogin?.addEventListener('click', () => switchTab('login'));
+
+    const redirectAfterAuth = () => {
+      if (redirectCalcId) {
+        window.location.hash = `#/calculator/${redirectCalcId}`;
+      } else {
+        window.location.hash = '#/';
+      }
+    };
+
+    signupForm?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      hideAlert();
+      const name = document.getElementById('signup-name')?.value || '';
+      const email = document.getElementById('signup-email')?.value || '';
+      const password = document.getElementById('signup-password')?.value || '';
+
+      try {
+        AppState.signup(name, email, password);
+        AppUI.showToast(`Welcome, ${name.split(' ')[0]}! Full access unlocked.`);
+        redirectAfterAuth();
+      } catch (err) {
+        showAlert(err.message);
+      }
+    });
+
+    loginForm?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      hideAlert();
+      const email = document.getElementById('login-email')?.value || '';
+      const password = document.getElementById('login-password')?.value || '';
+
+      try {
+        const user = AppState.login(email, password);
+        AppUI.showToast(`Welcome back, ${user.name.split(' ')[0]}!`);
+        redirectAfterAuth();
+      } catch (err) {
+        showAlert(err.message);
+      }
+    });
+
+    document.getElementById('instant-demo-btn')?.addEventListener('click', () => {
+      AppState.demoLogin();
+      AppUI.showToast('Logged in as Demo User! Unrestricted access active.');
+      redirectAfterAuth();
+    });
+
+    document.getElementById('continue-guest-btn')?.addEventListener('click', () => {
+      AppState.continueAsGuest();
+      AppUI.showToast('Continuing as Guest.');
+      redirectAfterAuth();
+    });
+  },
+
+  // ==========================================
+  // VIEW: USER PROFILE / ACCOUNT PAGE
+  // ==========================================
+  renderProfilePage() {
+    if (!AppState.isLoggedIn()) {
+      window.location.hash = '#/login';
+      return;
+    }
+
+    const user = AppState.currentUser;
+    const initial = (user.name || 'U').charAt(0).toUpperCase();
+    document.title = `My Account - ${user.name} | letscalculate.in`;
+
+    const mainEl = document.getElementById('app-main');
+    if (!mainEl) return;
+
+    mainEl.innerHTML = `
+      <div class="profile-view-wrapper">
+        <div class="profile-card">
+          <div class="profile-header-row">
+            <div class="profile-avatar-large">${initial}</div>
+            <div class="profile-info">
+              <h2>${user.name}</h2>
+              <p>${user.email}</p>
+              <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <span class="user-tier-badge" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;">${user.plan || 'Free Lifetime Member'}</span>
+                <span style="font-size: 0.85rem; color: var(--text-muted);">Joined ${user.joinedDate || 'Recently'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-stats-grid">
+            <div class="profile-stat-box">
+              <div class="profile-stat-val">80+</div>
+              <div class="profile-stat-lbl">Calculators Unlocked</div>
+            </div>
+            <div class="profile-stat-box">
+              <div class="profile-stat-val">${AppState.history.length}</div>
+              <div class="profile-stat-lbl">Saved Calculations</div>
+            </div>
+            <div class="profile-stat-box">
+              <div class="profile-stat-val">${AppState.favorites.length}</div>
+              <div class="profile-stat-lbl">Bookmarked Tools</div>
+            </div>
+          </div>
+
+          <div class="profile-actions-row">
+            <a href="#/categories" class="btn-auth-signup" style="padding: 0.65rem 1.25rem; font-size: 0.92rem; border-radius: var(--radius-md);">
+              ${getIconSvg('calculator', 18)}
+              <span>Browse All Calculators</span>
+            </a>
+            <button type="button" class="btn-secondary" id="profile-history-btn">
+              ${getIconSvg('history', 18)}
+              <span>View Calculation History</span>
+            </button>
+            <a href="#/favorites" class="btn-secondary">
+              ${getIconSvg('star', 18)}
+              <span>View Bookmarks</span>
+            </a>
+            <button type="button" class="btn-secondary" id="profile-logout-btn" style="color: var(--rose); margin-left: auto;">
+              ${getIconSvg('log-out', 18)}
+              <span>Log Out</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('profile-history-btn')?.addEventListener('click', () => {
+      document.getElementById('drawer-backdrop')?.classList.add('open');
+      document.getElementById('history-drawer')?.classList.add('open');
+      this.renderHistoryDrawer();
+    });
+
+    document.getElementById('profile-logout-btn')?.addEventListener('click', () => {
+      AppState.logout();
+    });
   },
 
   // ==========================================
@@ -523,6 +1053,11 @@ const AppUI = {
   // VIEW: DEDICATED CALCULATOR PAGE
   // ==========================================
   renderCalculatorPage(calcId) {
+    if (!AppState.isLoggedIn()) {
+      this.renderAuthPage({ mode: 'signup', redirectCalcId: calcId });
+      return;
+    }
+
     const calc = getCalculatorById(calcId);
     if (!calc) {
       window.location.hash = '#/';
