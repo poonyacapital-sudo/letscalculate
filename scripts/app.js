@@ -41,6 +41,16 @@ function getIconSvg(iconName, size = 20) {
   return icons[iconName] || icons['calculator'];
 }
 
+// Migration: clear any legacy or demo/guest sessions from user's browser
+try {
+  const currentAuthV = localStorage.getItem('letscalculate_auth_v');
+  const storedUserStr = localStorage.getItem('letscalculate_user');
+  if (currentAuthV !== '2.3' || (storedUserStr && (storedUserStr.includes('demo@') || storedUserStr.includes('guest@') || storedUserStr.includes('Demo User') || storedUserStr.includes('Guest')))) {
+    localStorage.removeItem('letscalculate_user');
+    localStorage.setItem('letscalculate_auth_v', '2.3');
+  }
+} catch (e) {}
+
 // App State
 const AppState = {
   theme: localStorage.getItem('letscalculate_theme') || 'dark',
@@ -54,7 +64,20 @@ const AppState = {
   worldClockInterval: null,
 
   isLoggedIn() {
-    return !!this.currentUser;
+    if (!this.currentUser) return false;
+    // Disallow any legacy demo or guest sessions
+    if (
+      this.currentUser.email === 'demo@letscalculate.in' ||
+      this.currentUser.email === 'guest@letscalculate.in' ||
+      this.currentUser.name === 'Demo User' ||
+      this.currentUser.name === 'Guest User' ||
+      this.currentUser.plan === 'Guest Pass'
+    ) {
+      this.currentUser = null;
+      try { localStorage.removeItem('letscalculate_user'); } catch (e) {}
+      return false;
+    }
+    return true;
   },
 
   signup(name, mobile, email, password) {
@@ -433,6 +456,9 @@ const AppUI = {
       } else {
         const params = new URLSearchParams(queryString);
         const redirectCalcId = params.get('redirect') || null;
+        if (window.location.hash !== '#/signup') {
+          try { history.replaceState(null, '', '#/signup'); } catch (e) {}
+        }
         this.renderAuthPage({ mode: 'signup', redirectCalcId });
       }
       this.updateHeaderBadges();
