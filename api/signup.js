@@ -43,6 +43,11 @@ module.exports = async (req, res) => {
       return;
     }
 
+    if (!password || password.length < 8) {
+      res.status(400).json({ error: 'Password must be at least 8 characters long.' });
+      return;
+    }
+
     const now = new Date();
     const formattedDate = now.toLocaleString('en-IN', {
       day: '2-digit',
