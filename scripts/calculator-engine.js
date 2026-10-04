@@ -6,19 +6,19 @@
 
 const CalculatorEngine = {
   // Format helpers
-  formatCurrency(num, symbol = '$') {
+  formatCurrency(num, symbol = '₹') {
     if (isNaN(num) || !isFinite(num)) return `${symbol}0.00`;
-    return `${symbol}${Number(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `${symbol}${Number(num).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   },
 
   formatNumber(num, decimals = 2) {
     if (isNaN(num) || !isFinite(num)) return '0';
-    return Number(num).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    return Number(num).toLocaleString('en-IN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   },
 
   formatCompact(num) {
     if (isNaN(num) || !isFinite(num)) return '0';
-    return new Intl.NumberFormat('en-US', { notation: 'compact', compactDisplay: 'short' }).format(num);
+    return new Intl.NumberFormat('en-IN', { notation: 'compact', compactDisplay: 'short' }).format(num);
   },
 
   // Main evaluation dispatch
@@ -2143,7 +2143,7 @@ const CalculatorEngine = {
         subtext: trimester
       },
       stats: [
-        { label: 'Estimated Due Date (EDD)', value: edd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }), highlight: true },
+        { label: 'Estimated Due Date (EDD)', value: edd.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }), highlight: true },
         { label: 'Days Until Delivery', value: `${Math.max(0, 280 - diffDays)} Days` },
         { label: 'Pregnancy Progress', value: `${Math.min(100, ((diffDays / 280) * 100)).toFixed(0)}% Completed` }
       ]
@@ -2167,7 +2167,7 @@ const CalculatorEngine = {
     return {
       primaryResult: {
         label: 'Estimated Delivery Date',
-        value: edd.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+        value: edd.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
         subtext: '40 Weeks Gestational Expectation'
       },
       stats: [
@@ -2254,7 +2254,7 @@ const CalculatorEngine = {
         { label: 'Total Lived Days', value: totalDays.toLocaleString(), highlight: true },
         { label: 'Total Lived Hours', value: totalHours.toLocaleString() },
         { label: 'Total Lived Weeks', value: Math.floor(totalDays / 7).toLocaleString() },
-        { label: 'Next Birthday', value: nextBday.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) }
+        { label: 'Next Birthday', value: nextBday.toLocaleDateString('en-IN', { month: 'long', day: 'numeric', year: 'numeric' }) }
       ]
     };
   },
@@ -2313,11 +2313,11 @@ const CalculatorEngine = {
     return {
       primaryResult: {
         label: 'Calculated Target Date',
-        value: res.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+        value: res.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
         subtext: `${op === 'add' ? 'Added' : 'Subtracted'} time from ${start.toLocaleDateString()}`
       },
       stats: [
-        { label: 'Day of the Week', value: res.toLocaleDateString('en-US', { weekday: 'long' }) },
+        { label: 'Day of the Week', value: res.toLocaleDateString('en-IN', { weekday: 'long' }) },
         { label: 'ISO Format', value: res.toISOString().split('T')[0] }
       ]
     };
@@ -2408,13 +2408,13 @@ const CalculatorEngine = {
 
   'day-of-week-calculator'(inputs) {
     const d = new Date(inputs.queryDate || '2026-12-25');
-    const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
+    const dayName = d.toLocaleDateString('en-IN', { weekday: 'long' });
 
     return {
       primaryResult: {
         label: 'Day of the Week',
         value: dayName,
-        subtext: d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+        subtext: d.toLocaleDateString('en-IN', { month: 'long', day: 'numeric', year: 'numeric' })
       },
       stats: [
         { label: 'Is Weekend?', value: (d.getDay() === 0 || d.getDay() === 6) ? 'Yes' : 'No' },
