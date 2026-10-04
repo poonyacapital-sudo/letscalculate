@@ -68,8 +68,8 @@ const AppState = {
     if (!email || !email.includes('@') || !email.includes('.')) {
       throw new Error('Valid Email ID is mandatory.');
     }
-    if (!password || password.length < 6) {
-      throw new Error('Password must be at least 6 characters long.');
+    if (!password || password.length < 8) {
+      throw new Error('Password must be at least 8 characters long.');
     }
     const cleanEmail = email.toLowerCase().trim();
     if (this.accounts.some(acc => acc.email.toLowerCase() === cleanEmail)) {
@@ -121,17 +121,13 @@ const AppState = {
       throw new Error('Please enter both your email and password.');
     }
     const cleanEmail = email.toLowerCase().trim();
-    let account = this.accounts.find(a => a.email.toLowerCase() === cleanEmail && a.password === password);
-    if (!account && cleanEmail === 'demo@letscalculate.in') {
-      account = { name: 'Demo User', mobile: '9876543210', email: 'demo@letscalculate.in' };
-    }
+    const account = this.accounts.find(a => a.email.toLowerCase() === cleanEmail && a.password === password);
 
     if (!account) {
       const emailExists = this.accounts.some(a => a.email.toLowerCase() === cleanEmail);
       if (emailExists) {
         throw new Error('Incorrect password. Please try again.');
       }
-      // If user enters an un-registered email, ask them to sign up with mandatory mobile number
       throw new Error('Account not found with this email. Please switch to "Sign Up Free" to create your account.');
     }
 
@@ -147,38 +143,13 @@ const AppState = {
     return this.currentUser;
   },
 
-  demoLogin() {
-    this.currentUser = {
-      name: 'Demo User',
-      mobile: '9876543210',
-      email: 'demo@letscalculate.in',
-      joinedDate: new Date().toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }),
-      plan: 'Free Lifetime Member'
-    };
-    localStorage.setItem('letscalculate_user', JSON.stringify(this.currentUser));
-    AppUI.updateHeaderBadges();
-    return this.currentUser;
-  },
-
-  continueAsGuest() {
-    this.currentUser = {
-      name: 'Guest User',
-      mobile: '9999999999',
-      email: 'guest@letscalculate.in',
-      joinedDate: 'Guest Session',
-      plan: 'Guest Pass'
-    };
-    localStorage.setItem('letscalculate_user', JSON.stringify(this.currentUser));
-    AppUI.updateHeaderBadges();
-    return this.currentUser;
-  },
-
   logout() {
     this.currentUser = null;
     localStorage.removeItem('letscalculate_user');
     AppUI.updateHeaderBadges();
     AppUI.showToast('You have been logged out.');
-    window.location.hash = '#/';
+    window.location.hash = '#/login';
+    AppUI.handleRoute();
   },
 
   toggleTheme() {
@@ -257,6 +228,11 @@ const AppUI = {
     const searchInput = document.getElementById('modal-search-input');
 
     const openSearch = () => {
+      if (!AppState.isLoggedIn()) {
+        this.showToast('Please sign up or log in to search and access calculators.', 'alert-triangle');
+        window.location.hash = '#/signup';
+        return;
+      }
       searchModal.classList.add('open');
       searchInput.value = '';
       searchInput.focus();
@@ -302,12 +278,22 @@ const AppUI = {
     };
 
     document.getElementById('header-history-btn')?.addEventListener('click', () => {
+      if (!AppState.isLoggedIn()) {
+        this.showToast('Please sign up or log in to view calculation history.', 'alert-triangle');
+        window.location.hash = '#/signup';
+        return;
+      }
       drawerBackdrop.classList.add('open');
       historyDrawer?.classList.add('open');
       this.renderHistoryDrawer();
     });
 
     document.getElementById('header-favorites-btn')?.addEventListener('click', () => {
+      if (!AppState.isLoggedIn()) {
+        this.showToast('Please sign up or log in to view saved favorites.', 'alert-triangle');
+        window.location.hash = '#/signup';
+        return;
+      }
       drawerBackdrop.classList.add('open');
       favDrawer?.classList.add('open');
       this.renderFavoritesDrawer();
@@ -329,7 +315,28 @@ const AppUI = {
     const favBadge = document.getElementById('fav-count-badge');
     if (favBadge) {
       favBadge.textContent = AppState.favorites.length;
-      favBadge.style.display = AppState.favorites.length > 0 ? 'inline-block' : 'none';
+      favBadge.style.display = (AppState.isLoggedIn() && AppState.favorites.length > 0) ? 'inline-block' : 'none';
+    }
+
+    // Dynamic Navigation links
+    const navLinksEl = document.querySelector('.nav-links');
+    if (navLinksEl) {
+      if (AppState.isLoggedIn()) {
+        navLinksEl.innerHTML = `
+          <li class="nav-item"><a href="#/">Home</a></li>
+          <li class="nav-item"><a href="#/categories">Categories</a></li>
+          <li class="nav-item"><a href="#/category/financial">Finance</a></li>
+          <li class="nav-item"><a href="#/category/math">Math</a></li>
+          <li class="nav-item"><a href="#/category/health">Health</a></li>
+          <li class="nav-item"><a href="#/category/conversion">Conversions</a></li>
+          <li class="nav-item"><a href="#/favorites">Favorites</a></li>
+        `;
+      } else {
+        navLinksEl.innerHTML = `
+          <li class="nav-item active"><a href="#/signup" style="color: var(--emerald); font-weight: 700;">Sign Up Free</a></li>
+          <li class="nav-item"><a href="#/login">Log In</a></li>
+        `;
+      }
     }
 
     const authContainer = document.getElementById('header-auth-container');
@@ -414,6 +421,30 @@ const AppUI = {
       }
     });
 
+    // STRICT GATING: Unauthenticated visitors MUST sign up / log in to access any calculators
+    if (!AppState.isLoggedIn()) {
+      if (hash === '#/login') {
+        const params = new URLSearchParams(queryString);
+        const redirectCalcId = params.get('redirect') || null;
+        this.renderAuthPage({ mode: 'login', redirectCalcId });
+      } else if (hash.startsWith('#/calculator/')) {
+        const calcId = hash.replace('#/calculator/', '');
+        this.renderAuthPage({ mode: 'signup', redirectCalcId: calcId });
+      } else {
+        const params = new URLSearchParams(queryString);
+        const redirectCalcId = params.get('redirect') || null;
+        this.renderAuthPage({ mode: 'signup', redirectCalcId });
+      }
+      this.updateHeaderBadges();
+      return;
+    }
+
+    // LOGGED IN USER: If visiting auth routes, redirect to home page
+    if (hash === '#/login' || hash === '#/signup') {
+      window.location.hash = '#/';
+      return;
+    }
+
     if (hash === '#/' || hash === '#' || hash === '') {
       this.renderHomePage();
     } else if (hash === '#/categories') {
@@ -423,19 +454,7 @@ const AppUI = {
       this.renderCategoryPage(catId);
     } else if (hash.startsWith('#/calculator/')) {
       const calcId = hash.replace('#/calculator/', '');
-      if (!AppState.isLoggedIn()) {
-        this.renderAuthPage({ mode: 'signup', redirectCalcId: calcId });
-      } else {
-        this.renderCalculatorPage(calcId);
-      }
-    } else if (hash === '#/signup') {
-      const params = new URLSearchParams(queryString);
-      const redirectCalcId = params.get('redirect') || null;
-      this.renderAuthPage({ mode: 'signup', redirectCalcId });
-    } else if (hash === '#/login') {
-      const params = new URLSearchParams(queryString);
-      const redirectCalcId = params.get('redirect') || null;
-      this.renderAuthPage({ mode: 'login', redirectCalcId });
+      this.renderCalculatorPage(calcId);
     } else if (hash === '#/profile' || hash === '#/account') {
       this.renderProfilePage();
     } else if (hash === '#/favorites') {
@@ -443,6 +462,8 @@ const AppUI = {
     } else {
       this.renderHomePage();
     }
+
+    this.updateHeaderBadges();
   },
 
   // ==========================================
@@ -719,8 +740,9 @@ const AppUI = {
               <label class="auth-label" for="signup-password">Create Password <span style="color: var(--rose);">*</span></label>
               <div class="auth-input-wrap">
                 <span class="auth-input-icon">${getIconSvg('lock', 18)}</span>
-                <input type="password" id="signup-password" class="auth-input" placeholder="At least 6 characters" required autocomplete="new-password" minlength="6">
+                <input type="password" id="signup-password" class="auth-input" placeholder="At least 8 characters" required autocomplete="new-password" minlength="8">
               </div>
+              <span style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.15rem;">Must be at least 8 characters</span>
             </div>
 
             <label class="auth-checkbox-row">
@@ -758,21 +780,8 @@ const AppUI = {
             </button>
           </form>
 
-          <!-- Instant Demo & Frictionless Access -->
-          <div class="auth-divider">Or 1-Click Fast Access</div>
-
-          <button type="button" class="btn-demo-login" id="instant-demo-btn">
-            ${getIconSvg('sparkles', 18)}
-            <span>Instant Demo Login (1-Click Test)</span>
-          </button>
-
-          <div class="auth-guest-row">
-            <span>Just want a quick calculation? </span>
-            <button type="button" class="auth-guest-link" id="continue-guest-btn" style="background:none;border:none;padding:0;">Continue as Guest</button>
-          </div>
-
           <!-- Feature Highlights -->
-          <div class="auth-features-list">
+          <div class="auth-features-list" style="margin-top: 1.75rem;">
             <div class="auth-feature-item">
               ${getIconSvg('check', 16)}
               <span>80+ Precision Tools</span>
@@ -800,6 +809,9 @@ const AppUI = {
     const signupForm = document.getElementById('signup-form');
     const loginForm = document.getElementById('login-form');
     const alertBox = document.getElementById('auth-alert');
+    const titleEl = document.querySelector('.auth-title');
+    const subtitleEl = document.querySelector('.auth-subtitle');
+    const badgeEl = document.querySelector('.auth-badge-pill span');
 
     const showAlert = (msg) => {
       if (alertBox) {
@@ -818,11 +830,17 @@ const AppUI = {
         tabLogin?.classList.remove('active');
         if (signupForm) signupForm.style.display = 'flex';
         if (loginForm) loginForm.style.display = 'none';
+        if (badgeEl) badgeEl.textContent = '⚡ 100% FREE FOREVER';
+        if (titleEl) titleEl.textContent = 'Create Your Free Account';
+        if (subtitleEl) subtitleEl.textContent = 'Sign up with full name, 10-digit mobile number, email, and password to unlock all calculators.';
       } else {
         tabLogin?.classList.add('active');
         tabSignup?.classList.remove('active');
         if (loginForm) loginForm.style.display = 'flex';
         if (signupForm) signupForm.style.display = 'none';
+        if (badgeEl) badgeEl.textContent = '👋 WELCOME BACK';
+        if (titleEl) titleEl.textContent = 'Sign In to letscalculate.in';
+        if (subtitleEl) subtitleEl.textContent = 'Enter your email address and password to access your calculators and saved history.';
       }
     };
 
@@ -867,18 +885,6 @@ const AppUI = {
       } catch (err) {
         showAlert(err.message);
       }
-    });
-
-    document.getElementById('instant-demo-btn')?.addEventListener('click', () => {
-      AppState.demoLogin();
-      AppUI.showToast('Logged in as Demo User! Unrestricted access active.');
-      redirectAfterAuth();
-    });
-
-    document.getElementById('continue-guest-btn')?.addEventListener('click', () => {
-      AppState.continueAsGuest();
-      AppUI.showToast('Continuing as Guest.');
-      redirectAfterAuth();
     });
   },
 
