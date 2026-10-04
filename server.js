@@ -155,39 +155,62 @@ const server = http.createServer((req, res) => {
 
   // API Route: Download Excel File
   if (reqUrl === '/api/download-excel' || reqUrl === '/letscalculate.in_data.xlsx') {
-    fs.readFile(EXCEL_PATH, (err, data) => {
-      if (err) {
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Excel file not found' }));
-        return;
-      }
+    let targetPath = EXCEL_PATH;
+    if (!fs.existsSync(targetPath) && fs.existsSync(path.join('/tmp', 'letscalculate.in_data.xlsx'))) {
+      targetPath = path.join('/tmp', 'letscalculate.in_data.xlsx');
+    }
+    if (fs.existsSync(targetPath)) {
+      const data = fs.readFileSync(targetPath);
       res.writeHead(200, {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'Content-Disposition': 'attachment; filename="letscalculate.in_data.xlsx"'
       });
       res.end(data);
+      return;
+    }
+    // Generate fresh workbook with headers if not yet created
+    const wb = xlsx.utils.book_new();
+    const ws = xlsx.utils.json_to_sheet([]);
+    ws['!cols'] = [
+      { wch: 26 },
+      { wch: 18 },
+      { wch: 32 },
+      { wch: 24 },
+      { wch: 20 }
+    ];
+    xlsx.utils.book_append_sheet(wb, ws, 'Signups');
+    const buffer = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    res.writeHead(200, {
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename="letscalculate.in_data.xlsx"'
     });
+    res.end(buffer);
     return;
   }
 
   // API Route: Get Signups as JSON
   if (reqUrl === '/api/signups' && req.method === 'GET') {
     try {
-      if (!fs.existsSync(EXCEL_PATH)) {
+      let targetPath = EXCEL_PATH;
+      if (!fs.existsSync(targetPath) && fs.existsSync(path.join('/tmp', 'letscalculate.in_data.xlsx'))) {
+        targetPath = path.join('/tmp', 'letscalculate.in_data.xlsx');
+      }
+      if (!fs.existsSync(targetPath)) {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ signups: [] }));
         return;
       }
-      const wb = xlsx.readFile(EXCEL_PATH);
+      const wb = xlsx.readFile(targetPath);
       const sheet = wb.Sheets[wb.SheetNames[0]];
       const rows = xlsx.utils.sheet_to_json(sheet);
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ signups: rows }));
-    } catch (e) {
+      return;
+    } catch (err) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: e.message }));
+      res.end(JSON.stringify({ error: err.message }));
+      return;
     }
-    return;
   }
 
   // Static File Serving
