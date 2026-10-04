@@ -7988,7 +7988,9 @@ function getIconSvg(iconName, size = 20) {
     'mail': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`,
     'log-out': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>`,
     'sparkles': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>`,
-    'shield-check': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>`
+    'shield-check': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>`,
+    'phone': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`,
+    'download': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>`
   };
   return icons[iconName] || icons['calculator'];
 }
@@ -8009,12 +8011,16 @@ const AppState = {
     return !!this.currentUser;
   },
 
-  signup(name, email, password) {
+  signup(name, mobile, email, password) {
     if (!name || name.trim().length < 2) {
-      throw new Error('Please enter your full name (at least 2 characters).');
+      throw new Error('Full Name is mandatory (at least 2 characters).');
+    }
+    const cleanMobile = String(mobile || '').replace(/\D/g, '');
+    if (!cleanMobile || cleanMobile.length !== 10) {
+      throw new Error('Valid 10-digit Mobile Number is mandatory.');
     }
     if (!email || !email.includes('@') || !email.includes('.')) {
-      throw new Error('Please enter a valid email address.');
+      throw new Error('Valid Email ID is mandatory.');
     }
     if (!password || password.length < 6) {
       throw new Error('Password must be at least 6 characters long.');
@@ -8025,6 +8031,7 @@ const AppState = {
     }
     const newAccount = {
       name: name.trim(),
+      mobile: cleanMobile,
       email: cleanEmail,
       password: password,
       createdAt: new Date().toISOString()
@@ -8034,11 +8041,31 @@ const AppState = {
 
     this.currentUser = {
       name: newAccount.name,
+      mobile: cleanMobile,
       email: newAccount.email,
       joinedDate: new Date().toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }),
       plan: 'Free Lifetime Member'
     };
     localStorage.setItem('letscalculate_user', JSON.stringify(this.currentUser));
+
+    // Sync directly to backend Excel spreadsheet API
+    try {
+      fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newAccount.name,
+          mobile: cleanMobile,
+          email: cleanEmail,
+          password: password
+        })
+      }).then(r => r.json()).then(res => {
+        console.log('[EXCEL SYNC]', res);
+      }).catch(err => {
+        console.warn('Backend Excel sync notification:', err.message);
+      });
+    } catch (e) {}
+
     AppUI.updateHeaderBadges();
     return this.currentUser;
   },
@@ -8050,7 +8077,7 @@ const AppState = {
     const cleanEmail = email.toLowerCase().trim();
     let account = this.accounts.find(a => a.email.toLowerCase() === cleanEmail && a.password === password);
     if (!account && cleanEmail === 'demo@letscalculate.in') {
-      account = { name: 'Demo User', email: 'demo@letscalculate.in' };
+      account = { name: 'Demo User', mobile: '9876543210', email: 'demo@letscalculate.in' };
     }
 
     if (!account) {
@@ -8058,13 +8085,13 @@ const AppState = {
       if (emailExists) {
         throw new Error('Incorrect password. Please try again.');
       }
-      // Auto-register for smooth onboarding
-      const name = cleanEmail.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-      return this.signup(name, email, password);
+      // If user enters an un-registered email, ask them to sign up with mandatory mobile number
+      throw new Error('Account not found with this email. Please switch to "Sign Up Free" to create your account.');
     }
 
     this.currentUser = {
       name: account.name || 'Member',
+      mobile: account.mobile || '9876543210',
       email: account.email,
       joinedDate: new Date().toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }),
       plan: 'Free Lifetime Member'
@@ -8077,6 +8104,7 @@ const AppState = {
   demoLogin() {
     this.currentUser = {
       name: 'Demo User',
+      mobile: '9876543210',
       email: 'demo@letscalculate.in',
       joinedDate: new Date().toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }),
       plan: 'Free Lifetime Member'
@@ -8089,6 +8117,7 @@ const AppState = {
   continueAsGuest() {
     this.currentUser = {
       name: 'Guest User',
+      mobile: '9999999999',
       email: 'guest@letscalculate.in',
       joinedDate: 'Guest Session',
       plan: 'Guest Pass'
@@ -8616,7 +8645,7 @@ const AppUI = {
           <!-- Signup Form -->
           <form class="auth-form" id="signup-form" style="display: ${mode === 'signup' ? 'flex' : 'none'};">
             <div class="auth-form-group">
-              <label class="auth-label" for="signup-name">Full Name</label>
+              <label class="auth-label" for="signup-name">Full Name <span style="color: var(--rose);">*</span></label>
               <div class="auth-input-wrap">
                 <span class="auth-input-icon">${getIconSvg('user', 18)}</span>
                 <input type="text" id="signup-name" class="auth-input" placeholder="e.g. Rahul Sharma" required autocomplete="name">
@@ -8624,7 +8653,16 @@ const AppUI = {
             </div>
 
             <div class="auth-form-group">
-              <label class="auth-label" for="signup-email">Email Address</label>
+              <label class="auth-label" for="signup-mobile">Mobile Number <span style="color: var(--rose);">*</span></label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon">${getIconSvg('phone', 18)}</span>
+                <input type="tel" id="signup-mobile" class="auth-input" placeholder="10-digit mobile number (e.g. 9876543210)" required pattern="[0-9]{10}" maxlength="10" autocomplete="tel">
+              </div>
+              <span style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.15rem;">Mandatory 10-digit mobile number</span>
+            </div>
+
+            <div class="auth-form-group">
+              <label class="auth-label" for="signup-email">Email Address <span style="color: var(--rose);">*</span></label>
               <div class="auth-input-wrap">
                 <span class="auth-input-icon">${getIconSvg('mail', 18)}</span>
                 <input type="email" id="signup-email" class="auth-input" placeholder="name@example.com" required autocomplete="email">
@@ -8632,7 +8670,7 @@ const AppUI = {
             </div>
 
             <div class="auth-form-group">
-              <label class="auth-label" for="signup-password">Create Password</label>
+              <label class="auth-label" for="signup-password">Create Password <span style="color: var(--rose);">*</span></label>
               <div class="auth-input-wrap">
                 <span class="auth-input-icon">${getIconSvg('lock', 18)}</span>
                 <input type="password" id="signup-password" class="auth-input" placeholder="At least 6 characters" required autocomplete="new-password" minlength="6">
@@ -8757,11 +8795,12 @@ const AppUI = {
       e.preventDefault();
       hideAlert();
       const name = document.getElementById('signup-name')?.value || '';
+      const mobile = document.getElementById('signup-mobile')?.value || '';
       const email = document.getElementById('signup-email')?.value || '';
       const password = document.getElementById('signup-password')?.value || '';
 
       try {
-        AppState.signup(name, email, password);
+        AppState.signup(name, mobile, email, password);
         AppUI.showToast(`Welcome, ${name.split(' ')[0]}! Full access unlocked.`);
         redirectAfterAuth();
       } catch (err) {
@@ -8821,6 +8860,7 @@ const AppUI = {
             <div class="profile-info">
               <h2>${user.name}</h2>
               <p>${user.email}</p>
+              ${user.mobile ? `<p style="font-size: 0.9rem; color: var(--emerald); margin-bottom: 0.35rem; font-family: 'JetBrains Mono', monospace;">📱 Mobile: +91 ${user.mobile}</p>` : ''}
               <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                 <span class="user-tier-badge" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;">${user.plan || 'Free Lifetime Member'}</span>
                 <span style="font-size: 0.85rem; color: var(--text-muted);">Joined ${user.joinedDate || 'Recently'}</span>
@@ -8848,9 +8888,13 @@ const AppUI = {
               ${getIconSvg('calculator', 18)}
               <span>Browse All Calculators</span>
             </a>
+            <a href="/api/download-excel" download="letscalculate.in_data.xlsx" class="btn-secondary" style="color: var(--emerald); border-color: rgba(16, 185, 129, 0.4);" title="Download signup records Excel file">
+              ${getIconSvg('download', 18)}
+              <span>Download Excel (letscalculate.in_data.xlsx)</span>
+            </a>
             <button type="button" class="btn-secondary" id="profile-history-btn">
               ${getIconSvg('history', 18)}
-              <span>View Calculation History</span>
+              <span>View History</span>
             </button>
             <a href="#/favorites" class="btn-secondary">
               ${getIconSvg('star', 18)}
