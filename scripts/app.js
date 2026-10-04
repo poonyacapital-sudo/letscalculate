@@ -219,7 +219,13 @@ const AppUI = {
     if (AppState.countdownInterval) clearInterval(AppState.countdownInterval);
     if (AppState.worldClockInterval) clearInterval(AppState.worldClockInterval);
 
-    const hash = window.location.hash || '#/';
+    let hash = window.location.hash || '#/';
+    if (hash.includes('?')) {
+      hash = hash.split('?')[0];
+    }
+    if (hash.length > 2 && hash.endsWith('/')) {
+      hash = hash.slice(0, -1);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
     if (hash === '#/' || hash === '#' || hash === '') {
@@ -1631,7 +1637,11 @@ const AppUI = {
   }
 };
 
-// Initialize App when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize App immediately if DOM is ready, or on DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    AppUI.init();
+  });
+} else {
   AppUI.init();
-});
+}
