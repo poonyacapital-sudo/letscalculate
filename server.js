@@ -19,6 +19,7 @@ const MIME_TYPES = {
   '.jpg': 'image/jpeg',
   '.ico': 'image/x-icon',
   '.txt': 'text/plain; charset=UTF-8',
+  '.xml': 'application/xml; charset=UTF-8',
   '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 };
 

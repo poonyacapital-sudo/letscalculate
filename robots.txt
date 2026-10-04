@@ -1,0 +1,11 @@
+# robots.txt for letscalculate.in
+User-agent: *
+Allow: /
+Allow: /sitemap.xml
+
+# Restrict sensitive backend data endpoints
+Disallow: /api/signups
+Disallow: /api/download-excel
+Disallow: /letscalculate.in_data.xlsx
+
+Sitemap: https://letscalculate.in/sitemap.xml

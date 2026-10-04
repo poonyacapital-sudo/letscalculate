@@ -416,6 +416,28 @@ const AppUI = {
     }, 2800);
   },
 
+  updateSeoMeta(title, description, canonicalUrl) {
+    if (title) document.title = title;
+    
+    // Dynamic Meta Description
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.name = 'description';
+      document.head.appendChild(metaDesc);
+    }
+    if (description) metaDesc.content = description;
+
+    // Dynamic Canonical Link
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+    if (canonicalUrl) canonical.href = canonicalUrl;
+  },
+
   handleRoute() {
     // Clear any timers
     if (AppState.countdownInterval) clearInterval(AppState.countdownInterval);
@@ -443,6 +465,13 @@ const AppUI = {
         item.classList.remove('active');
       }
     });
+
+    // Public Legal Pages (Terms & Conditions, Privacy Policy)
+    if (hash === '#/terms' || hash === '#/privacy') {
+      this.renderTermsPage();
+      this.updateHeaderBadges();
+      return;
+    }
 
     // STRICT GATING: Unauthenticated visitors MUST sign up / log in to access any calculators
     if (!AppState.isLoggedIn()) {
@@ -566,7 +595,7 @@ const AppUI = {
         <section class="container">
           <div class="auth-promo-card">
             <div class="auth-promo-text">
-              <span class="auth-badge-pill">${getIconSvg('sparkles', 14)} 100% Free Forever</span>
+              <span class="auth-badge-pill">${getIconSvg('sparkles', 14)} 100% Free</span>
               <h3>Create Your Free Account</h3>
               <p>Join thousands calculating every day. Unlock all 80+ precision tools, save your calculation history locally, and star your favorite calculators for 1-click access.</p>
             </div>
@@ -679,6 +708,78 @@ const AppUI = {
   },
 
   // ==========================================
+  // VIEW: TERMS & CONDITIONS / PRIVACY POLICY
+  // ==========================================
+  renderTermsPage() {
+    this.updateSeoMeta(
+      'Terms & Conditions and Privacy Policy - letscalculate.in',
+      'Review the Terms of Service, Calculation Accuracy Disclaimer, and Privacy Policy for letscalculate.in. 100% Free precision calculators.',
+      'https://letscalculate.in/#/terms'
+    );
+    const mainEl = document.getElementById('app-main');
+    if (!mainEl) return;
+
+    mainEl.innerHTML = `
+      <div class="container" style="max-width: 860px; padding: 2.5rem 1rem 4rem;">
+        <div style="margin-bottom: 2rem;">
+          <a href="${AppState.isLoggedIn() ? '#/' : '#/signup'}" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; font-size: 0.88rem; border-radius: var(--radius-md);">
+            ${getIconSvg('arrow-right', 16)} 
+            <span>${AppState.isLoggedIn() ? 'Back to Calculators' : 'Back to Sign Up'}</span>
+          </a>
+        </div>
+
+        <div class="glass-panel" style="padding: 2.5rem; border-radius: var(--radius-lg); background: var(--bg-card); border: 1px solid var(--border-card);">
+          <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.85rem; border-radius: var(--radius-full); background: rgba(16, 185, 129, 0.12); color: var(--emerald); font-size: 0.82rem; font-weight: 600; margin-bottom: 1rem;">
+            ${getIconSvg('shield-check', 16)} Official Policy
+          </div>
+          <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.75rem;">Terms &amp; Conditions</h1>
+          <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 2rem;">Last Updated: October 2026 | Effective for all users of letscalculate.in</p>
+
+          <div style="display: flex; flex-direction: column; gap: 1.75rem; color: var(--text-secondary); line-height: 1.7; font-size: 0.96rem;">
+            <section>
+              <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">1. Acceptance of Terms &amp; 100% Free Access</h2>
+              <p>Welcome to <strong>letscalculate.in</strong>. By registering an account, accessing, or using our calculators, you agree to be bound by these Terms &amp; Conditions. All tools, financial algorithms, mathematical models, and converters provided on letscalculate.in are <strong>100% Free</strong>. No subscription fees, hidden charges, or credit card information will ever be requested.</p>
+            </section>
+
+            <section>
+              <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">2. Mandatory Registration &amp; Account Security</h2>
+              <p>To access our suite of precision calculators, users must create a free account with their verified Full Name, 10-digit Mobile Number, Email Address, and secure Password (minimum 8 characters). You are responsible for safeguarding your login credentials and maintaining the confidentiality of your account.</p>
+            </section>
+
+            <section>
+              <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">3. Calculation Accuracy &amp; Financial Disclaimer</h2>
+              <p>Every calculator on letscalculate.in has been meticulously verified against standard mathematical and financial formulas (including Indian banking, income tax, EMI, SIP, and scientific standards). However, all calculation results are provided for informational and educational purposes only.</p>
+              <p style="margin-top: 0.5rem;">Results do not constitute certified financial, legal, medical, or tax advice. Users are encouraged to consult certified financial planners, chartered accountants, or qualified medical professionals before making major life decisions.</p>
+            </section>
+
+            <section>
+              <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">4. Privacy &amp; Data Protection Policy</h2>
+              <p>We respect your privacy. User registration data (Full Name, Mobile Number, Email ID, and timestamp) is stored securely in our private administrative datastore. We never sell, lease, or monetize personal information to third-party advertisers. Calculation history and saved bookmark preferences are retained locally in your browser for privacy and instant responsiveness.</p>
+            </section>
+
+            <section>
+              <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">5. Fair Use &amp; Intellectual Property</h2>
+              <p>Users may freely use letscalculate.in for personal, academic, and business calculations. Automated scraping, malicious denial-of-service attempts, or reverse-engineering of proprietary algorithms is strictly prohibited.</p>
+            </section>
+
+            <section>
+              <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">6. Contact &amp; Grievance Redressal</h2>
+              <p>If you have any questions regarding these Terms &amp; Conditions, calculation formulas, or user accounts, please reach out via our official support portal at <strong>admin@letscalculate.in</strong>.</p>
+            </section>
+          </div>
+
+          <div style="margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-card); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <span style="font-size: 0.88rem; color: var(--text-muted);">&copy; 2026 letscalculate.in. All Rights Reserved.</span>
+            <a href="${AppState.isLoggedIn() ? '#/' : '#/signup'}" class="btn-auth-signup" style="padding: 0.6rem 1.25rem;">
+              <span>${AppState.isLoggedIn() ? 'Return to Dashboard' : 'Accept &amp; Sign Up Free'}</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  // ==========================================
   // VIEW: AUTH PAGE (FREE SIGNUP & LOGIN)
   // ==========================================
   renderAuthPage({ mode = 'signup', redirectCalcId = null } = {}) {
@@ -695,7 +796,7 @@ const AppUI = {
     const mainEl = document.getElementById('app-main');
     if (!mainEl) return;
 
-    let bannerBadge = '⚡ 100% FREE FOREVER';
+    let bannerBadge = '⚡ 100% FREE';
     let bannerTitle = 'Create Your Free Account';
     let bannerDesc = 'Unlock instant access to all 80+ precision calculators, save calculation history, and bookmark your frequent tools.';
 
@@ -741,7 +842,7 @@ const AppUI = {
               <label class="auth-label" for="signup-name">Full Name <span style="color: var(--rose);">*</span></label>
               <div class="auth-input-wrap">
                 <span class="auth-input-icon">${getIconSvg('user', 18)}</span>
-                <input type="text" id="signup-name" class="auth-input" placeholder="e.g. Rahul Sharma" required autocomplete="name">
+                <input type="text" id="signup-name" class="auth-input" placeholder="e.g. Gaurav Bansal" required autocomplete="name">
               </div>
             </div>
 
@@ -773,7 +874,7 @@ const AppUI = {
 
             <label class="auth-checkbox-row">
               <input type="checkbox" id="signup-terms" checked required>
-              <span>I agree to Terms & Free Fair Use Policy. 100% Free forever (No card needed).</span>
+              <span>I agree to the <a href="#/terms" class="auth-terms-link" style="color: var(--emerald); text-decoration: underline; font-weight: 600;">Terms &amp; Conditions</a> (100% Free, no card needed)</span>
             </label>
 
             <button type="submit" class="btn-auth-submit">
@@ -818,7 +919,7 @@ const AppUI = {
             </div>
             <div class="auth-feature-item">
               ${getIconSvg('check', 16)}
-              <span>100% Free Forever</span>
+              <span>100% Free</span>
             </div>
             <div class="auth-feature-item">
               ${getIconSvg('check', 16)}
@@ -856,7 +957,7 @@ const AppUI = {
         tabLogin?.classList.remove('active');
         if (signupForm) signupForm.style.display = 'flex';
         if (loginForm) loginForm.style.display = 'none';
-        if (badgeEl) badgeEl.textContent = '⚡ 100% FREE FOREVER';
+        if (badgeEl) badgeEl.textContent = '⚡ 100% FREE';
         if (titleEl) titleEl.textContent = 'Create Your Free Account';
         if (subtitleEl) subtitleEl.textContent = 'Sign up with full name, 10-digit mobile number, email, and password to unlock all calculators.';
       } else {
