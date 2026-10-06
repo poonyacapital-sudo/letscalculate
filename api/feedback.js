@@ -95,7 +95,7 @@ try {
     CREATE TABLE IF NOT EXISTS Feedback (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name VARCHAR NOT NULL,
-      email VARCHAR UNIQUE NOT NULL,
+      email VARCHAR NOT NULL,
       phone_number VARCHAR NOT NULL,
       best_here TEXT NOT NULL,
       improvements TEXT,
@@ -253,11 +253,7 @@ module.exports = async (req, res) => {
         const info = stmt.run(name.trim(), cleanEmail, String(phone_number).trim(), best_here.trim(), improvements?.trim() || null);
         insertedId = Number(info.lastInsertRowid);
       } catch (dbErr) {
-        if (dbErr.message && (dbErr.message.includes('UNIQUE constraint failed') || dbErr.message.includes('Feedback.email'))) {
-          res.status(409).json({ error: 'Feedback from this email address has already been submitted. Thank you!' });
-          return;
-        }
-        throw dbErr;
+        console.warn('[SQLite Insert Warning]:', dbErr.message);
       }
     }
 
