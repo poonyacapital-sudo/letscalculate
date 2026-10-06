@@ -3,53 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
 
-const DEFAULT_SUPABASE_URL = 'https://oeoyfplweclmutgzbzll.supabase.co';
-const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lb3lmcGx3ZWNsbXV0Z3piemxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyNzczOTgsImV4cCI6MjEwNjg1MzM5OH0.r8ry6Sxvi9-zP6gZnjcB288zXIBtxpvnC73nOthUgEM';
-
-function getSupabaseConfig() {
-  const rawUrl = process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL;
-  const url = (rawUrl || '').replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || DEFAULT_SUPABASE_KEY;
-  return { url, key, isConfigured: Boolean(url && key) };
-}
-
-async function insertSupabaseFeedback(payload) {
-  const { url, key, isConfigured } = getSupabaseConfig();
-  if (!isConfigured) return null;
-  const res = await fetch(`${url}/rest/v1/feedbacks`, {
-    method: 'POST',
-    headers: {
-      'apikey': key,
-      'Authorization': `Bearer ${key}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify(payload)
-  });
-  const text = await res.text();
-  let data = null;
-  try { data = JSON.parse(text); } catch (e) { data = text; }
-  if (!res.ok) {
-    const err = new Error(data?.message || `HTTP ${res.status}`);
-    err.status = res.status;
-    throw err;
-  }
-  return Array.isArray(data) ? data[0] : data;
-}
-
-async function getSupabaseFeedbacks(limit = 100) {
-  const { url, key, isConfigured } = getSupabaseConfig();
-  if (!isConfigured) return null;
-  const res = await fetch(`${url}/rest/v1/feedbacks?select=*&order=created_at.desc&limit=${limit}`, {
-    headers: {
-      'apikey': key,
-      'Authorization': `Bearer ${key}`
-    }
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return await res.json();
-}
-
 const PORT = process.env.PORT || 3000;
 let EXCEL_PATH = path.join(__dirname, 'letscalculate.in_data.xlsx');
 if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
@@ -468,7 +421,7 @@ const server = http.createServer((req, res) => {
         req.destroy();
       }
     });
-    req.on('end', async () => {
+    req.on('end', () => {
       if (bodyTooLarge) return;
       try {
         const payload = JSON.parse(body || '{}');
@@ -536,24 +489,8 @@ const server = http.createServer((req, res) => {
           return;
         }
 
+        // Save to SQLite Database using Prepared Statement (SQL Injection safe)
         let insertedId = null;
-
-        // 1. If Supabase is configured, save directly to cloud PostgreSQL table
-        if (getSupabaseConfig().isConfigured) {
-          try {
-            const sbResult = await insertSupabaseFeedback({ name, email, phone_number, best_here, improvements });
-            insertedId = sbResult?.id || insertedId;
-          } catch (sbErr) {
-            if (sbErr.status === 409 || (sbErr.message && (sbErr.message.includes('duplicate key') || sbErr.message.includes('UNIQUE')))) {
-              res.writeHead(409, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ error: 'Feedback from this email address has already been submitted. Thank you!' }));
-              return;
-            }
-            console.warn('[Supabase Warning]:', sbErr.message);
-          }
-        }
-
-        // 2. Save to SQLite Database using Prepared Statement (SQL Injection safe)
         if (db) {
           try {
             const stmt = db.prepare(`
@@ -561,18 +498,19 @@ const server = http.createServer((req, res) => {
               VALUES (?, ?, ?, ?, ?)
             `);
             const info = stmt.run(name, email, phone_number, best_here, improvements || null);
-            insertedId = insertedId || Number(info.lastInsertRowid);
+            insertedId = Number(info.lastInsertRowid);
           } catch (dbErr) {
+            // Check for UNIQUE email constraint violation
             if (dbErr.message && (dbErr.message.includes('UNIQUE constraint failed') || dbErr.message.includes('Feedback.email'))) {
               res.writeHead(409, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ error: 'Feedback from this email address has already been submitted. Thank you!' }));
               return;
             }
-            console.warn('[SQLite Warning]:', dbErr.message);
+            throw dbErr;
           }
         }
 
-        // 3. Append to Excel Sheet for spreadsheet reporting
+        // Append to Excel Sheet for spreadsheet reporting
         try {
           appendFeedbackToExcel({ id: insertedId, name, email, phone_number, best_here, improvements });
         } catch (excelErr) {
@@ -584,8 +522,7 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify({
           success: true,
           message: 'Thank you for your feedback!',
-          id: insertedId,
-          source: getSupabaseConfig().isConfigured ? 'supabase' : (db ? 'sqlite' : 'excel')
+          id: insertedId
         }));
       } catch (err) {
         console.error('[API Error] /api/feedback:', err);
@@ -604,22 +541,11 @@ const server = http.createServer((req, res) => {
       return;
     }
 
-    if (getSupabaseConfig().isConfigured) {
-      try {
-        const rows = await getSupabaseFeedbacks();
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ feedbacks: rows, source: 'supabase' }));
-        return;
-      } catch (sbErr) {
-        console.warn('[Supabase Warning]: Failed to fetch feedbacks:', sbErr.message);
-      }
-    }
-
     if (db) {
       try {
         const rows = db.prepare('SELECT * FROM Feedback ORDER BY submitted_at DESC').all();
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ feedbacks: rows, source: 'sqlite' }));
+        res.end(JSON.stringify({ feedbacks: rows }));
         return;
       } catch (err) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -628,7 +554,7 @@ const server = http.createServer((req, res) => {
       }
     } else {
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ feedbacks: [], source: 'none' }));
+      res.end(JSON.stringify({ feedbacks: [] }));
       return;
     }
   }

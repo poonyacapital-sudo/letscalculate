@@ -1,62 +1,9 @@
 // Vercel Serverless Function: /api/signup
 const fs = require('fs');
-const https = require('https');
 const path = require('path');
 const xlsx = require('xlsx');
 
 const EXCEL_PATH = path.join('/tmp', 'letscalculate.in_data.xlsx');
-
-const DEFAULT_SUPABASE_URL = 'https://oeoyfplweclmutgzbzll.supabase.co';
-const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lb3lmcGx3ZWNsbXV0Z3piemxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyNzczOTgsImV4cCI6MjEwNjg1MzM5OH0.r8ry6Sxvi9-zP6gZnjcB288zXIBtxpvnC73nOthUgEM';
-
-function getSupabaseConfig() {
-  const rawUrl = process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL;
-  const url = (rawUrl || '').replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || DEFAULT_SUPABASE_KEY;
-  return { url, key, isConfigured: Boolean(url && key) };
-}
-
-function postToSupabase(endpoint, payload) {
-  return new Promise((resolve, reject) => {
-    const { url, key, isConfigured } = getSupabaseConfig();
-    if (!isConfigured) return resolve(null);
-
-    try {
-      const parsedUrl = new URL(`${url}/rest/v1/${endpoint}`);
-      const data = JSON.stringify(payload);
-
-      const req = https.request({
-        hostname: parsedUrl.hostname,
-        port: 443,
-        path: parsedUrl.pathname + (parsedUrl.search || ''),
-        method: 'POST',
-        headers: {
-          'apikey': key,
-          'Authorization': 'Bearer ' + key,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal',
-          'Content-Length': Buffer.byteLength(data)
-        }
-      }, (res) => {
-        let body = '';
-        res.on('data', chunk => body += chunk);
-        res.on('end', () => {
-          if (res.statusCode >= 200 && res.statusCode < 300) {
-            resolve(true);
-          } else {
-            resolve(false);
-          }
-        });
-      });
-
-      req.on('error', () => resolve(false));
-      req.write(data);
-      req.end();
-    } catch (e) {
-      resolve(false);
-    }
-  });
-}
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -78,7 +25,7 @@ module.exports = async (req, res) => {
   try {
     let payload = req.body;
     if (typeof payload === 'string') {
-      try { payload = JSON.parse(payload); } catch (e) {}
+      try { payload = JSON.parse(payload); } catch(e) {}
     }
     const { name, mobile, email, password } = payload || {};
 
@@ -129,7 +76,7 @@ module.exports = async (req, res) => {
       } else {
         workbook = xlsx.utils.book_new();
       }
-    } catch (e) {
+    } catch(e) {
       workbook = xlsx.utils.book_new();
     }
 
@@ -157,31 +104,12 @@ module.exports = async (req, res) => {
       workbook.SheetNames.push(sheetName);
     }
 
-    try {
-      xlsx.writeFile(workbook, EXCEL_PATH);
-    } catch (writeErr) {
-      // Ignored in read-only environments
-    }
-
-    // If Supabase is configured, record to cloud signups table
-    if (getSupabaseConfig().isConfigured) {
-      try {
-        await postToSupabase('signups', {
-          name: name.trim(),
-          mobile: cleanMobile,
-          email: email.toLowerCase().trim(),
-          status: 'Active Free Member'
-        });
-      } catch (sbErr) {
-        console.warn('[Supabase Warning]: Could not insert signup into Supabase:', sbErr.message);
-      }
-    }
+    xlsx.writeFile(workbook, EXCEL_PATH);
 
     res.status(200).json({
       success: true,
-      message: 'Signup data recorded successfully',
-      entry,
-      database: getSupabaseConfig().isConfigured ? 'supabase' : 'excel'
+      message: 'Signup data recorded successfully in letscalculate.in_data.xlsx',
+      entry
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to record signup: ' + err.message });
