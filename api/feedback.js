@@ -1,5 +1,6 @@
 // Vercel Serverless Function: /api/feedback
 const fs = require('fs');
+const https = require('https');
 const path = require('path');
 const xlsx = require('xlsx');
 
@@ -30,7 +31,58 @@ try {
   console.warn('[SQLite Init Warning]:', e.message);
 }
 
-// Append Feedback data to Excel
+// Append Feedback data to Supabase PostgreSQL (Cloud Database)
+function appendFeedbackToSupabase(fbData) {
+  return new Promise((resolve) => {
+    const url = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY;
+    if (!url || !key) return resolve(null);
+
+    try {
+      const parsed = new URL(`${url}/rest/v1/feedbacks`);
+      const payload = JSON.stringify({
+        name: fbData.name,
+        email: fbData.email,
+        phone_number: fbData.phone_number,
+        best_here: fbData.best_here,
+        improvements: fbData.improvements || null
+      });
+
+      const req = https.request({
+        hostname: parsed.hostname,
+        port: 443,
+        path: parsed.pathname + (parsed.search || ''),
+        method: 'POST',
+        headers: {
+          'apikey': key,
+          'Authorization': 'Bearer ' + key,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
+          'Content-Length': Buffer.byteLength(payload)
+        }
+      }, (res) => {
+        let body = '';
+        res.on('data', chunk => body += chunk);
+        res.on('end', () => {
+          try {
+            const parsedRes = JSON.parse(body);
+            resolve(parsedRes);
+          } catch (e) {
+            resolve(null);
+          }
+        });
+      });
+
+      req.on('error', () => resolve(null));
+      req.write(payload);
+      req.end();
+    } catch (e) {
+      resolve(null);
+    }
+  });
+}
+
+// Append Feedback data to Excel (Backup)
 function appendFeedbackToExcel(fbData) {
   let workbook;
   try {
@@ -100,7 +152,7 @@ function appendFeedbackToExcel(fbData) {
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
 
@@ -117,7 +169,7 @@ module.exports = async (req, res) => {
   try {
     let payload = req.body;
     if (typeof payload === 'string') {
-      try { payload = JSON.parse(payload); } catch(e) {}
+      try { payload = JSON.parse(payload); } catch (e) {}
     }
     const { name, email, phone_number, best_here, improvements } = payload || {};
 
@@ -168,6 +220,16 @@ module.exports = async (req, res) => {
     const cleanEmail = email.toLowerCase().trim();
     let insertedId = null;
 
+    // Save to Supabase (if configured via env)
+    await appendFeedbackToSupabase({
+      name: name.trim(),
+      email: cleanEmail,
+      phone_number: String(phone_number).trim(),
+      best_here: best_here.trim(),
+      improvements: improvements?.trim() || null
+    });
+
+    // Save to local SQLite (if available)
     if (db) {
       try {
         const stmt = db.prepare(`
@@ -185,6 +247,7 @@ module.exports = async (req, res) => {
       }
     }
 
+    // Save to Excel backup
     appendFeedbackToExcel({
       id: insertedId,
       name: name.trim(),
