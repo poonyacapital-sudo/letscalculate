@@ -1,5 +1,6 @@
 // Vercel Serverless Function: /api/feedback
 const fs = require('fs');
+const https = require('https');
 const path = require('path');
 const xlsx = require('xlsx');
 
@@ -11,26 +12,88 @@ if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
   EXCEL_PATH = path.join('/tmp', 'letscalculate.in_data.xlsx');
 }
 
+// Optional SQLite connection (active only in persistent server environments)
 let db = null;
-try {
-  const { DatabaseSync } = require('node:sqlite');
-  db = new DatabaseSync(DB_PATH);
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS Feedback (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name VARCHAR NOT NULL,
-      email VARCHAR UNIQUE NOT NULL,
-      phone_number VARCHAR NOT NULL,
-      best_here TEXT NOT NULL,
-      improvements TEXT,
-      submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-} catch (e) {
-  console.warn('[SQLite Init Warning]:', e.message);
+if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
+  try {
+    const sqliteMod = 'node:sqlite';
+    const sqlite = module.require ? module.require(sqliteMod) : require(sqliteMod);
+    if (sqlite && sqlite.DatabaseSync) {
+      db = new sqlite.DatabaseSync(DB_PATH);
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS Feedback (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name VARCHAR NOT NULL,
+          email VARCHAR UNIQUE NOT NULL,
+          phone_number VARCHAR NOT NULL,
+          best_here TEXT NOT NULL,
+          improvements TEXT,
+          submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+    }
+  } catch (e) {
+    // SQLite not available in this environment
+  }
 }
 
-// Append Feedback data to Excel
+// Supabase PostgREST Client (Native HTTPS - 100% Serverless & Zero Dependency)
+function getSupabaseConfig() {
+  const url = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || '';
+  return { url, key, isConfigured: Boolean(url && key) };
+}
+
+function postToSupabase(endpoint, payload) {
+  return new Promise((resolve, reject) => {
+    const { url, key, isConfigured } = getSupabaseConfig();
+    if (!isConfigured) return resolve(null);
+
+    try {
+      const parsedUrl = new URL(`${url}/rest/v1/${endpoint}`);
+      const data = JSON.stringify(payload);
+
+      const req = https.request({
+        hostname: parsedUrl.hostname,
+        port: 443,
+        path: parsedUrl.pathname + (parsedUrl.search || ''),
+        method: 'POST',
+        headers: {
+          'apikey': key,
+          'Authorization': 'Bearer ' + key,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
+          'Content-Length': Buffer.byteLength(data)
+        }
+      }, (res) => {
+        let body = '';
+        res.on('data', chunk => body += chunk);
+        res.on('end', () => {
+          try {
+            const parsed = JSON.parse(body || '{}');
+            if (res.statusCode >= 200 && res.statusCode < 300) {
+              resolve(Array.isArray(parsed) ? parsed[0] : parsed);
+            } else {
+              const err = new Error(parsed.message || `Supabase error (${res.statusCode})`);
+              err.status = res.statusCode;
+              reject(err);
+            }
+          } catch (parseErr) {
+            resolve(null);
+          }
+        });
+      });
+
+      req.on('error', (err) => reject(err));
+      req.write(data);
+      req.end();
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+// Append Feedback data to Excel (Backup)
 function appendFeedbackToExcel(fbData) {
   let workbook;
   try {
@@ -100,7 +163,7 @@ function appendFeedbackToExcel(fbData) {
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
 
@@ -117,7 +180,7 @@ module.exports = async (req, res) => {
   try {
     let payload = req.body;
     if (typeof payload === 'string') {
-      try { payload = JSON.parse(payload); } catch(e) {}
+      try { payload = JSON.parse(payload); } catch (e) {}
     }
     const { name, email, phone_number, best_here, improvements } = payload || {};
 
@@ -168,6 +231,27 @@ module.exports = async (req, res) => {
     const cleanEmail = email.toLowerCase().trim();
     let insertedId = null;
 
+    // 1. If Supabase is configured, save directly to cloud PostgreSQL table
+    if (getSupabaseConfig().isConfigured) {
+      try {
+        const sbResult = await postToSupabase('feedbacks', {
+          name: name.trim(),
+          email: cleanEmail,
+          phone_number: String(phone_number).trim(),
+          best_here: best_here.trim(),
+          improvements: improvements?.trim() || null
+        });
+        insertedId = sbResult?.id || insertedId;
+      } catch (sbErr) {
+        if (sbErr.status === 409 || (sbErr.message && (sbErr.message.includes('duplicate key') || sbErr.message.includes('UNIQUE')))) {
+          res.status(409).json({ error: 'Feedback from this email address has already been submitted. Thank you!' });
+          return;
+        }
+        console.warn('[Supabase Warning]: Could not insert feedback into Supabase:', sbErr.message);
+      }
+    }
+
+    // 2. Save to local SQLite (if available)
     if (db) {
       try {
         const stmt = db.prepare(`
@@ -175,29 +259,35 @@ module.exports = async (req, res) => {
           VALUES (?, ?, ?, ?, ?)
         `);
         const info = stmt.run(name.trim(), cleanEmail, String(phone_number).trim(), best_here.trim(), improvements?.trim() || null);
-        insertedId = Number(info.lastInsertRowid);
+        insertedId = insertedId || Number(info.lastInsertRowid);
       } catch (dbErr) {
         if (dbErr.message && (dbErr.message.includes('UNIQUE constraint failed') || dbErr.message.includes('Feedback.email'))) {
           res.status(409).json({ error: 'Feedback from this email address has already been submitted. Thank you!' });
           return;
         }
-        throw dbErr;
+        console.warn('[SQLite Warning]:', dbErr.message);
       }
     }
 
-    appendFeedbackToExcel({
-      id: insertedId,
-      name: name.trim(),
-      email: cleanEmail,
-      phone_number: String(phone_number).trim(),
-      best_here: best_here.trim(),
-      improvements: improvements?.trim() || null
-    });
+    // 3. Append to Excel (if available)
+    try {
+      appendFeedbackToExcel({
+        id: insertedId,
+        name: name.trim(),
+        email: cleanEmail,
+        phone_number: String(phone_number).trim(),
+        best_here: best_here.trim(),
+        improvements: improvements?.trim() || null
+      });
+    } catch (excelErr) {
+      console.warn('[Excel Warning]:', excelErr.message);
+    }
 
     res.status(200).json({
       success: true,
       message: 'Thank you for your feedback!',
-      id: insertedId
+      id: insertedId,
+      source: getSupabaseConfig().isConfigured ? 'supabase' : (db ? 'sqlite' : 'excel')
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to record feedback: ' + err.message });
