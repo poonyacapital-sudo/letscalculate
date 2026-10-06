@@ -6,7 +6,7 @@ const xlsx = require('xlsx');
 const https = require('https');
 
 function getSupabaseConfig() {
-  let hostname = 'oeoyfplweclmutgzbzll.supabase.co';
+  let hostname = 'tjkjyjrjolooivcnqvll.supabase.co';
   if (process.env.SUPABASE_URL) {
     try {
       const u = new URL(process.env.SUPABASE_URL);
@@ -18,8 +18,8 @@ function getSupabaseConfig() {
 
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || [
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
-    'eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lb3lmcGx3ZWNsbXV0Z3piemxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyNzczOTgsImV4cCI6MjEwNjg1MzM5OH0',
-    'r8ry6Sxvi9-zP6gZnjcB288zXIBtxpvnC73nOthUgEM'
+    'eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqa2p5anJqb2xvb2l2Y25xdmxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyODM0MzgsImV4cCI6MjEwNjg1OTQzOH0',
+    'jymQpw1wX9DjBILWvhFi1dE69HhSRgWZ1-VoL_TnNWE'
   ].join('.');
 
   return { hostname, key };
