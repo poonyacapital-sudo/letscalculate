@@ -31,11 +31,15 @@ try {
   console.warn('[SQLite Init Warning]:', e.message);
 }
 
+const DEFAULT_SUPABASE_URL = 'https://oeoyfplweclmutgzbzll.supabase.co';
+const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lb3lmcGx3ZWNsbXV0Z3piemxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyNzczOTgsImV4cCI6MjEwNjg1MzM5OH0.r8ry6Sxvi9-zP6gZnjcB288zXIBtxpvnC73nOthUgEM';
+
 // Append Feedback data to Supabase PostgreSQL (Cloud Database)
 function appendFeedbackToSupabase(fbData) {
   return new Promise((resolve) => {
-    const url = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY;
+    const rawUrl = process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL;
+    const url = (rawUrl || '').replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || DEFAULT_SUPABASE_KEY;
     if (!url || !key) return resolve(null);
 
     try {
@@ -57,17 +61,16 @@ function appendFeedbackToSupabase(fbData) {
           'apikey': key,
           'Authorization': 'Bearer ' + key,
           'Content-Type': 'application/json',
-          'Prefer': 'return=representation',
+          'Prefer': 'return=minimal',
           'Content-Length': Buffer.byteLength(payload)
         }
       }, (res) => {
         let body = '';
         res.on('data', chunk => body += chunk);
         res.on('end', () => {
-          try {
-            const parsedRes = JSON.parse(body);
-            resolve(parsedRes);
-          } catch (e) {
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            resolve({ success: true, status: res.statusCode });
+          } else {
             resolve(null);
           }
         });
