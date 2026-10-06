@@ -304,7 +304,7 @@ ${combinedCss}
                 <span class="fb-input-icon">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 </span>
-                <input type="text" id="fb-name" name="name" class="fb-input" placeholder="e.g. Poonya Kumar" autocomplete="name" required>
+                <input type="text" id="fb-name" name="name" class="fb-input" placeholder="e.g. Gaurav Bansal" autocomplete="name" required>
               </div>
               <div class="fb-field-error" id="fb-name-error" aria-live="polite"></div>
             </div>
