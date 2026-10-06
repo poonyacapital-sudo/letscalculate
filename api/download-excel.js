@@ -5,13 +5,23 @@ const xlsx = require('xlsx');
 
 const EXCEL_PATH = path.join('/tmp', 'letscalculate.in_data.xlsx');
 
+const ADMIN_SECRET = process.env.ADMIN_API_KEY || process.env.ADMIN_SECRET || 'letscalculate-admin-2026';
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
 
   if (req.method === 'OPTIONS') {
     res.status(204).end();
+    return;
+  }
+
+  const token = req.query?.token || req.query?.key || (req.headers.authorization || '').replace('Bearer ', '');
+  if (token !== ADMIN_SECRET) {
+    res.status(401).json({ error: 'Unauthorized: Admin authentication token required.' });
     return;
   }
 

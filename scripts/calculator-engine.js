@@ -6,19 +6,19 @@
 
 const CalculatorEngine = {
   // Format helpers
-  formatCurrency(num, symbol = '$') {
+  formatCurrency(num, symbol = '₹') {
     if (isNaN(num) || !isFinite(num)) return `${symbol}0.00`;
-    return `${symbol}${Number(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `${symbol}${Number(num).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   },
 
   formatNumber(num, decimals = 2) {
     if (isNaN(num) || !isFinite(num)) return '0';
-    return Number(num).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    return Number(num).toLocaleString('en-IN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   },
 
   formatCompact(num) {
     if (isNaN(num) || !isFinite(num)) return '0';
-    return new Intl.NumberFormat('en-US', { notation: 'compact', compactDisplay: 'short' }).format(num);
+    return new Intl.NumberFormat('en-IN', { notation: 'compact', compactDisplay: 'short' }).format(num);
   },
 
   // Main evaluation dispatch
@@ -117,7 +117,7 @@ const CalculatorEngine = {
         rows: yearlySchedule.slice(0, 10)
       },
       steps: [
-        `Base Monthly Payment = $${P.toLocaleString()} × [${(r * 100).toFixed(4)}% × (1 + ${(r * 100).toFixed(4)}%)^${n}] / [(1 + ${(r * 100).toFixed(4)}%)^${n} - 1] = ${this.formatCurrency(monthly)}`,
+        `Base Monthly Payment = ₹${P.toLocaleString('en-IN')} × [${(r * 100).toFixed(4)}% × (1 + ${(r * 100).toFixed(4)}%)^${n}] / [(1 + ${(r * 100).toFixed(4)}%)^${n} - 1] = ${this.formatCurrency(monthly)}`,
         `Total Interest Paid = ${this.formatCurrency(totalInterest)} over ${monthsPaid} months`,
         `Overall Loan Cost = ${this.formatCurrency(totalRepaid)}`
       ]
@@ -709,6 +709,59 @@ const CalculatorEngine = {
     };
   },
 
+  'nps-calculator'(inputs) {
+    const monthlyDeposit = Math.max(500, parseFloat(inputs.monthlyInvestment) || 5000);
+    const currentAge = Math.max(18, Math.min(65, parseFloat(inputs.currentAge) || 28));
+    const retirementAge = Math.max(currentAge + 1, Math.min(75, parseFloat(inputs.retirementAge) || 60));
+    const tenureYears = retirementAge - currentAge;
+    const months = tenureYears * 12;
+    const annualReturn = (parseFloat(inputs.expectedReturn) || 10) / 100;
+    const monthlyRate = annualReturn / 12;
+    const annuityPct = Math.max(40, Math.min(100, parseFloat(inputs.annuityPercent) || 40)) / 100;
+    const annuityRate = (parseFloat(inputs.annuityRate) || 6.5) / 100;
+
+    const totalInvested = monthlyDeposit * months;
+    let totalCorpus = 0;
+    if (monthlyRate === 0) {
+      totalCorpus = totalInvested;
+    } else {
+      totalCorpus = monthlyDeposit * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate);
+    }
+
+    const totalInterest = Math.max(0, totalCorpus - totalInvested);
+    const annuityCorpus = totalCorpus * annuityPct;
+    const lumpSumCorpus = totalCorpus * (1 - annuityPct);
+    const monthlyPension = (annuityCorpus * annuityRate) / 12;
+
+    // Tax saved under 80CCD(1B) up to ₹50,000 / year at 30% slab (+4% cess = 31.2%)
+    const annualContrib = monthlyDeposit * 12;
+    const eligible80CCD1B = Math.min(annualContrib, 50000);
+    const annualTaxSaved = eligible80CCD1B * 0.312;
+    const totalTaxSaved = annualTaxSaved * tenureYears;
+
+    return {
+      primaryResult: {
+        label: 'Total Expected NPS Corpus',
+        value: this.formatCurrency(totalCorpus),
+        subtext: `At Age ${retirementAge} (${tenureYears} Years of Compounding)`
+      },
+      stats: [
+        { label: 'Total Invested Principal', value: this.formatCurrency(totalInvested) },
+        { label: 'Total Wealth Gain (Interest)', value: this.formatCurrency(totalInterest), highlight: true },
+        { label: `Lump Sum Payout (${Math.round((1 - annuityPct) * 100)}% Tax-Free)`, value: this.formatCurrency(lumpSumCorpus), highlight: true },
+        { label: `Annuity Reinvested (${Math.round(annuityPct * 100)}%)`, value: this.formatCurrency(annuityCorpus) },
+        { label: 'Expected Monthly Pension', value: this.formatCurrency(monthlyPension), highlight: true },
+        { label: 'Cumulative 80CCD(1B) Tax Saved', value: this.formatCurrency(totalTaxSaved) }
+      ],
+      chartData: {
+        type: 'donut',
+        labels: ['Invested Principal', 'Wealth Gain'],
+        values: [Math.round(totalInvested), Math.round(totalInterest)],
+        colors: ['#3b82f6', '#10b981']
+      }
+    };
+  },
+
   'retirement-calculator'(inputs) {
     const curAge = parseFloat(inputs.currentAge) || 30;
     const retAge = parseFloat(inputs.retirementAge) || 60;
@@ -1080,6 +1133,7 @@ const CalculatorEngine = {
     const inUsd = amount / (rates[from] || 1.0);
     const converted = inUsd * (rates[to] || 1.0);
     const rateDirect = (rates[to] || 1.0) / (rates[from] || 1.0);
+    const inInr = inUsd * (rates['INR'] || 83.5);
 
     return {
       primaryResult: {
@@ -1090,7 +1144,7 @@ const CalculatorEngine = {
       stats: [
         { label: 'Source Amount', value: `${this.formatNumber(amount, 2)} ${from}` },
         { label: 'Exchange Rate', value: `1 ${from} = ${rateDirect.toFixed(4)} ${to}` },
-        { label: 'USD Equivalent', value: `$${this.formatNumber(inUsd, 2)}` },
+        { label: 'INR Equivalent', value: `₹${this.formatNumber(inInr, 2)}` },
         { label: 'Conversion Parity', value: 'Standard Global Benchmark' }
       ]
     };

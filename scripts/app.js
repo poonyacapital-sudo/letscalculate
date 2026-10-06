@@ -36,7 +36,9 @@ function getIconSvg(iconName, size = 20) {
     'sparkles': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>`,
     'shield-check': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>`,
     'phone': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`,
-    'download': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>`
+    'download': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>`,
+    'indian-rupee': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12"/><path d="M6 8h12"/><path d="m6 13 8.5 8"/><path d="M6 13h3a4 4 0 0 0 0-8"/></svg>`,
+    'rupee': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12"/><path d="M6 8h12"/><path d="m6 13 8.5 8"/><path d="M6 13h3a4 4 0 0 0 0-8"/></svg>`
   };
   return icons[iconName] || icons['calculator'];
 }
@@ -49,7 +51,7 @@ try {
     localStorage.removeItem('letscalculate_user');
     localStorage.setItem('letscalculate_auth_v', '2.3');
   }
-} catch (e) {}
+} catch (e) { }
 
 // App State
 const AppState = {
@@ -74,7 +76,7 @@ const AppState = {
       this.currentUser.plan === 'Guest Pass'
     ) {
       this.currentUser = null;
-      try { localStorage.removeItem('letscalculate_user'); } catch (e) {}
+      try { localStorage.removeItem('letscalculate_user'); } catch (e) { }
       return false;
     }
     return true;
@@ -133,7 +135,7 @@ const AppState = {
       }).catch(err => {
         console.warn('Backend Excel sync notification:', err.message);
       });
-    } catch (e) {}
+    } catch (e) { }
 
     AppUI.updateHeaderBadges();
     return this.currentUser;
@@ -225,12 +227,25 @@ const AppState = {
 
 // UI Rendering & Management
 const AppUI = {
+  escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  },
+
   init() {
     // Apply theme
     document.documentElement.setAttribute('data-theme', AppState.theme);
 
     // Setup global listeners
     this.setupEventListeners();
+
+    // Setup feedback form
+    this.setupFeedbackForm();
 
     // Setup router
     window.addEventListener('hashchange', () => this.handleRoute());
@@ -248,82 +263,124 @@ const AppUI = {
 
     // Search modal open/close
     const searchModal = document.getElementById('search-modal-backdrop');
-    const searchInput = document.getElementById('modal-search-input');
+    const searchInput = document.getElementById('global-search-input');
+    const closeSearchBtn = document.getElementById('close-search-modal');
 
-    const openSearch = () => {
-      if (!AppState.isLoggedIn()) {
-        this.showToast('Please sign up or log in to search and access calculators.', 'alert-triangle');
-        window.location.hash = '#/signup';
-        return;
-      }
+    const openSearch = (initialQuery = '') => {
+      if (!searchModal) return;
       searchModal.classList.add('open');
-      searchInput.value = '';
-      searchInput.focus();
-      this.renderSearchResults('');
+      const input = document.getElementById('global-search-input');
+      if (input) {
+        input.value = initialQuery;
+        setTimeout(() => input.focus(), 60);
+      }
+      this.renderSearchResults(initialQuery);
     };
 
     const closeSearch = () => {
-      searchModal.classList.remove('open');
+      if (searchModal) searchModal.classList.remove('open');
     };
 
-    document.getElementById('header-search-btn')?.addEventListener('click', openSearch);
-    document.getElementById('hero-search-trigger')?.addEventListener('click', openSearch);
-    document.getElementById('close-search-btn')?.addEventListener('click', closeSearch);
+    this.openSearchModal = openSearch;
+    this.closeSearchModal = closeSearch;
 
-    searchModal?.addEventListener('click', (e) => {
-      if (e.target === searchModal) closeSearch();
+    // Bulletproof click delegation for header search, hero search trigger, and close button
+    document.addEventListener('click', (e) => {
+      // Header search trigger
+      if (e.target.closest('#header-search-btn')) {
+        e.preventDefault();
+        openSearch('');
+        return;
+      }
+      // Hero search trigger box on Home page
+      if (e.target.closest('#hero-search-trigger') || e.target.closest('.hero-search-input-box')) {
+        e.preventDefault();
+        openSearch('');
+        return;
+      }
+      // Modal close button
+      if (e.target.closest('#close-search-modal') || e.target.closest('.modal-close-btn')) {
+        e.preventDefault();
+        closeSearch();
+        return;
+      }
+      // Backdrop click outside modal dialog
+      if (e.target === searchModal) {
+        closeSearch();
+        return;
+      }
     });
 
-    // Keyboard shortcut '/' or 'Cmd+K'
-    window.addEventListener('keydown', (e) => {
-      if ((e.key === '/' || (e.key === 'k' && (e.ctrlKey || e.metaKey))) && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-        e.preventDefault();
-        openSearch();
+    // Support focusing/clicking hero input to open modal
+    document.addEventListener('focusin', (e) => {
+      if (e.target && (e.target.id === 'hero-search-input' || e.target.closest('#hero-search-trigger'))) {
+        openSearch('');
       }
-      if (e.key === 'Escape' && searchModal.classList.contains('open')) {
+    });
+
+    // Keyboard shortcut '/' or 'Cmd+K' / 'Ctrl+K'
+    window.addEventListener('keydown', (e) => {
+      if ((e.key === '/' || (e.key.toLowerCase() === 'k' && (e.ctrlKey || e.metaKey))) && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        openSearch('');
+      }
+      if (e.key === 'Escape' && searchModal?.classList.contains('open')) {
         closeSearch();
       }
     });
 
+    // Real-time input searching in modal
     searchInput?.addEventListener('input', (e) => {
       this.renderSearchResults(e.target.value);
     });
 
-    // History & Favorites Drawers
+    // Forward typing from hero search input on home page
+    document.addEventListener('input', (e) => {
+      if (e.target && e.target.id === 'hero-search-input') {
+        const val = e.target.value;
+        e.target.value = '';
+        openSearch(val);
+      }
+    });
+
+    // History, Favorites & Mobile Navigation Drawers
     const drawerBackdrop = document.getElementById('drawer-backdrop');
     const historyDrawer = document.getElementById('history-drawer');
     const favDrawer = document.getElementById('favorites-drawer');
+    const mobileNavDrawer = document.getElementById('mobile-nav-drawer');
 
     const closeDrawers = () => {
-      drawerBackdrop.classList.remove('open');
+      drawerBackdrop?.classList.remove('open');
       historyDrawer?.classList.remove('open');
       favDrawer?.classList.remove('open');
+      mobileNavDrawer?.classList.remove('open');
     };
 
     document.getElementById('header-history-btn')?.addEventListener('click', () => {
-      if (!AppState.isLoggedIn()) {
-        this.showToast('Please sign up or log in to view calculation history.', 'alert-triangle');
-        window.location.hash = '#/signup';
-        return;
-      }
-      drawerBackdrop.classList.add('open');
+      drawerBackdrop?.classList.add('open');
       historyDrawer?.classList.add('open');
       this.renderHistoryDrawer();
     });
 
     document.getElementById('header-favorites-btn')?.addEventListener('click', () => {
-      if (!AppState.isLoggedIn()) {
-        this.showToast('Please sign up or log in to view saved favorites.', 'alert-triangle');
-        window.location.hash = '#/signup';
-        return;
-      }
-      drawerBackdrop.classList.add('open');
+      drawerBackdrop?.classList.add('open');
       favDrawer?.classList.add('open');
       this.renderFavoritesDrawer();
     });
 
+    document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
+      drawerBackdrop?.classList.add('open');
+      mobileNavDrawer?.classList.add('open');
+    });
+
     document.querySelectorAll('.close-drawer-btn').forEach(btn => {
       btn.addEventListener('click', closeDrawers);
+    });
+
+    mobileNavDrawer?.querySelectorAll?.('a, button')?.forEach(el => {
+      el.addEventListener('click', () => {
+        closeDrawers();
+      });
     });
 
     drawerBackdrop?.addEventListener('click', closeDrawers);
@@ -334,32 +391,427 @@ const AppUI = {
     });
   },
 
+  setupFeedbackForm() {
+    const modalBackdrop = document.getElementById('feedback-modal-backdrop');
+    const form = document.getElementById('feedback-form');
+    if (!form && !modalBackdrop) return;
+
+    const nameInput = document.getElementById('fb-name');
+    const emailInput = document.getElementById('fb-email');
+    const phoneInput = document.getElementById('fb-phone');
+    const bestInput = document.getElementById('fb-best');
+    const improvementsInput = document.getElementById('fb-improvements');
+    const submitBtn = document.getElementById('fb-submit-btn');
+    const successCard = document.getElementById('fb-success-card');
+    const resetBtn = document.getElementById('fb-submit-another-btn');
+    const closeSuccessBtn = document.getElementById('fb-close-success-btn');
+    const alertBanner = document.getElementById('fb-server-alert');
+    const bestCounter = document.getElementById('fb-best-counter');
+    const improvementsCounter = document.getElementById('fb-improvements-counter');
+
+    const openModal = () => {
+      if (!modalBackdrop) return;
+      modalBackdrop.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => {
+        if (form && form.style.display !== 'none') {
+          nameInput?.focus();
+        }
+      }, 60);
+    };
+
+    const closeModal = () => {
+      if (!modalBackdrop) return;
+      modalBackdrop.classList.remove('open');
+      document.body.style.overflow = '';
+    };
+
+    this.openFeedbackModal = openModal;
+    this.closeFeedbackModal = closeModal;
+
+    // Bulletproof click delegation for any button or link opening feedback popup
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.open-feedback-modal-btn') || e.target.closest('#main-page-feedback-trigger') || e.target.closest('#hero-feedback-trigger')) {
+        e.preventDefault();
+        openModal();
+        return;
+      }
+      if (e.target.closest('#close-feedback-modal') || e.target.closest('#fb-close-success-btn')) {
+        e.preventDefault();
+        closeModal();
+        return;
+      }
+      if (e.target === modalBackdrop) {
+        closeModal();
+        return;
+      }
+    });
+
+    // Escape key listener to close modal
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modalBackdrop?.classList.contains('open')) {
+        closeModal();
+      }
+    });
+
+    // Field error containers
+    const errors = {
+      name: document.getElementById('fb-name-error'),
+      email: document.getElementById('fb-email-error'),
+      phone: document.getElementById('fb-phone-error'),
+      best: document.getElementById('fb-best-error'),
+      improvements: document.getElementById('fb-improvements-error')
+    };
+
+    const setFieldError = (inputEl, errorEl, message) => {
+      if (!inputEl) return false;
+      if (message) {
+        inputEl.classList.add('input-invalid');
+        inputEl.closest('.fb-form-group')?.classList.add('has-error');
+        if (errorEl) {
+          errorEl.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>${this.escapeHtml(message)}</span>
+          `;
+          errorEl.classList.add('visible');
+        }
+        return false;
+      } else {
+        inputEl.classList.remove('input-invalid');
+        inputEl.closest('.fb-form-group')?.classList.remove('has-error');
+        if (errorEl) {
+          errorEl.textContent = '';
+          errorEl.classList.remove('visible');
+        }
+        return true;
+      }
+    };
+
+    // Validation rules according to user specifications:
+    // 1. Name: must contain only alphabets, no numbers or special characters. Required.
+    const validateName = () => {
+      const val = (nameInput?.value || '').trim();
+      if (!val) {
+        return setFieldError(nameInput, errors.name, 'Name is required.');
+      }
+      // Only alphabets and spaces between names
+      const nameRegex = /^[A-Za-z\s]+$/;
+      if (!nameRegex.test(val)) {
+        return setFieldError(nameInput, errors.name, 'Name must contain only alphabets, no numbers or special characters.');
+      }
+      return setFieldError(nameInput, errors.name, null);
+    };
+
+    // 2. Email: must follow valid email format (example@example.com). Required.
+    const validateEmail = () => {
+      const val = (emailInput?.value || '').trim();
+      if (!val) {
+        return setFieldError(emailInput, errors.email, 'Email is required.');
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(val)) {
+        return setFieldError(emailInput, errors.email, 'Please enter a valid email format (e.g. example@example.com).');
+      }
+      return setFieldError(emailInput, errors.email, null);
+    };
+
+    // 3. Phone Number: must be exactly 10 digits, numeric only. Required.
+    const validatePhone = () => {
+      const val = (phoneInput?.value || '').trim();
+      if (!val) {
+        return setFieldError(phoneInput, errors.phone, 'Phone number is required.');
+      }
+      const phoneRegex = /^\d{10}$/;
+      if (!phoneRegex.test(val)) {
+        return setFieldError(phoneInput, errors.phone, 'Phone number must be exactly 10 digits, numeric only.');
+      }
+      return setFieldError(phoneInput, errors.phone, null);
+    };
+
+    // 4. Best Here: minimum 10 characters, required.
+    const validateBest = () => {
+      const val = (bestInput?.value || '').trim();
+      if (!val) {
+        return setFieldError(bestInput, errors.best, 'What is best here is required (minimum 10 characters).');
+      }
+      if (val.length < 10) {
+        return setFieldError(bestInput, errors.best, `What is best here must be at least 10 characters (currently ${val.length}/10).`);
+      }
+      return setFieldError(bestInput, errors.best, null);
+    };
+
+    // 5. Improvements: optional, but if filled must be minimum 10 characters.
+    const validateImprovements = () => {
+      const val = (improvementsInput?.value || '').trim();
+      if (!val) {
+        // Optional - valid if empty
+        return setFieldError(improvementsInput, errors.improvements, null);
+      }
+      if (val.length < 10) {
+        return setFieldError(improvementsInput, errors.improvements, `What can be improved must be at least 10 characters if filled (currently ${val.length}/10).`);
+      }
+      return setFieldError(improvementsInput, errors.improvements, null);
+    };
+
+    // Character counter updates
+    const updateCounters = () => {
+      const bestLen = (bestInput?.value || '').trim().length;
+      if (bestCounter) {
+        bestCounter.textContent = `${bestLen} / 10 min chars`;
+        if (bestLen >= 10) {
+          bestCounter.classList.add('counter-valid');
+          bestCounter.classList.remove('counter-error');
+        } else if (bestLen > 0) {
+          bestCounter.classList.remove('counter-valid');
+          bestCounter.classList.add('counter-error');
+        } else {
+          bestCounter.classList.remove('counter-valid', 'counter-error');
+        }
+      }
+
+      const impLen = (improvementsInput?.value || '').trim().length;
+      if (improvementsCounter) {
+        if (impLen === 0) {
+          improvementsCounter.textContent = 'Optional (10 min if filled)';
+          improvementsCounter.classList.remove('counter-valid', 'counter-error');
+        } else if (impLen < 10) {
+          improvementsCounter.textContent = `${impLen} / 10 min chars`;
+          improvementsCounter.classList.add('counter-error');
+          improvementsCounter.classList.remove('counter-valid');
+        } else {
+          improvementsCounter.textContent = `${impLen} chars (valid)`;
+          improvementsCounter.classList.add('counter-valid');
+          improvementsCounter.classList.remove('counter-error');
+        }
+      }
+    };
+
+    // Highlight Submit button once all required fields are validly filled
+    const checkFormFilled = () => {
+      const nameVal = (nameInput?.value || '').trim();
+      const emailVal = (emailInput?.value || '').trim();
+      const phoneVal = (phoneInput?.value || '').trim();
+      const bestVal = (bestInput?.value || '').trim();
+      const impVal = (improvementsInput?.value || '').trim();
+
+      const isNameOk = /^[A-Za-z\s]+$/.test(nameVal) && nameVal.length > 0;
+      const isEmailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal);
+      const isPhoneOk = /^\d{10}$/.test(phoneVal);
+      const isBestOk = bestVal.length >= 10;
+      const isImpOk = impVal.length === 0 || impVal.length >= 10;
+
+      const isFilled = isNameOk && isEmailOk && isPhoneOk && isBestOk && isImpOk;
+
+      if (submitBtn) {
+        if (isFilled) {
+          submitBtn.classList.add('btn-highlighted');
+        } else {
+          submitBtn.classList.remove('btn-highlighted');
+        }
+      }
+      return isFilled;
+    };
+
+    // Attach Live Listeners
+    nameInput?.addEventListener('blur', () => {
+      validateName();
+      checkFormFilled();
+    });
+    nameInput?.addEventListener('input', () => {
+      checkFormFilled();
+      if (nameInput.classList.contains('input-invalid')) validateName();
+    });
+
+    emailInput?.addEventListener('blur', () => {
+      validateEmail();
+      checkFormFilled();
+    });
+    emailInput?.addEventListener('input', () => {
+      checkFormFilled();
+      if (emailInput.classList.contains('input-invalid')) validateEmail();
+    });
+
+    phoneInput?.addEventListener('blur', () => {
+      validatePhone();
+      checkFormFilled();
+    });
+    phoneInput?.addEventListener('input', () => {
+      // Auto strip non-digit characters for smooth user experience while ensuring numeric only
+      phoneInput.value = phoneInput.value.replace(/\D/g, '').slice(0, 10);
+      checkFormFilled();
+      if (phoneInput.classList.contains('input-invalid')) validatePhone();
+    });
+
+    bestInput?.addEventListener('blur', () => {
+      validateBest();
+      checkFormFilled();
+    });
+    bestInput?.addEventListener('input', () => {
+      updateCounters();
+      checkFormFilled();
+      if (bestInput.classList.contains('input-invalid')) validateBest();
+    });
+
+    improvementsInput?.addEventListener('blur', () => {
+      validateImprovements();
+      checkFormFilled();
+    });
+    improvementsInput?.addEventListener('input', () => {
+      updateCounters();
+      checkFormFilled();
+      if (improvementsInput.classList.contains('input-invalid')) validateImprovements();
+    });
+
+    updateCounters();
+    checkFormFilled();
+
+    // Reset button on success card to submit another response
+    resetBtn?.addEventListener('click', () => {
+      if (successCard) successCard.style.display = 'none';
+      if (form) form.style.display = 'block';
+      form.reset();
+      updateCounters();
+      checkFormFilled();
+      nameInput?.focus();
+    });
+
+    // Form Submission Handler
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (alertBanner) alertBanner.style.display = 'none';
+
+      // Validate all fields
+      const isNameValid = validateName();
+      const isEmailValid = validateEmail();
+      const isPhoneValid = validatePhone();
+      const isBestValid = validateBest();
+      const isImpValid = validateImprovements();
+
+      if (!isNameValid || !isEmailValid || !isPhoneValid || !isBestValid || !isImpValid) {
+        // Focus first invalid element
+        if (!isNameValid) nameInput?.focus();
+        else if (!isEmailValid) emailInput?.focus();
+        else if (!isPhoneValid) phoneInput?.focus();
+        else if (!isBestValid) bestInput?.focus();
+        else if (!isImpValid) improvementsInput?.focus();
+        return;
+      }
+
+      // Prepare payload
+      const payload = {
+        name: nameInput.value.trim(),
+        email: emailInput.value.trim().toLowerCase(),
+        phone_number: phoneInput.value.trim(),
+        best_here: bestInput.value.trim(),
+        improvements: improvementsInput.value.trim() || null
+      };
+
+      // Set button to submitting state
+      submitBtn.disabled = true;
+      const originalBtnHtml = submitBtn.innerHTML;
+      submitBtn.innerHTML = `
+        <span class="pulse-ring" style="width: 16px; height: 16px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin 0.8s linear infinite;"></span>
+        <span>Submitting...</span>
+      `;
+
+      try {
+        const response = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          // Success! Clear form fields and show confirmation
+          form.reset();
+          updateCounters();
+          
+          // Clear any remaining invalid classes
+          [nameInput, emailInput, phoneInput, bestInput, improvementsInput].forEach(inp => {
+            inp?.classList.remove('input-invalid');
+            inp?.closest('.fb-form-group')?.classList.remove('has-error');
+          });
+          Object.values(errors).forEach(err => {
+            if (err) {
+              err.textContent = '';
+              err.classList.remove('visible');
+            }
+          });
+
+          // Show Success Card inline
+          form.style.display = 'none';
+          if (successCard) {
+            successCard.style.display = 'block';
+            successCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const doneCloseBtn = document.getElementById('fb-close-success-btn');
+            if (doneCloseBtn) {
+              doneCloseBtn.classList.add('fb-btn-done-highlight');
+              setTimeout(() => doneCloseBtn.focus(), 100);
+            }
+          }
+          AppUI.showToast('Thank you for your feedback!', 'check');
+        } else if (response.status === 409) {
+          // Duplicate email
+          setFieldError(emailInput, errors.email, data.error || 'Feedback from this email has already been submitted.');
+          emailInput?.focus();
+          if (alertBanner) {
+            alertBanner.textContent = data.error || 'Feedback from this email address has already been submitted. Thank you!';
+            alertBanner.style.display = 'flex';
+          }
+        } else {
+          // Other error
+          if (alertBanner) {
+            alertBanner.textContent = data.error || 'Failed to submit feedback. Please check your inputs.';
+            alertBanner.style.display = 'flex';
+          }
+        }
+      } catch (err) {
+        console.error('Feedback submission error:', err);
+        if (alertBanner) {
+          alertBanner.textContent = 'Connection error. Please try again in a moment.';
+          alertBanner.style.display = 'flex';
+        }
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHtml;
+      }
+    });
+  },
+
   updateHeaderBadges() {
     const favBadge = document.getElementById('fav-count-badge');
     if (favBadge) {
       favBadge.textContent = AppState.favorites.length;
-      favBadge.style.display = (AppState.isLoggedIn() && AppState.favorites.length > 0) ? 'inline-block' : 'none';
+      favBadge.style.display = AppState.favorites.length > 0 ? 'inline-block' : 'none';
     }
 
-    // Dynamic Navigation links
+    // Navigation links: Home, All Calculators, 3 Categories & Favorites
     const navLinksEl = document.querySelector('.nav-links');
     if (navLinksEl) {
-      if (AppState.isLoggedIn()) {
-        navLinksEl.innerHTML = `
-          <li class="nav-item"><a href="#/">Home</a></li>
-          <li class="nav-item"><a href="#/categories">Categories</a></li>
-          <li class="nav-item"><a href="#/category/financial">Finance</a></li>
-          <li class="nav-item"><a href="#/category/math">Math</a></li>
-          <li class="nav-item"><a href="#/category/health">Health</a></li>
-          <li class="nav-item"><a href="#/category/conversion">Conversions</a></li>
-          <li class="nav-item"><a href="#/favorites">Favorites</a></li>
-        `;
-      } else {
-        navLinksEl.innerHTML = `
-          <li class="nav-item active"><a href="#/signup" style="color: var(--emerald); font-weight: 700;">Sign Up Free</a></li>
-          <li class="nav-item"><a href="#/login">Log In</a></li>
-        `;
-      }
+      const curHash = window.location.hash || '#/';
+      navLinksEl.innerHTML = `
+        <li class="nav-item ${(curHash === '#/' || curHash === '#' || curHash === '') ? 'active' : ''}"><a href="#/">Home</a></li>
+        <li class="nav-item ${(curHash === '#/categories' || curHash === '#/calculators') ? 'active' : ''}"><a href="#/categories">All Calculators</a></li>
+        <li class="nav-item ${curHash.includes('/financial') ? 'active' : ''}"><a href="#/category/financial">Finance <span class="nav-calc-word">Calculator</span></a></li>
+        <li class="nav-item ${curHash.includes('/math') ? 'active' : ''}"><a href="#/category/math">Math <span class="nav-calc-word">Calculator</span></a></li>
+        <li class="nav-item ${curHash.includes('/health') ? 'active' : ''}"><a href="#/category/health">Health &amp; Fitness <span class="nav-calc-word">Calculator</span></a></li>
+        <li class="nav-item">
+          <a href="https://zerodha.com/open-account?c=ZAPCVV" target="_blank" rel="noopener noreferrer" class="nav-invest-pill" title="Open Investing Account on Zerodha">
+            ${getIconSvg('trending-up', 13)}
+            <span class="invest-label-long">Investing Account</span>
+            <span class="invest-label-short">Invest</span>
+          </a>
+        </li>
+        <li class="nav-item ${curHash.includes('/favorites') ? 'active' : ''}"><a href="#/favorites">Favorites</a></li>
+        <li class="nav-item">
+          <button type="button" class="nav-feedback-pill open-feedback-modal-btn" title="Open Feedback Form">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Feedback</span>
+          </button>
+        </li>
+      `;
     }
 
     const authContainer = document.getElementById('header-auth-container');
@@ -404,7 +856,7 @@ const AppUI = {
     toast.className = 'toast';
     toast.innerHTML = `
       <span class="toast-icon">${getIconSvg(icon, 18)}</span>
-      <span>${message}</span>
+      <span>${this.escapeHtml(message)}</span>
     `;
     container.appendChild(toast);
 
@@ -416,9 +868,9 @@ const AppUI = {
     }, 2800);
   },
 
-  updateSeoMeta(title, description, canonicalUrl) {
+  updateSeoMeta(title, description, canonicalUrl, schemaData = null) {
     if (title) document.title = title;
-    
+
     // Dynamic Meta Description
     let metaDesc = document.querySelector('meta[name="description"]');
     if (!metaDesc) {
@@ -436,6 +888,49 @@ const AppUI = {
       document.head.appendChild(canonical);
     }
     if (canonicalUrl) canonical.href = canonicalUrl;
+
+    // Dynamic OpenGraph Tags
+    const setMetaProp = (prop, content) => {
+      if (!content) return;
+      let el = document.querySelector(`meta[property="${prop}"]`);
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute('property', prop);
+        document.head.appendChild(el);
+      }
+      el.content = content;
+    };
+    setMetaProp('og:title', title);
+    setMetaProp('og:description', description);
+    setMetaProp('og:url', canonicalUrl || window.location.href);
+
+    // Dynamic Twitter Tags
+    const setMetaName = (name, content) => {
+      if (!content) return;
+      let el = document.querySelector(`meta[name="${name}"]`);
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute('name', name);
+        document.head.appendChild(el);
+      }
+      el.content = content;
+    };
+    setMetaName('twitter:title', title);
+    setMetaName('twitter:description', description);
+
+    // Dynamic Schema.org JSON-LD
+    let dynamicSchema = document.getElementById('dynamic-seo-schema');
+    if (schemaData) {
+      if (!dynamicSchema) {
+        dynamicSchema = document.createElement('script');
+        dynamicSchema.id = 'dynamic-seo-schema';
+        dynamicSchema.type = 'application/ld+json';
+        document.head.appendChild(dynamicSchema);
+      }
+      dynamicSchema.textContent = JSON.stringify(schemaData);
+    } else if (dynamicSchema) {
+      dynamicSchema.remove();
+    }
   },
 
   handleRoute() {
@@ -466,33 +961,30 @@ const AppUI = {
       }
     });
 
-    // Public Legal Pages (Terms & Conditions, Privacy Policy)
-    if (hash === '#/terms' || hash === '#/privacy') {
+    // Public Informational, Educational Blog & Legal Pages
+    if (hash === '#/blog/nps' || hash === '#blog/nps' || hash === '#/blog' || (typeof window !== 'undefined' && window.location.pathname && window.location.pathname.endsWith('/blog/nps'))) {
+      this.renderNpsBlogPage();
+      this.updateHeaderBadges();
+      return;
+    }
+    if (hash === '#/about') {
+      this.renderAboutPage();
+      this.updateHeaderBadges();
+      return;
+    }
+    if (hash === '#/terms') {
       this.renderTermsPage();
       this.updateHeaderBadges();
       return;
     }
-
-    // STRICT GATING: Unauthenticated visitors MUST sign up / log in to access any calculators
-    if (!AppState.isLoggedIn()) {
-      if (hash === '#/login') {
-        const params = new URLSearchParams(queryString);
-        const redirectCalcId = params.get('redirect') || null;
-        this.renderAuthPage({ mode: 'login', redirectCalcId });
-      } else if (hash.startsWith('#/calculator/')) {
-        const calcId = hash.replace('#/calculator/', '');
-        this.renderAuthPage({ mode: 'signup', redirectCalcId: calcId });
-      } else {
-        const params = new URLSearchParams(queryString);
-        const redirectCalcId = params.get('redirect') || null;
-        if (window.location.hash !== '#/signup') {
-          try { history.replaceState(null, '', '#/signup'); } catch (e) {}
-        }
-        this.renderAuthPage({ mode: 'signup', redirectCalcId });
-      }
+    if (hash === '#/privacy') {
+      this.renderPrivacyPage();
       this.updateHeaderBadges();
       return;
     }
+
+
+    // NO SIGNUP REQUIRED: Unauthenticated visitors have 100% free immediate access to all calculators!
 
     // LOGGED IN USER: If visiting auth routes, redirect to home page
     if (hash === '#/login' || hash === '#/signup') {
@@ -502,7 +994,7 @@ const AppUI = {
 
     if (hash === '#/' || hash === '#' || hash === '') {
       this.renderHomePage();
-    } else if (hash === '#/categories') {
+    } else if (hash === '#/categories' || hash === '#/calculators') {
       this.renderAllCategoriesPage();
     } else if (hash.startsWith('#/category/')) {
       const catId = hash.replace('#/category/', '');
@@ -522,14 +1014,810 @@ const AppUI = {
   },
 
   // ==========================================
-  // VIEW: HOME PAGE
+  // VIEW: ABOUT US PAGE
+  // ==========================================
+
+  // ==========================================
+  // VIEW: DEDICATED NPS EDUCATIONAL BLOG PAGE
+  // ==========================================
+  renderNpsBlogPage() {
+    const faqSchema = [
+      {
+        '@type': 'Question',
+        'name': 'What is the National Pension System (NPS)?',
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': 'The National Pension System (NPS) is a voluntary, defined-contribution retirement savings scheme regulated by the Pension Fund Regulatory and Development Authority (PFRDA) in India. It enables subscribers to build a long-term retirement corpus through systematic contributions invested across equities, corporate debt, and government securities.'
+        }
+      },
+      {
+        '@type': 'Question',
+        'name': 'What is the extra tax benefit under Section 80CCD(1B)?',
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': 'Section 80CCD(1B) provides an exclusive additional income tax deduction of up to ₹50,000 per financial year for investments in NPS Tier 1. This deduction is over and above the ₹1.5 Lakh limit under Section 80C, allowing individuals in the 30% tax slab to save up to ₹15,600 extra in taxes annually.'
+        }
+      },
+      {
+        '@type': 'Question',
+        'name': 'What is the difference between NPS Tier I and Tier II accounts?',
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': 'Tier I is the primary, mandatory retirement account with a strict lock-in until age 60, offering exclusive tax deductions under Sections 80CCD(1), 80CCD(1B), and 80CCD(2). Tier II is a voluntary investment account that offers unrestricted liquidity with zero lock-in, but does not provide tax deductions for general citizens.'
+        }
+      },
+      {
+        '@type': 'Question',
+        'name': 'What happens to my NPS corpus when I turn 60?',
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': 'At age 60 (superannuation), you can withdraw up to 60% of your accumulated corpus as a completely tax-free lump sum. The remaining 40% (minimum) must be utilized to purchase an annuity from a PFRDA-registered Annuity Service Provider to provide guaranteed monthly pension for life.'
+        }
+      },
+      {
+        '@type': 'Question',
+        'name': 'Can I withdraw money from NPS before retirement age 60?',
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': 'Yes. After 3 years of membership, partial withdrawals of up to 25% of your own contributions are permitted for specified reasons such as children higher education, marriage, purchasing a first residential property, or critical medical emergencies (allowed up to 3 times during the entire tenure).'
+        }
+      },
+      {
+        '@type': 'Question',
+        'name': 'What are the fund management charges in NPS compared to mutual funds?',
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': 'NPS is recognized as the lowest-cost investment vehicle globally. Fund management charges (FMC) are capped at between 0.03% and 0.09% p.a., compared to 0.5%–2.0% typically charged by equity and debt mutual funds, which leaves substantially more money compounding over several decades.'
+        }
+      }
+    ];
+
+    this.updateSeoMeta(
+      'NPS: National Pension System – Complete Guide, Benefits, Returns & Calculator | letscalculate.in',
+      'Comprehensive guide to the National Pension System (NPS). Understand Tier 1 vs Tier 2, 80CCD tax benefits, returns, annuity options, and calculate your retirement corpus.',
+      'https://letscalculate.in/#/blog/nps',
+      {
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'BreadcrumbList',
+            'itemListElement': [
+              { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': 'https://letscalculate.in/#/' },
+              { '@type': 'ListItem', 'position': 2, 'name': 'Blog', 'item': 'https://letscalculate.in/#/blog/nps' },
+              { '@type': 'ListItem', 'position': 3, 'name': 'NPS Complete Guide', 'item': 'https://letscalculate.in/#/blog/nps' }
+            ]
+          },
+          {
+            '@type': 'BlogPosting',
+            'headline': 'NPS: National Pension System – Complete Guide, Benefits, Returns & Calculator',
+            'description': 'Comprehensive guide to the National Pension System (NPS). Understand Tier 1 vs Tier 2, 80CCD tax benefits, returns, annuity options, and calculate your retirement corpus.',
+            'url': 'https://letscalculate.in/#/blog/nps',
+            'datePublished': '2026-10-06T00:00:00+05:30',
+            'dateModified': '2026-10-06T09:30:00+05:30',
+            'author': {
+              '@type': 'Organization',
+              'name': 'letscalculate.in Editorial Team'
+            },
+            'publisher': {
+              '@type': 'Organization',
+              'name': 'letscalculate.in',
+              'url': 'https://letscalculate.in/'
+            }
+          },
+          {
+            '@type': 'FAQPage',
+            'mainEntity': faqSchema
+          }
+        ]
+      }
+    );
+
+    const mainEl = document.getElementById('app-main');
+    if (!mainEl) return;
+
+    mainEl.innerHTML = `
+      <article class="nps-article-container" itemscope itemtype="https://schema.org/Article">
+        <!-- Breadcrumbs -->
+        <nav class="calc-breadcrumb" aria-label="Breadcrumb" style="margin-bottom: 1.5rem;">
+          <a href="#/">Home</a>
+          <span class="calc-breadcrumb-separator">/</span>
+          <a href="#/category/financial">Finance</a>
+          <span class="calc-breadcrumb-separator">/</span>
+          <span aria-current="page">NPS Complete Guide</span>
+        </nav>
+
+        <!-- Article Hero Header -->
+        <header class="nps-blog-hero">
+          <div class="nps-blog-badge-row">
+            <span class="badge badge-emerald">Retirement Planning</span>
+            <span class="badge badge-indigo">Tax Saving 80CCD</span>
+            <span class="badge badge-amber" style="background: rgba(245, 158, 11, 0.15); border: 1px solid var(--amber); color: #fbbf24;">PFRDA Regulated</span>
+          </div>
+
+          <h1 class="nps-blog-title" itemprop="headline">
+            NPS: National Pension System – Complete Guide, Benefits, Returns &amp; Calculator
+          </h1>
+
+          <div class="nps-blog-meta-bar">
+            <div class="nps-blog-meta-item">
+              ${getIconSvg('calendar-clock', 16)}
+              <span>Updated: October 2026</span>
+            </div>
+            <div class="nps-blog-meta-item">
+              ${getIconSvg('coffee', 16)}
+              <span>15 min comprehensive read</span>
+            </div>
+            <div class="nps-blog-meta-item">
+              ${getIconSvg('shield-check', 16)}
+              <span>Author: letscalculate.in Editorial Team</span>
+            </div>
+          </div>
+
+          <div class="nps-highlight-box">
+            <strong>Key Takeaway:</strong> The National Pension System (NPS) is India's most cost-effective retirement vehicle, combining market-linked equity compounding, the lowest fund management charges globally (&lt;0.09% p.a.), an exclusive extra ₹50,000 tax deduction under Section 80CCD(1B), and a guaranteed lifetime pension structure with a 60% tax-free lump sum exit.
+          </div>
+        </header>
+
+        <!-- Main Blog Prose Content -->
+        <div class="nps-blog-content">
+
+          <!-- Section 1 -->
+          <h2>1. What is the National Pension System (NPS)?</h2>
+          <p>
+            The <strong>National Pension System (NPS)</strong> is a voluntary, defined-contribution retirement savings scheme launched by the Government of India and regulated by the <strong>Pension Fund Regulatory and Development Authority (PFRDA)</strong>. Originally introduced in January 2004 for newly recruited central government employees, NPS was opened to all Indian citizens (including Non-Resident Indians) on a voluntary basis in May 2009.
+          </p>
+          <p>
+            The core objective of NPS is to instill financial discipline and empower individuals to accumulate an adequate retirement nest egg during their productive working years. Unlike traditional defined-benefit pensions that rely on government exchequer payouts, NPS is an individual market-linked pension program where your accumulated corpus directly reflects the performance of your chosen asset classes and compounding returns over time.
+          </p>
+
+          <!-- Section 2 -->
+          <h2>2. How NPS Works: Institutional Architecture</h2>
+          <p>
+            NPS operates on an institutional architecture characterized by unbundled functions, rigorous regulatory oversight, and zero conflict of interest:
+          </p>
+          <ul>
+            <li><strong>PRAN (Permanent Retirement Account Number):</strong> Upon enrollment, every subscriber receives a unique 12-digit PRAN. This account remains portable across employment changes, cities, and states throughout your working life.</li>
+            <li><strong>PFRDA (Regulator):</strong> The statutory authority established by Parliament to promote, regulate, and safeguard the interests of pension subscribers.</li>
+            <li><strong>CRA (Central Recordkeeping Agency):</strong> Entities like Protean (formerly NSDL) and KFin Technologies maintain master subscriber records, track transactions, issue account statements, and process administrative requests.</li>
+            <li><strong>Pension Fund Managers (PFMs):</strong> Professional asset management houses (such as SBI Pension Funds, LIC Pension Fund, HDFC Pension Management, ICICI Prudential Pension Funds, UTI Retirement Solutions, and Kotak Pension Fund) invest your contributions in diversified market portfolios.</li>
+            <li><strong>NPS Trust &amp; Custodian:</strong> The NPS Trust holds legal custody of all subscriber assets, ensuring institutional safety and separation from the commercial operations of the fund managers.</li>
+          </ul>
+
+          <!-- Section 3 -->
+          <h2>3. Who Can Invest in NPS? (Eligibility Criteria)</h2>
+          <p>
+            NPS offers one of the most inclusive eligibility criteria among formal Indian investment instruments:
+          </p>
+          <ul>
+            <li><strong>Age Requirement:</strong> Any individual citizen aged between <strong>18 and 70 years</strong> at the date of submission of application.</li>
+            <li><strong>Citizenship:</strong> Open to Resident Indian Citizens, Non-Resident Indians (NRIs), and Overseas Citizens of India (OCIs).</li>
+            <li><strong>KYC Compliance:</strong> Must possess valid KYC documentation (PAN card, Aadhaar or Passport, and an active bank account).</li>
+            <li><strong>Sectors:</strong> Available across the All Citizens Model (voluntary retail investors), Corporate Model (employer-employee co-contributions), and Government Sector.</li>
+          </ul>
+
+          <!-- Section 4 -->
+          <h2>4. How to Open an NPS Account</h2>
+          <p>
+            Opening an NPS account is 100% digital and takes under 10 minutes:
+          </p>
+          <ol>
+            <li><strong>Online via eNPS:</strong> Visit the official eNPS portal (enps.nsdl.com or enps.kfintech.com). Choose registration using Aadhaar (via DigiLocker or OTP) or PAN with online bank verification.</li>
+            <li><strong>Select Account Type:</strong> Choose Tier I (mandatory for retirement) or Tier I &amp; Tier II combined.</li>
+            <li><strong>Select Fund Manager &amp; Asset Allocation:</strong> Pick your preferred Pension Fund Manager and choose between <em>Active Choice</em> or <em>Auto Choice</em>.</li>
+            <li><strong>Nomination &amp; Initial Deposit:</strong> Add nominee details and make the initial contribution (minimum ₹500 for Tier 1) using Net Banking, UPI, or Debit Card.</li>
+            <li><strong>Instant PRAN Generation:</strong> Your PRAN is generated immediately, and your digital PRAN card is downloadable in seconds.</li>
+          </ol>
+          <p>
+            Subscribers can also register offline through authorized <strong>Points of Presence (POPs)</strong>, which include public and private commercial banks, post offices, and registered fintech platforms.
+          </p>
+
+          <!-- Section 5 -->
+          <h2>5. NPS Contribution Rules &amp; Limits</h2>
+          <p>
+            NPS gives subscribers complete flexibility over contribution timing and amounts:
+          </p>
+          <ul>
+            <li><strong>Minimum Initial Deposit:</strong> ₹500 for Tier I; ₹1,000 for Tier II.</li>
+            <li><strong>Minimum Contribution per Transaction:</strong> ₹500 for Tier I; ₹250 for Tier II.</li>
+            <li><strong>Minimum Annual Contribution:</strong> At least <strong>₹1,000 per financial year</strong> in Tier I to keep the account active.</li>
+            <li><strong>Maximum Limit:</strong> There is <strong>no upper ceiling</strong> on contributions in either Tier I or Tier II. You can contribute as much as you wish toward your retirement corpus.</li>
+          </ul>
+
+          <!-- Section 6 -->
+          <h2>6. Tier I vs Tier II Accounts: Key Differences &amp; Comparison</h2>
+          <p>
+            NPS features two distinct account types with separate regulatory frameworks and objectives:
+          </p>
+          
+          <div class="blog-table-wrapper">
+            <table class="blog-comparison-table">
+              <thead>
+                <tr>
+                  <th>Parameter</th>
+                  <th>Tier I (Retirement Account)</th>
+                  <th>Tier II (Voluntary Savings Account)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Primary Purpose</strong></td>
+                  <td>Core retirement nest egg accumulation</td>
+                  <td>Flexible, liquid investment &amp; wealth generation</td>
+                </tr>
+                <tr>
+                  <td><strong>Lock-in Period</strong></td>
+                  <td>Locked until age 60 (superannuation)</td>
+                  <td>Zero lock-in; open liquidity at any time</td>
+                </tr>
+                <tr>
+                  <td><strong>Tax Deductions</strong></td>
+                  <td>Yes: Under 80CCD(1), 80CCD(1B) and 80CCD(2)</td>
+                  <td>No tax deduction for private sector / retail subscribers</td>
+                </tr>
+                <tr>
+                  <td><strong>Withdrawal Freedom</strong></td>
+                  <td>Restricted: partial withdrawals for emergencies only</td>
+                  <td>Unrestricted: withdraw anytime without penalty</td>
+                </tr>
+                <tr>
+                  <td><strong>Exit at Age 60</strong></td>
+                  <td>60% Tax-Free Lump Sum + 40% Minimum Mandatory Annuity</td>
+                  <td>100% corpus can be redeemed or transferred anytime</td>
+                </tr>
+                <tr>
+                  <td><strong>Prerequisite</strong></td>
+                  <td>Stand-alone account</td>
+                  <td>Requires an active Tier I PRAN account to open</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Section 7 -->
+          <h2>7. NPS Tax Benefits: The Triple Tax Deduction Framework</h2>
+          <p>
+            NPS provides one of the most powerful tax deduction structures under the Indian Income Tax Act (Old Tax Regime), often called the <em>Triple Tax Benefit</em>:
+          </p>
+          <ul>
+            <li>
+              <strong>1. Section 80CCD(1) – Self Contributions:</strong> 
+              Contributions up to 10% of salary (Basic + DA) for salaried employees or 20% of Gross Total Income for self-employed individuals, capped under the overall ₹1,50,000 limit shared with Section 80C.
+            </li>
+            <li>
+              <strong>2. Section 80CCD(1B) – Exclusive Additional ₹50,000 Deduction:</strong>
+              An <em>exclusive additional deduction of up to ₹50,000</em> for contributions to Tier I, completely over and above the ₹1.5 Lakh ceiling of Section 80C. For taxpayers in the 30% tax slab (plus 4% cess), this delivers an immediate direct tax savings of <strong>₹15,600 every year</strong>.
+            </li>
+            <li>
+              <strong>3. Section 80CCD(2) – Employer Contributions:</strong>
+              Employer contributions up to 10% of salary (Basic + DA) for private sector employees (and 14% for Central/State Government employees) are fully tax-deductible without any monetary ceiling under Section 80CCD(2), subject to the overall ₹7.5 Lakh aggregate employer contribution cap.
+            </li>
+            <li>
+              <strong>4. Tax-Exempt Maturity (EEE Status):</strong>
+              At age 60, the 60% lump sum withdrawal is completely exempt from income tax under Section 10(12A). The remaining 40% utilized to purchase an annuity is also exempt from tax at purchase (though monthly annuity payouts are taxable as regular income).
+            </li>
+          </ul>
+
+          <!-- CONTEXTUAL CTA 1 -->
+          <div class="blog-calc-cta-card">
+            <div class="blog-calc-cta-text">
+              <h4>Calculate Your NPS Corpus &amp; Tax Savings</h4>
+              <p>Discover how much tax you save under Section 80CCD(1B) and watch your monthly contributions compound toward retirement.</p>
+            </div>
+            <a href="#/calculator/nps-calculator" class="blog-calc-cta-btn" id="blog-cta-1-btn">
+              <span>Calculate Your NPS Corpus</span>
+              ${getIconSvg('arrow-right', 16)}
+            </a>
+          </div>
+
+          <!-- Section 8 -->
+          <h2>8. How NPS Returns Work &amp; Fund Management Charges</h2>
+          <p>
+            Unlike fixed-return instruments like PPF or EPF, NPS is market-linked. When you make a contribution, units are allotted to your account based on the daily <strong>Net Asset Value (NAV)</strong> declared by your chosen Pension Fund Manager.
+          </p>
+          <h3>The Ultra-Low Cost Advantage</h3>
+          <p>
+            Expenses are the silent killer of long-term compounding. Mutual funds often charge 0.75% to 2.25% in Expense Ratios. In stark contrast, <strong>NPS fund management fees are capped between 0.03% and 0.09% per annum</strong>. Over a 25 to 35-year investment horizon, this 1.5% fee differential compounds into millions of additional rupees in your retirement kitty.
+          </p>
+          <h3>Historical Performance Benchmarks</h3>
+          <p>
+            Over the past decade (2014–2024), major NPS pension funds have generated competitive historical annualized returns (CAGR):
+          </p>
+          <ul>
+            <li><strong>Asset Class E (Equities):</strong> 12.0% – 14.5% annualized return</li>
+            <li><strong>Asset Class C (Corporate Bonds):</strong> 8.5% – 10.0% annualized return</li>
+            <li><strong>Asset Class G (Government Securities):</strong> 7.8% – 9.2% annualized return</li>
+          </ul>
+
+          <!-- Section 9 -->
+          <h2>9. Investment Choices: Active Choice vs. Auto Choice Lifecycle Funds</h2>
+          <p>
+            NPS offers four underlying asset classes:
+          </p>
+          <ul>
+            <li><strong>Asset Class E (Equity):</strong> Up to 75% in large-cap and diversified index stocks and equities.</li>
+            <li><strong>Asset Class C (Corporate Debt):</strong> Fixed-income debt securities issued by infrastructure companies and top-rated corporations.</li>
+            <li><strong>Asset Class G (Government Securities):</strong> Central and State Government bonds, offering sovereign safety.</li>
+            <li><strong>Asset Class A (Alternative Assets):</strong> Up to 5% in Real Estate Investment Trusts (REITs), InvITs, and Alternative Investment Funds.</li>
+          </ul>
+          <h3>Active Choice vs Auto Choice</h3>
+          <p>
+            Subscribers can choose how their capital is distributed across these classes:
+          </p>
+          <ul>
+            <li><strong>Active Choice:</strong> You manually determine your asset allocation. You can allocate up to 75% in Equity (Class E) until age 50, after which the equity cap gradually reduces by 2.5% each year until it stabilizes at 50% at age 60.</li>
+            <li><strong>Auto Choice (Lifecycle Funds):</strong> The system automatically manages your risk profile based on your age. As you grow older, capital systematically shifts from volatile equities into stable corporate debt and sovereign bonds:
+              <ul>
+                <li><em>Aggressive Lifecycle Fund (LC-75):</em> Maximum 75% equity until age 35, tapering to 15% at age 55.</li>
+                <li><em>Moderate Lifecycle Fund (LC-50 - Default):</em> Maximum 50% equity until age 35, tapering to 10% at age 55.</li>
+                <li><em>Conservative Lifecycle Fund (LC-25):</em> Maximum 25% equity until age 35, tapering to 5% at age 55.</li>
+              </ul>
+            </li>
+          </ul>
+
+          <!-- CONTEXTUAL CTA 2 -->
+          <div class="blog-calc-cta-card">
+            <div class="blog-calc-cta-text">
+              <h4>Estimate Your NPS Returns with the Calculator</h4>
+              <p>Customize your monthly investment, expected return rate, and retirement tenure to simulate your corpus in real time.</p>
+            </div>
+            <a href="#/calculator/nps-calculator" class="blog-calc-cta-btn" id="blog-cta-2-btn">
+              <span>Estimate Your NPS Returns with the Calculator</span>
+              ${getIconSvg('arrow-right', 16)}
+            </a>
+          </div>
+
+          <!-- Section 10 -->
+          <h2>10. Retirement Exit Rules: What Happens at Age 60?</h2>
+          <p>
+            When a subscriber reaches age 60 (superannuation), the formal NPS exit framework takes effect:
+          </p>
+          <ul>
+            <li><strong>Maximum 60% Lump Sum Withdrawal:</strong> You can withdraw up to 60% of your total accumulated corpus as a cash payout. This entire 60% is <strong>100% tax-free</strong>.</li>
+            <li><strong>Minimum 40% Mandatory Annuity:</strong> You must allocate at least 40% of the accumulated corpus to purchase a life annuity policy from an authorized Annuity Service Provider.</li>
+            <li><strong>Small Corpus Exception (100% Lump Sum):</strong> If your total accumulated corpus at age 60 is <strong>₹5 Lakh or less</strong>, you have the option to withdraw 100% of the money as a lump sum without purchasing any annuity.</li>
+            <li><strong>Deferment Option:</strong> You can choose to defer lump sum withdrawal or annuity purchase up to age 75 to let your investments continue compounding.</li>
+          </ul>
+
+          <!-- Section 11 -->
+          <h2>11. Understanding the NPS Annuity &amp; Guaranteed Pension</h2>
+          <p>
+            The annuity portion of your NPS corpus is deployed to guarantee lifelong monthly income. PFRDA has empanelled leading life insurance companies as <strong>Annuity Service Providers (ASPs)</strong>, including LIC of India, SBI Life, HDFC Life, ICICI Prudential, and Max Life.
+          </p>
+          <h3>Popular Annuity Options</h3>
+          <ul>
+            <li><strong>Annuity for Life (Without Return of Purchase Price):</strong> Pays the highest monthly pension for your entire life, but the principal is not returned after death.</li>
+            <li><strong>Annuity for Life with Return of Purchase Price (ROPP):</strong> Pays a guaranteed monthly pension for life, and 100% of the invested principal is paid to your legal nominee upon death.</li>
+            <li><strong>Joint Life Annuity:</strong> Pays the monthly pension to you, then continues paying the same pension to your spouse for their lifetime, with purchase price returned to nominees thereafter.</li>
+          </ul>
+
+          <!-- Section 12 -->
+          <h2>12. Partial Withdrawal Rules &amp; Premature Exit</h2>
+          <p>
+            While NPS is intentionally designed with lock-in restrictions to protect your retirement capital, PFRDA provides reasonable liquidity windows for life milestones:
+          </p>
+          <ul>
+            <li><strong>Partial Withdrawals:</strong> Allowed after 3 years of joining NPS. You can withdraw up to <strong>25% of your own contributions</strong> (excluding employer contributions and accumulated interest).</li>
+            <li><strong>Approved Reasons:</strong> Higher education of children, marriage of children, construction or purchase of first residential property, and treatment of specified critical illnesses.</li>
+            <li><strong>Frequency:</strong> Allowed a maximum of 3 times across your entire subscription lifetime with a minimum 5-year gap between withdrawals.</li>
+            <li><strong>Premature Exit (Before Age 60):</strong> If you choose to exit voluntarily before age 60, at least <strong>80% of the corpus must be annuitized</strong>, and only 20% can be taken as a lump sum (unless total corpus is &le; ₹2.5 Lakh).</li>
+          </ul>
+
+          <!-- Section 13 -->
+          <h2>13. The Power of Long-Term Compounding: Real-World Example</h2>
+          <p>
+            To appreciate how systematic NPS contributions transform modest savings into multi-crore wealth, consider the journey of <strong>Ankit</strong>, a 28-year-old professional:
+          </p>
+
+          <div class="worked-example-card">
+            <h3 style="margin-top: 0; color: var(--emerald);">Worked Case Study: 32 Years of Compounding</h3>
+            <p style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 1rem;">
+              Ankit invests ₹5,000 every month (₹60,000 annually) into NPS Tier 1 with an Active Choice allocation of 70% Equity and 30% Debt. He assumes a conservative blended CAGR of 10.0% p.a. until retiring at age 60, and a 6.5% lifelong annuity yield on 40% of his corpus:
+            </p>
+
+            <div class="example-step-grid">
+              <div class="example-step-item">
+                <div class="example-step-label">Total Out-of-Pocket Deposit</div>
+                <div class="example-step-val">₹19,20,000</div>
+                <div class="example-step-desc">₹5,000/mo × 384 months (32 yrs)</div>
+              </div>
+              <div class="example-step-item">
+                <div class="example-step-label">Total Corpus at Age 60</div>
+                <div class="example-step-val">₹1,40,41,677</div>
+                <div class="example-step-desc">Over ₹1.40 Crore accumulated</div>
+              </div>
+              <div class="example-step-item">
+                <div class="example-step-label">60% Tax-Free Lump Sum</div>
+                <div class="example-step-val">₹84,25,006</div>
+                <div class="example-step-desc">100% Tax-Free Cash Payout</div>
+              </div>
+              <div class="example-step-item">
+                <div class="example-step-label">Guaranteed Monthly Pension</div>
+                <div class="example-step-val">₹30,424 / mo</div>
+                <div class="example-step-desc">Lifelong income from 40% annuity</div>
+              </div>
+            </div>
+
+            <p style="margin-top: 1.25rem; font-size: 0.92rem; color: #a5b4fc;">
+              ⚡ <strong>Bonus Income Tax Saved:</strong> Over these 32 years, by claiming ₹50,000 annually under Section 80CCD(1B) in the 30% slab, Ankit also saved <strong>₹4,99,200 in direct income taxes</strong>!
+            </p>
+          </div>
+
+          <!-- Section 14 -->
+          <h2>14. Advantages vs Limitations of NPS</h2>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin: 1.5rem 0 2rem;">
+            <div class="glass-panel" style="padding: 1.5rem; border-radius: var(--radius-lg); border-left: 4px solid var(--emerald);">
+              <h4 style="color: var(--emerald); margin-top: 0; font-size: 1.15rem;">Key Advantages</h4>
+              <ul style="padding-left: 1.25rem; font-size: 0.94rem; margin: 0.5rem 0 0;">
+                <li><strong>Lowest Fees:</strong> Under 0.09% expense ratio saves massive capital.</li>
+                <li><strong>Triple Tax Deductions:</strong> Exclusive 80CCD(1B) and 80CCD(2) breaks.</li>
+                <li><strong>60% Tax-Free Exit:</strong> Substantial liquidity at superannuation.</li>
+                <li><strong>Disciplined Lock-in:</strong> Prevents premature lifestyle depletion of pension wealth.</li>
+                <li><strong>Portability:</strong> PRAN stays active anywhere in India across employers.</li>
+              </ul>
+            </div>
+
+            <div class="glass-panel" style="padding: 1.5rem; border-radius: var(--radius-lg); border-left: 4px solid var(--amber);">
+              <h4 style="color: var(--amber); margin-top: 0; font-size: 1.15rem;">Limitations to Consider</h4>
+              <ul style="padding-left: 1.25rem; font-size: 0.94rem; margin: 0.5rem 0 0;">
+                <li><strong>Strict Lock-in:</strong> Inflexible access to funds prior to age 60.</li>
+                <li><strong>Mandatory 40% Annuity:</strong> You cannot withdraw 100% of corpus as cash unless under ₹5 Lakh.</li>
+                <li><strong>Annuity Taxation:</strong> Monthly pension payments are added to income and taxed at slab rates.</li>
+                <li><strong>Equity Cap:</strong> Retail subscribers cannot exceed 75% equity exposure.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Section 15 -->
+          <h2>15. Benchmarking NPS: NPS vs EPF vs PPF vs Mutual Funds</h2>
+          <p>
+            How does NPS compare against other popular Indian savings and retirement avenues?
+          </p>
+
+          <div class="blog-table-wrapper">
+            <table class="blog-comparison-table">
+              <thead>
+                <tr>
+                  <th>Vehicle</th>
+                  <th>Expected Returns</th>
+                  <th>Tax Deduction</th>
+                  <th>Lock-in Period</th>
+                  <th>Maturity Taxation</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>NPS (Tier 1)</strong></td>
+                  <td>Market-linked (9%–12%)</td>
+                  <td>80C + Extra ₹50,000 (80CCD-1B) + 80CCD(2)</td>
+                  <td>Until Age 60</td>
+                  <td>60% Tax-Free Lump Sum, 40% Annuity</td>
+                </tr>
+                <tr>
+                  <td><strong>EPF (Provident Fund)</strong></td>
+                  <td>Fixed Govt (8.15%–8.25%)</td>
+                  <td>Under Section 80C only (up to ₹1.5L)</td>
+                  <td>Until retirement / job switch</td>
+                  <td>100% Tax-Free after 5 years of service</td>
+                </tr>
+                <tr>
+                  <td><strong>PPF (Public Provident)</strong></td>
+                  <td>Fixed Govt (~7.1%)</td>
+                  <td>Under Section 80C only (up to ₹1.5L)</td>
+                  <td>15 Years mandatory</td>
+                  <td>100% Tax-Free (Complete EEE status)</td>
+                </tr>
+                <tr>
+                  <td><strong>Mutual Funds (SIP)</strong></td>
+                  <td>Market-linked (12%–15%)</td>
+                  <td>ELSS only under Section 80C (up to ₹1.5L)</td>
+                  <td>None (ELSS has 3 years)</td>
+                  <td>LTCG taxed at 12.5% above ₹1.25L exemption</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- CONTEXTUAL CTA 3 -->
+          <div class="blog-calc-cta-card highlight-cta">
+            <div class="blog-calc-cta-text">
+              <h4>Plan Your Retirement with the NPS Calculator</h4>
+              <p>Turn financial knowledge into an actionable retirement roadmap. Calculate your estimated corpus, monthly pension, and lump sum in seconds.</p>
+            </div>
+            <a href="#/calculator/nps-calculator" class="blog-calc-cta-btn" id="blog-cta-3-btn">
+              <span>Plan Your Retirement with the NPS Calculator</span>
+              ${getIconSvg('arrow-right', 16)}
+            </a>
+          </div>
+
+          <!-- Section 16: FAQs -->
+          <h2>16. Frequently Asked Questions (FAQs) About NPS</h2>
+          <div class="faqs-card glass-panel" style="margin-top: 1.5rem;">
+            <div class="faq-list">
+              <div class="faq-accordion-item">
+                <div class="faq-question">
+                  <span>Is NPS compulsory or voluntary?</span>
+                </div>
+                <div class="faq-answer">
+                  NPS is voluntary for private sector professionals, self-employed citizens, and gig workers. It is mandatory for Central and State Government employees recruited after 2004.
+                </div>
+              </div>
+
+              <div class="faq-accordion-item">
+                <div class="faq-question">
+                  <span>Can I switch my Pension Fund Manager or Asset Allocation later?</span>
+                </div>
+                <div class="faq-answer">
+                  Yes. Under PFRDA regulations, subscribers can change their Pension Fund Manager once per financial year and adjust their asset allocation (Active vs Auto Choice) up to four times per financial year free of charge via the CRA portal.
+                </div>
+              </div>
+
+              <div class="faq-accordion-item">
+                <div class="faq-question">
+                  <span>What happens to my NPS account if I move abroad or change jobs?</span>
+                </div>
+                <div class="faq-answer">
+                  Your PRAN is completely portable. When changing employers, you simply furnish your PRAN to your new employer. If you relocate abroad as an NRI, you can continue contributing from your NRE or NRO bank account.
+                </div>
+              </div>
+
+              <div class="faq-accordion-item">
+                <div class="faq-question">
+                  <span>Can I invest in both EPF and NPS simultaneously?</span>
+                </div>
+                <div class="faq-answer">
+                  Yes, absolutely. Salaried employees can contribute to EPF through payroll and independently contribute to NPS Tier 1 to maximize the exclusive ₹50,000 tax deduction under Section 80CCD(1B) alongside corporate NPS under Section 80CCD(2).
+                </div>
+              </div>
+
+              <div class="faq-accordion-item">
+                <div class="faq-question">
+                  <span>What happens if the subscriber passes away before age 60?</span>
+                </div>
+                <div class="faq-answer">
+                  In the unfortunate event of the subscriber's demise before age 60, 100% of the accumulated corpus is handed over to the designated nominee or legal heirs as a tax-free lump sum payout. Alternatively, the nominee may opt to purchase an annuity.
+                </div>
+              </div>
+
+              <div class="faq-accordion-item">
+                <div class="faq-question">
+                  <span>Is the monthly NPS pension taxable?</span>
+                </div>
+                <div class="faq-answer">
+                  While the 60% lump sum at age 60 is completely tax-free, the monthly annuity pension received from the Annuity Service Provider is treated as taxable income under 'Income from Other Sources' and taxed at your applicable personal income tax slab rate in the year of receipt.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 17: Mandatory Regulatory Disclaimer on Blog -->
+          <div class="disclaimer-banner nps-disclaimer" id="nps-blog-mandatory-disclaimer" style="margin-top: 3.5rem;">
+            ${getIconSvg('alert-triangle', 22)}
+            <div>
+              <strong>Mandatory Regulatory &amp; Legal Disclaimer:</strong> The information presented in this educational article is prepared strictly for informational, educational, and reference purposes and does not constitute financial, taxation, investment, or legal advice. Regulations governing the National Pension System (NPS), tax deductions under Section 80CCD, partial withdrawal thresholds, and exit frameworks are formulated by the Pension Fund Regulatory and Development Authority (PFRDA) and the Ministry of Finance, Government of India, and are subject to periodic amendments. Historical performance, compounding calculations, and example returns are illustrative and do not guarantee future returns. Users should verify current official guidelines on official portals (pfrda.org.in and npstrust.org.in) and consult a licensed SEBI-registered investment advisor or certified chartered accountant prior to making investment commitments.
+            </div>
+          </div>
+
+          <!-- Related Calculators Section -->
+          <div style="margin-top: 3.5rem; padding-top: 2rem; border-top: 1px solid var(--border-glass);">
+            <h3 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 1.5rem;">
+              Explore Related Financial &amp; Retirement Calculators
+            </h3>
+            <div class="calculators-grid">
+              ${['nps-calculator', 'sip-calculator', 'ppf-calculator', 'retirement-calculator']
+                .map(id => getCalculatorById(id))
+                .filter(Boolean)
+                .map(calc => this.renderCalcCard(calc))
+                .join('')}
+            </div>
+          </div>
+
+        </div>
+      </article>
+    `;
+
+    this.bindCardEvents();
+  },
+
+  renderAboutPage() {
+    this.updateSeoMeta(
+      'About Us - We Help You Calculate Your Finances | letscalculate.in',
+      'We are finance enthusiasts trying to help people on calculating all the required finances. Discover our mission, 100% free precision calculation tools, and principles of transparency.',
+      'https://letscalculate.in/#/about'
+    );
+    const mainEl = document.getElementById('app-main');
+    if (!mainEl) return;
+
+    mainEl.innerHTML = `
+      <div class="container" style="max-width: 960px; padding: 2.5rem 1.5rem 5rem;">
+        <div class="calc-breadcrumb">
+          <a href="#/">Home</a>
+          <span class="calc-breadcrumb-separator">/</span>
+          <span>About Us</span>
+        </div>
+
+        <!-- Hero Header -->
+        <div style="margin-bottom: 3rem;">
+          <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--emerald); color: var(--emerald); padding: 0.25rem 0.8rem; border-radius: var(--radius-full); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 0.05em;">
+            ${getIconSvg('heart-pulse', 14)} Our Mission &amp; Purpose
+          </div>
+          <h1 style="font-size: 2.75rem; font-weight: 800; color: var(--text-primary); margin-bottom: 1rem; letter-spacing: -0.025em; line-height: 1.2;">
+            We are finance enthusiasts trying to help people on calculating all the required finances.
+          </h1>
+          <p style="font-size: 1.15rem; color: var(--text-secondary); line-height: 1.7; max-width: 820px;">
+            At letscalculate.in, our passion is simplifying complex financial, mathematical, and health equations into lightning-fast, beautiful, and accessible tools that anyone can use for free.
+          </p>
+        </div>
+
+        <!-- 3 Pillars Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 3.5rem;">
+          <div class="glass-panel" style="padding: 2rem; border-radius: var(--radius-xl); border: 1px solid var(--border-card);">
+            <div style="width: 48px; height: 48px; border-radius: var(--radius-lg); background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; color: var(--emerald); margin-bottom: 1.25rem;">
+              ${getIconSvg('sparkles', 24)}
+            </div>
+            <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text-primary);">100% Free Access</h3>
+            <p style="color: var(--text-secondary); font-size: 0.92rem; line-height: 1.6; margin: 0;">
+              No paywalls, no forced subscription tiers, and no mandatory logins. Every single tool is completely accessible to all individuals worldwide.
+            </p>
+          </div>
+
+          <div class="glass-panel" style="padding: 2rem; border-radius: var(--radius-xl); border: 1px solid var(--border-card);">
+            <div style="width: 48px; height: 48px; border-radius: var(--radius-lg); background: rgba(99, 102, 241, 0.15); display: flex; align-items: center; justify-content: center; color: var(--indigo); margin-bottom: 1.25rem;">
+              ${getIconSvg('calculator', 24)}
+            </div>
+            <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text-primary);">Mathematical Rigor</h3>
+            <p style="color: var(--text-secondary); font-size: 0.92rem; line-height: 1.6; margin: 0;">
+              All our models and formulas are benchmarked against official banking regulations, Reserve Bank standards, and verified scientific algorithms.
+            </p>
+          </div>
+
+          <div class="glass-panel" style="padding: 2rem; border-radius: var(--radius-xl); border: 1px solid var(--border-card);">
+            <div style="width: 48px; height: 48px; border-radius: var(--radius-lg); background: rgba(245, 158, 11, 0.15); display: flex; align-items: center; justify-content: center; color: var(--amber); margin-bottom: 1.25rem;">
+              ${getIconSvg('shield-check', 24)}
+            </div>
+            <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text-primary);">Privacy by Default</h3>
+            <p style="color: var(--text-secondary); font-size: 0.92rem; line-height: 1.6; margin: 0;">
+              Your calculation parameters and results execute right in your browser. We never sell, transmit, or monetize your sensitive numbers.
+            </p>
+          </div>
+        </div>
+
+        <!-- Story Narrative Section -->
+        <div class="glass-panel" style="padding: 2.5rem 2rem; border-radius: var(--radius-xl); border: 1px solid var(--border-card); margin-bottom: 3.5rem;">
+          <h2 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 1rem; color: var(--text-primary);">Our Story &amp; Philosophy</h2>
+          <div style="color: var(--text-secondary); font-size: 1rem; line-height: 1.8; display: flex; flex-direction: column; gap: 1rem;">
+            <p>
+              Money decisions are often intimidating. Between complex EMI amortizations, compound interest curves, dynamic inflation effects, and tax brackets, most people find it difficult to project their financial future clearly.
+            </p>
+            <p>
+              We created <strong>letscalculate.in</strong> as finance enthusiasts who believe that financial literacy begins with transparent arithmetic. When you can see exactly how an extra 1% return on your mutual fund SIP affects your 20-year corpus, or how making small prepayments slashes years off your home loan, you gain clarity and confidence.
+            </p>
+            <p>
+              Beyond finance, we expanded our precision engines to cover essential mathematics and health &amp; fitness benchmarks so users have a dependable, comprehensive calculation suite in one seamless interface.
+            </p>
+          </div>
+        </div>
+
+        <!-- Action Row -->
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding: 2rem; border-radius: var(--radius-lg); background: var(--bg-surface); border: 1px solid var(--border-card);">
+          <div>
+            <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.25rem; color: var(--text-primary);">Ready to run your calculations?</h3>
+            <p style="color: var(--text-secondary); font-size: 0.92rem; margin: 0;">Explore our 60+ verified calculators or get started with smart investing.</p>
+          </div>
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <a href="#/categories" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.4rem; border-radius: var(--radius-full); font-weight: 700; text-decoration: none;">
+              <span>Explore All Calculators</span>
+              ${getIconSvg('arrow-right', 14)}
+            </a>
+            <a href="https://zerodha.com/open-account?c=ZAPCVV" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.4rem; border-radius: var(--radius-full); font-weight: 700; text-decoration: none;">
+              <span>Start Investing</span>
+              ${getIconSvg('arrow-right', 14)}
+            </a>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  // ==========================================
+  // VIEW: TERMS OF SERVICE PAGE
+  // ==========================================
+  renderTermsPage() {
+    this.updateSeoMeta(
+      'Terms of Service - letscalculate.in',
+      'Read the Terms of Service and calculation accuracy disclaimer for letscalculate.in. 100% Free precision calculators.',
+      'https://letscalculate.in/#/terms'
+    );
+    const mainEl = document.getElementById('app-main');
+    if (!mainEl) return;
+
+    mainEl.innerHTML = `
+      <div class="container" style="max-width: 860px; padding: 2.5rem 1.5rem 5rem;">
+        <div class="calc-breadcrumb">
+          <a href="#/">Home</a>
+          <span class="calc-breadcrumb-separator">/</span>
+          <span>Terms of Service</span>
+        </div>
+
+        <div class="glass-panel" style="padding: 2.5rem 2rem; border-radius: var(--radius-xl); border: 1px solid var(--border-card);">
+          <h1 style="font-size: 2.25rem; font-weight: 800; margin-bottom: 0.5rem;">Terms of Service</h1>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">Last Updated: October 2026</p>
+
+          <div style="color: var(--text-secondary); line-height: 1.8; font-size: 0.95rem; display: flex; flex-direction: column; gap: 1.5rem;">
+            <section>
+              <h3 style="color: var(--text-primary); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.4rem;">1. Acceptance of Terms</h3>
+              <p>By accessing letscalculate.in, you agree to comply with and be bound by these Terms of Service. All calculators and mathematical tools provided on this website are 100% Free for educational and personal use.</p>
+            </section>
+
+            <section>
+              <h3 style="color: var(--text-primary); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.4rem;">2. Calculation Accuracy &amp; Financial Disclaimer</h3>
+              <p>While our algorithms are developed by finance enthusiasts and rigorously tested against standard mathematical formulas, calculation outputs are estimates provided for informational purposes only. Results do not constitute professional financial, tax, legal, or medical advice.</p>
+            </section>
+
+            <section>
+              <h3 style="color: var(--text-primary); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.4rem;">3. Fair Use &amp; Intellectual Property</h3>
+              <p>All content, algorithms, and interface elements are protected by applicable intellectual property laws. You may not scrape, frame, or republish our calculation engines without prior written authorization.</p>
+            </section>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  // ==========================================
+  // VIEW: PRIVACY POLICY PAGE
+  // ==========================================
+  renderPrivacyPage() {
+    this.updateSeoMeta(
+      'Privacy Policy - letscalculate.in',
+      'Learn how letscalculate.in protects your privacy with client-side computation and zero data selling.',
+      'https://letscalculate.in/#/privacy'
+    );
+    const mainEl = document.getElementById('app-main');
+    if (!mainEl) return;
+
+    mainEl.innerHTML = `
+      <div class="container" style="max-width: 860px; padding: 2.5rem 1.5rem 5rem;">
+        <div class="calc-breadcrumb">
+          <a href="#/">Home</a>
+          <span class="calc-breadcrumb-separator">/</span>
+          <span>Privacy Policy</span>
+        </div>
+
+        <div class="glass-panel" style="padding: 2.5rem 2rem; border-radius: var(--radius-xl); border: 1px solid var(--border-card);">
+          <h1 style="font-size: 2.25rem; font-weight: 800; margin-bottom: 0.5rem;">Privacy Policy</h1>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">Last Updated: October 2026</p>
+
+          <div style="color: var(--text-secondary); line-height: 1.8; font-size: 0.95rem; display: flex; flex-direction: column; gap: 1.5rem;">
+            <section>
+              <h3 style="color: var(--text-primary); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.4rem;">1. No Registration Required</h3>
+              <p>We respect your anonymity. We do not require visitors to create an account, log in, or provide phone numbers or passwords to use any of our 60+ calculators.</p>
+            </section>
+
+            <section>
+              <h3 style="color: var(--text-primary); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.4rem;">2. Client-Side Local Execution</h3>
+              <p>Your calculation parameters (such as loan amount, income, interest rate, weight, height) execute locally in your web browser. Your inputs are not transmitted to or stored on our servers.</p>
+            </section>
+
+            <section>
+              <h3 style="color: var(--text-primary); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.4rem;">3. Local Storage</h3>
+              <p>If you bookmark a favorite calculator or view recent calculation history, this data is saved exclusively inside your browser's LocalStorage and can be cleared by you at any time.</p>
+            </section>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  // ==========================================
+  // VIEW: HOME PAGE (STREAMLINED & COMPACT)
   // ==========================================
   renderHomePage() {
-    document.title = 'letscalculate.in - Every Calculator You Need, All in One Place';
+    this.updateSeoMeta(
+      'letscalculate.in - Free Precision Finance, Math & Health Calculators',
+      'We are finance enthusiasts trying to help people on calculating all the required finances. Access 60+ free calculators for SIP, EMI, loans, stocks, and health. 100% Free.',
+      'https://letscalculate.in/'
+    );
     const mainEl = document.getElementById('app-main');
-
-    // Popular Calculators
-    const popularCalcs = CALCULATORS_DATA.filter(c => c.badge === 'Popular' || c.badge === 'Essential').slice(0, 8);
 
     mainEl.innerHTML = `
       <!-- Hero Section -->
@@ -537,22 +1825,22 @@ const AppUI = {
         <div class="hero-glow-bg"></div>
         <div class="container hero-content">
           <div class="hero-tagline-pill">
-            ${getIconSvg('calculator', 16)} 80+ Precision Calculators & Tools
+            ${getIconSvg('calculator', 16)} Precision Finance, Math &amp; Health Calculators
           </div>
           <h1 class="hero-title">
             Every Calculator You Need, <br>
             <span class="text-gradient">All in One Place.</span>
           </h1>
           <p class="hero-subtitle">
-            Fast, responsive, and beautifully designed calculators for personal finance, mathematics, health metrics, unit conversions, and everyday business.
+            Fast, responsive, and beautifully designed calculators for personal finance, mathematics, and health &amp; fitness. 100% Free, no signup required.
           </p>
 
           <!-- Interactive Search Trigger Box -->
           <div class="hero-search-wrapper">
             <div class="hero-search-input-box" id="hero-search-trigger" style="cursor: pointer;">
               ${getIconSvg('search', 20)}
-              <input type="text" placeholder="Search 80+ calculators (e.g. Loan, EMI, BMI, Percentage, SIP)..." readonly>
-              <button class="hero-search-submit" type="button">
+              <input type="text" id="hero-search-input" placeholder="Search Finance, Math &amp; Health calculators (e.g. Loan, EMI, BMI, Percentage, SIP)..." autocomplete="off">
+              <button class="hero-search-submit" type="button" aria-label="Find tool">
                 <span>Find Tool</span>
                 <span class="search-shortcut-badge">/</span>
               </button>
@@ -568,66 +1856,41 @@ const AppUI = {
             <a href="#/calculator/sip-calculator" class="quick-tag">SIP Calculator</a>
             <a href="#/calculator/percentage-calculator" class="quick-tag">Percentage</a>
             <a href="#/calculator/scientific-calculator" class="quick-tag">Scientific</a>
-            <a href="#/calculator/age-calculator" class="quick-tag">Age Calculator</a>
+            <button type="button" class="feedback-highlight-pill open-feedback-modal-btn" title="Open Feedback Form">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span>Feedback Form</span>
+            </button>
           </div>
 
-          <!-- Hero Auth CTA Row -->
-          ${!AppState.isLoggedIn() ? `
-            <div style="display: flex; justify-content: center; gap: 0.75rem; margin-top: 1.75rem; flex-wrap: wrap;">
-              <a href="#/signup" class="btn-auth-signup" style="font-size: 0.95rem; padding: 0.65rem 1.4rem;">
-                ${getIconSvg('sparkles', 16)} Sign Up Free to Unlock 80+ Calculators
-              </a>
-              <a href="#/login" class="btn-secondary" style="padding: 0.65rem 1.15rem; font-size: 0.92rem;">
-                Sign In
-              </a>
+          <!-- Public Access Badge & Feedback Link -->
+          <div style="display: flex; justify-content: center; gap: 0.75rem; margin-top: 1.5rem; align-items: center; flex-wrap: wrap;">
+            <div class="hero-tagline-pill" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.3); color: var(--emerald);">
+              ${getIconSvg('sparkles', 16)} 100% Free • No Signup Required • Instant Access
             </div>
-          ` : `
-            <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem; align-items: center; color: var(--emerald); font-size: 0.92rem; font-weight: 600;">
-              ${getIconSvg('check', 18)}
-              <span>Welcome back, ${AppState.currentUser.name.split(' ')[0]}! All 80+ calculators unlocked for free.</span>
-            </div>
-          `}
+            <button type="button" class="hero-tagline-pill open-feedback-modal-btn" style="background: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.3); color: #818cf8; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; font-family: inherit;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span>Share Feedback</span>
+            </button>
+          </div>
         </div>
       </section>
 
-      <!-- Free Signup Conversion Promo -->
-      ${!AppState.isLoggedIn() ? `
-        <section class="container">
-          <div class="auth-promo-card">
-            <div class="auth-promo-text">
-              <span class="auth-badge-pill">${getIconSvg('sparkles', 14)} 100% Free</span>
-              <h3>Create Your Free Account</h3>
-              <p>Join thousands calculating every day. Unlock all 80+ precision tools, save your calculation history locally, and star your favorite calculators for 1-click access.</p>
-            </div>
-            <div class="auth-promo-btns">
-              <a href="#/signup" class="btn-auth-signup" style="font-size: 1rem; padding: 0.75rem 1.4rem;">
-                ${getIconSvg('sparkles', 18)}
-                <span>Sign Up Free (Instant)</span>
-              </a>
-              <a href="#/login" class="btn-secondary" style="font-size: 0.92rem; padding: 0.75rem 1.25rem;">
-                Sign In
-              </a>
-            </div>
-          </div>
-        </section>
-      ` : ''}
-
-      <!-- Main Categories Section -->
-      <section class="container" style="padding-top: 1rem;">
+      <!-- Main Categories Section (3 Core Domains) -->
+      <section class="container" style="padding-top: 1.5rem;">
         <div class="section-header">
           <div>
             <h2 class="section-title">Explore Main Categories</h2>
-            <p class="section-desc">Browse specialized calculators organized into 7 primary domains.</p>
+            <p class="section-desc">Browse specialized calculators organized into 3 primary domains.</p>
           </div>
           <a href="#/categories" class="btn-secondary">
-            View All Categories ${getIconSvg('arrow-right', 16)}
+            View All Calculators ${getIconSvg('arrow-right', 16)}
           </a>
         </div>
 
         <div class="categories-grid">
           ${CATEGORIES_DATA.map(cat => {
-            const count = getCalculatorsByCategory(cat.id).length;
-            return `
+      const count = getCalculatorsByCategory(cat.id).length;
+      return `
               <a href="#/category/${cat.id}" class="category-card glass-panel" style="--cat-accent: ${cat.accent};">
                 <div>
                   <div class="cat-card-top">
@@ -645,486 +1908,197 @@ const AppUI = {
                 </div>
               </a>
             `;
-          }).join('')}
+    }).join('')}
         </div>
       </section>
 
-      <!-- Popular Calculators Showcase -->
-      <section class="container">
+      <!-- Direct Investment Options Section -->
+      <section class="container" style="margin-top: 2rem; margin-bottom: 2rem;">
         <div class="section-header">
           <div>
-            <h2 class="section-title">Most Popular Calculators</h2>
-            <p class="section-desc">The most trusted tools used daily by millions of users.</p>
+            <h2 class="section-title">Start Investing Today</h2>
+            <p class="section-desc">Put your financial plans into action with direct, low-cost investments.</p>
           </div>
         </div>
 
-        <div class="calculators-grid">
-          ${popularCalcs.map(calc => this.renderCalcCard(calc)).join('')}
-        </div>
-      </section>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+          <!-- Card 1: Invest in Mutual Funds -->
+          <div class="glass-panel" style="padding: 2.25rem 2rem; border-radius: var(--radius-xl); border: 1px solid var(--border-card); background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(15, 23, 42, 0.95) 100%); display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden;">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+                <div style="width: 50px; height: 50px; border-radius: var(--radius-lg); background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; color: var(--emerald);">
+                  ${getIconSvg('wallet', 28)}
+                </div>
+                <span style="display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--emerald); font-weight: 700; padding: 0.3rem 0.75rem; border-radius: var(--radius-full); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em;">
+                  ${getIconSvg('sparkles', 13)} Zero Commission
+                </span>
+              </div>
+              <h3 style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.65rem; letter-spacing: -0.02em;">
+                <a href="https://zerodha.com/open-account?c=ZAPCVV" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;">Invest in Mutual Funds</a>
+              </h3>
+              <p style="color: var(--text-secondary); font-size: 0.96rem; line-height: 1.6; margin-bottom: 1.75rem;">
+                Build long-term compounding wealth with direct mutual funds and automated SIPs. Save up to 1.5% in distributor commissions every year across top equity, debt, and index funds.
+              </p>
+            </div>
+            <div>
+              <a href="https://zerodha.com/open-account?c=ZAPCVV" target="_blank" rel="noopener noreferrer" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.65rem; padding: 0.85rem 1.6rem; border-radius: var(--radius-full); font-weight: 700; font-size: 0.95rem; text-decoration: none; width: fit-content; box-shadow: 0 4px 16px var(--emerald-glow);">
+                <span>Invest in Mutual Funds</span>
+                ${getIconSvg('arrow-right', 16)}
+              </a>
+            </div>
+          </div>
 
-      <!-- All Calculators Interactive Explorer -->
-      <section class="container" style="margin-bottom: 5rem;">
-        <div class="section-header">
-          <div>
-            <h2 class="section-title">All Calculators Directory</h2>
-            <p class="section-desc">Filter and quickly launch any calculator in our catalog.</p>
+          <!-- Card 2: Invest in Stocks -->
+          <div class="glass-panel" style="padding: 2.25rem 2rem; border-radius: var(--radius-xl); border: 1px solid var(--border-card); background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(15, 23, 42, 0.95) 100%); display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden;">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+                <div style="width: 50px; height: 50px; border-radius: var(--radius-lg); background: rgba(99, 102, 241, 0.15); display: flex; align-items: center; justify-content: center; color: var(--indigo);">
+                  ${getIconSvg('trending-up', 28)}
+                </div>
+                <span style="display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: var(--indigo); font-weight: 700; padding: 0.3rem 0.75rem; border-radius: var(--radius-full); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em;">
+                  ${getIconSvg('sparkles', 13)} Zero Delivery Brokerage
+                </span>
+              </div>
+              <h3 style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.65rem; letter-spacing: -0.02em;">
+                <a href="https://zerodha.com/open-account?c=ZAPCVV" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;">Invest in Stocks</a>
+              </h3>
+              <p style="color: var(--text-secondary); font-size: 0.96rem; line-height: 1.6; margin-bottom: 1.75rem;">
+                Invest directly in India’s leading companies and ETFs across NSE and BSE with lightning-fast execution, advanced interactive charting, and portfolio analytics.
+              </p>
+            </div>
+            <div>
+              <a href="https://zerodha.com/open-account?c=ZAPCVV" target="_blank" rel="noopener noreferrer" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.65rem; padding: 0.85rem 1.6rem; border-radius: var(--radius-full); font-weight: 700; font-size: 0.95rem; text-decoration: none; width: fit-content; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);">
+                <span>Invest in Stocks</span>
+                ${getIconSvg('arrow-right', 16)}
+              </a>
+            </div>
           </div>
         </div>
+      </section>
 
-        <!-- Filter Tabs -->
-        <div class="category-filter-nav" id="home-category-filter">
-          <button class="cat-filter-btn active" data-cat="all">All (80+)</button>
-          ${CATEGORIES_DATA.map(c => `
-            <button class="cat-filter-btn" data-cat="${c.id}">${c.name}</button>
-          `).join('')}
-        </div>
-
-        <div class="calculators-grid" id="home-all-calcs-grid">
-          ${CALCULATORS_DATA.map(calc => this.renderCalcCard(calc)).join('')}
+      <!-- About Us Mission Showcase Section -->
+      <section class="container" style="margin-top: 2rem; margin-bottom: 2rem;">
+        <div class="glass-panel" style="padding: 2.25rem 2rem; border-radius: var(--radius-xl); border: 1px solid var(--border-card); background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(30, 41, 59, 0.7) 100%);">
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+            <div style="max-width: 720px;">
+              <div style="display: inline-flex; align-items: center; gap: 0.45rem; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--emerald); color: var(--emerald); padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.05em;">
+                ${getIconSvg('heart-pulse', 14)} About Us • Our Mission
+              </div>
+              <h2 style="font-size: 1.65rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.75rem; line-height: 1.3; letter-spacing: -0.02em;">
+                We are finance enthusiasts trying to help people on calculating all the required finances.
+              </h2>
+              <p style="color: var(--text-secondary); font-size: 0.98rem; line-height: 1.7; margin: 0;">
+                At <strong>letscalculate.in</strong>, we believe everyone deserves transparent, accurate, and completely free financial tools. Whether you're planning a home loan EMI, forecasting SIP wealth, managing debt, or tracking health and daily mathematics, our algorithms give you clarity without signups, paywalls, or hidden agendas.
+              </p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; min-width: 180px;">
+              <a href="#/about" class="btn-secondary" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1.4rem; border-radius: var(--radius-full); font-weight: 700; font-size: 0.92rem; text-decoration: none;">
+                <span>Read Full Story</span>
+                ${getIconSvg('arrow-right', 14)}
+              </a>
+              <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.82rem; justify-content: center;">
+                ${getIconSvg('shield-check', 14)}
+                <span>100% Free &amp; Private</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
+
+      <!-- Prominent Call-to-Action for All Calculators Directory -->
+      <section class="container" style="margin-top: 2rem; margin-bottom: 2rem;">
+        <div class="glass-panel" style="padding: 2.25rem 2rem; border-radius: var(--radius-xl); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(99, 102, 241, 0.08) 50%, rgba(15, 23, 42, 0.95) 100%); border: 1px solid var(--border-card);">
+          <div style="max-width: 680px;">
+            <div style="display: inline-flex; align-items: center; gap: 0.45rem; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--emerald); color: var(--emerald); padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.65rem; letter-spacing: 0.05em;">
+              ${getIconSvg('calculator', 14)} Full Directory • 60+ Calculators
+            </div>
+            <h3 style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.4rem; letter-spacing: -0.02em;">
+              Looking for a specific calculator?
+            </h3>
+            <p style="color: var(--text-secondary); font-size: 0.98rem; line-height: 1.6; margin: 0;">
+              Visit the complete All Calculators page to search, filter by domain (Finance, Math, Health &amp; Fitness), and instantly calculate.
+            </p>
+          </div>
+          <a href="#/categories" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.65rem; padding: 0.85rem 1.65rem; border-radius: var(--radius-full); font-weight: 700; font-size: 0.95rem; text-decoration: none; white-space: nowrap; box-shadow: 0 4px 16px var(--emerald-glow);">
+            <span>Open All Calculators</span>
+            ${getIconSvg('arrow-right', 16)}
+          </a>
+        </div>
+      </section>
+
+      <!-- Main Page Feedback Callout Section -->
+      <section class="container" style="margin-top: 2rem; margin-bottom: 2rem;">
+        <div class="feedback-cta-banner glass-panel">
+          <div class="feedback-cta-left">
+            <div class="feedback-badge">
+              ${getIconSvg('sparkles', 14)} Community &amp; Feedback
+            </div>
+            <h3 class="feedback-cta-title">
+              Have feedback or want a new calculator added?
+            </h3>
+            <p class="feedback-cta-desc">
+              We value your ideas! Tell us what you like best and what calculators we should build next. Click below to open the quick feedback form.
+            </p>
+          </div>
+          <button type="button" class="feedback-cta-btn-highlight open-feedback-modal-btn" id="main-page-feedback-trigger">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Feedback Form</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Loading More Calculators Line (User Requirement) -->
+      <div class="more-calculators-loading-banner">
+        <div class="loading-pulse-indicator">
+          <span class="pulse-ring"></span>
+          <span class="pulse-dot"></span>
+        </div>
+        <span class="loading-text">More calculators coming soon...</span>
+      </div>
     `;
-
-    // Filter event listeners
-    const filterBtns = mainEl.querySelectorAll('#home-category-filter .cat-filter-btn');
-    const gridEl = mainEl.querySelector('#home-all-calcs-grid');
-
-    filterBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        filterBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const selectedCat = btn.getAttribute('data-cat');
-        const filtered = selectedCat === 'all' 
-          ? CALCULATORS_DATA 
-          : CALCULATORS_DATA.filter(c => c.category === selectedCat);
-
-        gridEl.innerHTML = filtered.map(calc => this.renderCalcCard(calc)).join('');
-        this.bindCardEvents();
-      });
-    });
 
     this.bindCardEvents();
   },
 
   // ==========================================
-  // VIEW: TERMS & CONDITIONS / PRIVACY POLICY
-  // ==========================================
-  renderTermsPage() {
-    this.updateSeoMeta(
-      'Terms & Conditions and Privacy Policy - letscalculate.in',
-      'Review the Terms of Service, Calculation Accuracy Disclaimer, and Privacy Policy for letscalculate.in. 100% Free precision calculators.',
-      'https://letscalculate.in/#/terms'
-    );
-    const mainEl = document.getElementById('app-main');
-    if (!mainEl) return;
-
-    mainEl.innerHTML = `
-      <div class="container" style="max-width: 860px; padding: 2.5rem 1rem 4rem;">
-        <div style="margin-bottom: 2rem;">
-          <a href="${AppState.isLoggedIn() ? '#/' : '#/signup'}" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; font-size: 0.88rem; border-radius: var(--radius-md);">
-            ${getIconSvg('arrow-right', 16)} 
-            <span>${AppState.isLoggedIn() ? 'Back to Calculators' : 'Back to Sign Up'}</span>
-          </a>
-        </div>
-
-        <div class="glass-panel" style="padding: 2.5rem; border-radius: var(--radius-lg); background: var(--bg-card); border: 1px solid var(--border-card);">
-          <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.85rem; border-radius: var(--radius-full); background: rgba(16, 185, 129, 0.12); color: var(--emerald); font-size: 0.82rem; font-weight: 600; margin-bottom: 1rem;">
-            ${getIconSvg('shield-check', 16)} Official Policy
-          </div>
-          <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.75rem;">Terms &amp; Conditions</h1>
-          <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 2rem;">Last Updated: October 2026 | Effective for all users of letscalculate.in</p>
-
-          <div style="display: flex; flex-direction: column; gap: 1.75rem; color: var(--text-secondary); line-height: 1.7; font-size: 0.96rem;">
-            <section>
-              <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">1. Acceptance of Terms &amp; 100% Free Access</h2>
-              <p>Welcome to <strong>letscalculate.in</strong>. By registering an account, accessing, or using our calculators, you agree to be bound by these Terms &amp; Conditions. All tools, financial algorithms, mathematical models, and converters provided on letscalculate.in are <strong>100% Free</strong>. No subscription fees, hidden charges, or credit card information will ever be requested.</p>
-            </section>
-
-            <section>
-              <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">2. Mandatory Registration &amp; Account Security</h2>
-              <p>To access our suite of precision calculators, users must create a free account with their verified Full Name, 10-digit Mobile Number, Email Address, and secure Password (minimum 8 characters). You are responsible for safeguarding your login credentials and maintaining the confidentiality of your account.</p>
-            </section>
-
-            <section>
-              <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">3. Calculation Accuracy &amp; Financial Disclaimer</h2>
-              <p>Every calculator on letscalculate.in has been meticulously verified against standard mathematical and financial formulas (including Indian banking, income tax, EMI, SIP, and scientific standards). However, all calculation results are provided for informational and educational purposes only.</p>
-              <p style="margin-top: 0.5rem;">Results do not constitute certified financial, legal, medical, or tax advice. Users are encouraged to consult certified financial planners, chartered accountants, or qualified medical professionals before making major life decisions.</p>
-            </section>
-
-            <section>
-              <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">4. Privacy &amp; Data Protection Policy</h2>
-              <p>We respect your privacy. User registration data (Full Name, Mobile Number, Email ID, and timestamp) is stored securely in our private administrative datastore. We never sell, lease, or monetize personal information to third-party advertisers. Calculation history and saved bookmark preferences are retained locally in your browser for privacy and instant responsiveness.</p>
-            </section>
-
-            <section>
-              <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">5. Fair Use &amp; Intellectual Property</h2>
-              <p>Users may freely use letscalculate.in for personal, academic, and business calculations. Automated scraping, malicious denial-of-service attempts, or reverse-engineering of proprietary algorithms is strictly prohibited.</p>
-            </section>
-
-            <section>
-              <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">6. Contact &amp; Grievance Redressal</h2>
-              <p>If you have any questions regarding these Terms &amp; Conditions, calculation formulas, or user accounts, please reach out via our official support portal at <strong>admin@letscalculate.in</strong>.</p>
-            </section>
-          </div>
-
-          <div style="margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-card); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-            <span style="font-size: 0.88rem; color: var(--text-muted);">&copy; 2026 letscalculate.in. All Rights Reserved.</span>
-            <a href="${AppState.isLoggedIn() ? '#/' : '#/signup'}" class="btn-auth-signup" style="padding: 0.6rem 1.25rem;">
-              <span>${AppState.isLoggedIn() ? 'Return to Dashboard' : 'Accept &amp; Sign Up Free'}</span>
-            </a>
-          </div>
-        </div>
-      </div>
-    `;
-  },
-
-  // ==========================================
-  // VIEW: AUTH PAGE (FREE SIGNUP & LOGIN)
-  // ==========================================
-  renderAuthPage({ mode = 'signup', redirectCalcId = null } = {}) {
-    let targetCalc = null;
-    if (redirectCalcId) {
-      targetCalc = getCalculatorById(redirectCalcId);
-    }
-
-    const pageTitle = mode === 'signup' 
-      ? (targetCalc ? `Sign Up Free to Access ${targetCalc.title}` : 'Sign Up Free - Unlock 80+ Calculators') 
-      : 'Log In - letscalculate.in';
-    document.title = `${pageTitle} | letscalculate.in`;
-
-    const mainEl = document.getElementById('app-main');
-    if (!mainEl) return;
-
-    let bannerBadge = '⚡ 100% FREE';
-    let bannerTitle = 'Create Your Free Account';
-    let bannerDesc = 'Unlock instant access to all 80+ precision calculators, save calculation history, and bookmark your frequent tools.';
-
-    if (targetCalc) {
-      bannerBadge = '🔒 FREE ACCESS REQUIRED';
-      bannerTitle = `Sign Up Free to Access ${targetCalc.title}`;
-      bannerDesc = `Join thousands using letscalculate.in. Create your free account in seconds to unlock ${targetCalc.title} with full interactive charts, step-by-step formulas, and saved history.`;
-    } else if (mode === 'login') {
-      bannerBadge = '👋 WELCOME BACK';
-      bannerTitle = 'Sign In to letscalculate.in';
-      bannerDesc = 'Access your saved calculations, bookmarks, and all 80+ unlocked tools.';
-    }
-
-    mainEl.innerHTML = `
-      <div class="auth-page-container">
-        <div class="auth-glow-bg"></div>
-        <div class="auth-card">
-          <div class="auth-header">
-            <div class="auth-badge-pill">
-              ${getIconSvg('sparkles', 14)}
-              <span>${bannerBadge}</span>
-            </div>
-            <h1 class="auth-title">${bannerTitle}</h1>
-            <p class="auth-subtitle">${bannerDesc}</p>
-          </div>
-
-          <!-- Auth Tab Switcher -->
-          <div class="auth-tabs" role="tablist">
-            <button type="button" class="auth-tab-btn ${mode === 'signup' ? 'active' : ''}" id="tab-btn-signup">
-              ${getIconSvg('sparkles', 16)} Sign Up Free
-            </button>
-            <button type="button" class="auth-tab-btn ${mode === 'login' ? 'active' : ''}" id="tab-btn-login">
-              ${getIconSvg('user', 16)} Log In
-            </button>
-          </div>
-
-          <!-- Alert error container -->
-          <div id="auth-alert" style="display: none; padding: 0.75rem 1rem; border-radius: var(--radius-md); background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.3); color: #fb7185; font-size: 0.88rem; margin-bottom: 1.25rem;"></div>
-
-          <!-- Signup Form -->
-          <form class="auth-form" id="signup-form" style="display: ${mode === 'signup' ? 'flex' : 'none'};">
-            <div class="auth-form-group">
-              <label class="auth-label" for="signup-name">Full Name <span style="color: var(--rose);">*</span></label>
-              <div class="auth-input-wrap">
-                <span class="auth-input-icon">${getIconSvg('user', 18)}</span>
-                <input type="text" id="signup-name" class="auth-input" placeholder="e.g. Gaurav Bansal" required autocomplete="name">
-              </div>
-            </div>
-
-            <div class="auth-form-group">
-              <label class="auth-label" for="signup-mobile">Mobile Number <span style="color: var(--rose);">*</span></label>
-              <div class="auth-input-wrap">
-                <span class="auth-input-icon">${getIconSvg('phone', 18)}</span>
-                <input type="tel" id="signup-mobile" class="auth-input" placeholder="10-digit mobile number (e.g. 9876543210)" required pattern="[0-9]{10}" maxlength="10" autocomplete="tel">
-              </div>
-              <span style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.15rem;">Mandatory 10-digit mobile number</span>
-            </div>
-
-            <div class="auth-form-group">
-              <label class="auth-label" for="signup-email">Email Address <span style="color: var(--rose);">*</span></label>
-              <div class="auth-input-wrap">
-                <span class="auth-input-icon">${getIconSvg('mail', 18)}</span>
-                <input type="email" id="signup-email" class="auth-input" placeholder="name@example.com" required autocomplete="email">
-              </div>
-            </div>
-
-            <div class="auth-form-group">
-              <label class="auth-label" for="signup-password">Create Password <span style="color: var(--rose);">*</span></label>
-              <div class="auth-input-wrap">
-                <span class="auth-input-icon">${getIconSvg('lock', 18)}</span>
-                <input type="password" id="signup-password" class="auth-input" placeholder="At least 8 characters" required autocomplete="new-password" minlength="8">
-              </div>
-              <span style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.15rem;">Must be at least 8 characters</span>
-            </div>
-
-            <label class="auth-checkbox-row">
-              <input type="checkbox" id="signup-terms" checked required>
-              <span>I agree to the <a href="#/terms" class="auth-terms-link" style="color: var(--emerald); text-decoration: underline; font-weight: 600;">Terms &amp; Conditions</a> (100% Free, no card needed)</span>
-            </label>
-
-            <button type="submit" class="btn-auth-submit">
-              ${getIconSvg('sparkles', 18)}
-              <span>Create Free Account & Access</span>
-            </button>
-          </form>
-
-          <!-- Login Form -->
-          <form class="auth-form" id="login-form" style="display: ${mode === 'login' ? 'flex' : 'none'};">
-            <div class="auth-form-group">
-              <label class="auth-label" for="login-email">Email Address</label>
-              <div class="auth-input-wrap">
-                <span class="auth-input-icon">${getIconSvg('mail', 18)}</span>
-                <input type="email" id="login-email" class="auth-input" placeholder="name@example.com" required autocomplete="email">
-              </div>
-            </div>
-
-            <div class="auth-form-group">
-              <label class="auth-label" for="login-password">Password</label>
-              <div class="auth-input-wrap">
-                <span class="auth-input-icon">${getIconSvg('lock', 18)}</span>
-                <input type="password" id="login-password" class="auth-input" placeholder="Your password" required autocomplete="current-password">
-              </div>
-            </div>
-
-            <button type="submit" class="btn-auth-submit">
-              ${getIconSvg('user', 18)}
-              <span>Sign In & Continue</span>
-            </button>
-          </form>
-
-          <!-- Feature Highlights -->
-          <div class="auth-features-list" style="margin-top: 1.75rem;">
-            <div class="auth-feature-item">
-              ${getIconSvg('check', 16)}
-              <span>80+ Precision Tools</span>
-            </div>
-            <div class="auth-feature-item">
-              ${getIconSvg('check', 16)}
-              <span>Save History Locally</span>
-            </div>
-            <div class="auth-feature-item">
-              ${getIconSvg('check', 16)}
-              <span>100% Free</span>
-            </div>
-            <div class="auth-feature-item">
-              ${getIconSvg('check', 16)}
-              <span>No Card Required</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-
-    // Event Handlers
-    const tabSignup = document.getElementById('tab-btn-signup');
-    const tabLogin = document.getElementById('tab-btn-login');
-    const signupForm = document.getElementById('signup-form');
-    const loginForm = document.getElementById('login-form');
-    const alertBox = document.getElementById('auth-alert');
-    const titleEl = document.querySelector('.auth-title');
-    const subtitleEl = document.querySelector('.auth-subtitle');
-    const badgeEl = document.querySelector('.auth-badge-pill span');
-
-    const showAlert = (msg) => {
-      if (alertBox) {
-        alertBox.textContent = msg;
-        alertBox.style.display = 'block';
-      }
-    };
-    const hideAlert = () => {
-      if (alertBox) alertBox.style.display = 'none';
-    };
-
-    const switchTab = (targetMode) => {
-      hideAlert();
-      if (targetMode === 'signup') {
-        tabSignup?.classList.add('active');
-        tabLogin?.classList.remove('active');
-        if (signupForm) signupForm.style.display = 'flex';
-        if (loginForm) loginForm.style.display = 'none';
-        if (badgeEl) badgeEl.textContent = '⚡ 100% FREE';
-        if (titleEl) titleEl.textContent = 'Create Your Free Account';
-        if (subtitleEl) subtitleEl.textContent = 'Sign up with full name, 10-digit mobile number, email, and password to unlock all calculators.';
-      } else {
-        tabLogin?.classList.add('active');
-        tabSignup?.classList.remove('active');
-        if (loginForm) loginForm.style.display = 'flex';
-        if (signupForm) signupForm.style.display = 'none';
-        if (badgeEl) badgeEl.textContent = '👋 WELCOME BACK';
-        if (titleEl) titleEl.textContent = 'Sign In to letscalculate.in';
-        if (subtitleEl) subtitleEl.textContent = 'Enter your email address and password to access your calculators and saved history.';
-      }
-    };
-
-    tabSignup?.addEventListener('click', () => switchTab('signup'));
-    tabLogin?.addEventListener('click', () => switchTab('login'));
-
-    const redirectAfterAuth = () => {
-      if (redirectCalcId) {
-        window.location.hash = `#/calculator/${redirectCalcId}`;
-      } else {
-        window.location.hash = '#/';
-      }
-    };
-
-    signupForm?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      hideAlert();
-      const name = document.getElementById('signup-name')?.value || '';
-      const mobile = document.getElementById('signup-mobile')?.value || '';
-      const email = document.getElementById('signup-email')?.value || '';
-      const password = document.getElementById('signup-password')?.value || '';
-
-      try {
-        AppState.signup(name, mobile, email, password);
-        AppUI.showToast(`Welcome, ${name.split(' ')[0]}! Full access unlocked.`);
-        redirectAfterAuth();
-      } catch (err) {
-        showAlert(err.message);
-      }
-    });
-
-    loginForm?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      hideAlert();
-      const email = document.getElementById('login-email')?.value || '';
-      const password = document.getElementById('login-password')?.value || '';
-
-      try {
-        const user = AppState.login(email, password);
-        AppUI.showToast(`Welcome back, ${user.name.split(' ')[0]}!`);
-        redirectAfterAuth();
-      } catch (err) {
-        showAlert(err.message);
-      }
-    });
-  },
-
-  // ==========================================
-  // VIEW: USER PROFILE / ACCOUNT PAGE
-  // ==========================================
-  renderProfilePage() {
-    if (!AppState.isLoggedIn()) {
-      window.location.hash = '#/login';
-      return;
-    }
-
-    const user = AppState.currentUser;
-    const initial = (user.name || 'U').charAt(0).toUpperCase();
-    document.title = `My Account - ${user.name} | letscalculate.in`;
-
-    const mainEl = document.getElementById('app-main');
-    if (!mainEl) return;
-
-    mainEl.innerHTML = `
-      <div class="profile-view-wrapper">
-        <div class="profile-card">
-          <div class="profile-header-row">
-            <div class="profile-avatar-large">${initial}</div>
-            <div class="profile-info">
-              <h2>${user.name}</h2>
-              <p>${user.email}</p>
-              ${user.mobile ? `<p style="font-size: 0.9rem; color: var(--emerald); margin-bottom: 0.35rem; font-family: 'JetBrains Mono', monospace;">📱 Mobile: +91 ${user.mobile}</p>` : ''}
-              <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-                <span class="user-tier-badge" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;">${user.plan || 'Free Lifetime Member'}</span>
-                <span style="font-size: 0.85rem; color: var(--text-muted);">Joined ${user.joinedDate || 'Recently'}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="profile-stats-grid">
-            <div class="profile-stat-box">
-              <div class="profile-stat-val">80+</div>
-              <div class="profile-stat-lbl">Calculators Unlocked</div>
-            </div>
-            <div class="profile-stat-box">
-              <div class="profile-stat-val">${AppState.history.length}</div>
-              <div class="profile-stat-lbl">Saved Calculations</div>
-            </div>
-            <div class="profile-stat-box">
-              <div class="profile-stat-val">${AppState.favorites.length}</div>
-              <div class="profile-stat-lbl">Bookmarked Tools</div>
-            </div>
-          </div>
-
-          <div class="profile-actions-row">
-            <a href="#/categories" class="btn-auth-signup" style="padding: 0.65rem 1.25rem; font-size: 0.92rem; border-radius: var(--radius-md);">
-              ${getIconSvg('calculator', 18)}
-              <span>Browse All Calculators</span>
-            </a>
-            <a href="/api/download-excel" download="letscalculate.in_data.xlsx" class="btn-secondary" style="color: var(--emerald); border-color: rgba(16, 185, 129, 0.4);" title="Download signup records Excel file">
-              ${getIconSvg('download', 18)}
-              <span>Download Excel (letscalculate.in_data.xlsx)</span>
-            </a>
-            <button type="button" class="btn-secondary" id="profile-history-btn">
-              ${getIconSvg('history', 18)}
-              <span>View History</span>
-            </button>
-            <a href="#/favorites" class="btn-secondary">
-              ${getIconSvg('star', 18)}
-              <span>View Bookmarks</span>
-            </a>
-            <button type="button" class="btn-secondary" id="profile-logout-btn" style="color: var(--rose); margin-left: auto;">
-              ${getIconSvg('log-out', 18)}
-              <span>Log Out</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
-
-    document.getElementById('profile-history-btn')?.addEventListener('click', () => {
-      document.getElementById('drawer-backdrop')?.classList.add('open');
-      document.getElementById('history-drawer')?.classList.add('open');
-      this.renderHistoryDrawer();
-    });
-
-    document.getElementById('profile-logout-btn')?.addEventListener('click', () => {
-      AppState.logout();
-    });
-  },
-
-  // ==========================================
-  // VIEW: ALL CATEGORIES PAGE
+  // VIEW: ALL CALCULATORS & DIRECTORY PAGE
   // ==========================================
   renderAllCategoriesPage() {
-    document.title = 'Calculator Categories - letscalculate.in';
+    this.updateSeoMeta(
+      'All Calculators Directory - 60+ Free Online Tools | letscalculate.in',
+      'Search and filter 60+ verified calculators across Finance, Mathematics, and Health & Fitness. Fast, accurate, and 100% free with no signup required.',
+      'https://letscalculate.in/#/categories',
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+          { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': 'https://letscalculate.in/#/' },
+          { '@type': 'ListItem', 'position': 2, 'name': 'All Calculators Directory', 'item': 'https://letscalculate.in/#/categories' }
+        ]
+      }
+    );
     const mainEl = document.getElementById('app-main');
 
     mainEl.innerHTML = `
-      <div class="container" style="padding: 3rem 1.5rem 5rem;">
+      <div class="container" style="padding: 2.5rem 1.5rem 5rem;">
         <div class="calc-breadcrumb">
           <a href="#/">Home</a>
           <span class="calc-breadcrumb-separator">/</span>
-          <span>Categories</span>
+          <span>All Calculators Directory</span>
         </div>
 
-        <div style="margin-bottom: 3rem;">
-          <h1 style="font-size: 2.75rem; margin-bottom: 0.75rem;">Calculator Categories</h1>
-          <p style="font-size: 1.15rem; color: var(--text-secondary); max-width: 720px;">
-            Choose a domain below to browse our comprehensive suite of calculators with live mathematical verification, formulas, and step-by-step guides.
+        <div style="margin-bottom: 2.5rem;">
+          <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 0.6rem; letter-spacing: -0.02em;">All Calculators Directory</h1>
+          <p style="font-size: 1.1rem; color: var(--text-secondary); max-width: 760px;">
+            Search and filter our complete collection of 60+ verified calculators across Finance, Math, and Health &amp; Fitness. 100% Free, no signup required.
           </p>
         </div>
 
-        <div class="categories-grid">
+        <!-- 3 Category Quick Domain Cards -->
+        <div class="categories-grid" style="margin-bottom: 3.5rem;">
           ${CATEGORIES_DATA.map(cat => {
-            const calcs = getCalculatorsByCategory(cat.id);
-            return `
+      const calcs = getCalculatorsByCategory(cat.id);
+      return `
               <div class="category-card glass-panel" style="--cat-accent: ${cat.accent};">
                 <div>
                   <div class="cat-card-top">
@@ -1147,15 +2121,89 @@ const AppUI = {
                 </div>
 
                 <a href="#/category/${cat.id}" class="cat-footer-link" style="display: flex; align-items: center; justify-content: space-between; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">
-                  <span>View All ${calcs.length} Calculators</span>
+                  <span>Explore ${cat.name} (${calcs.length})</span>
                   ${getIconSvg('arrow-right', 16)}
                 </a>
               </div>
             `;
-          }).join('')}
+    }).join('')}
+        </div>
+
+        <!-- Interactive Filter & Search Directory Section -->
+        <div class="section-header" style="margin-bottom: 1.5rem;">
+          <div>
+            <h2 class="section-title">Browse &amp; Filter All Calculators</h2>
+            <p class="section-desc">Filter by domain or search by keyword to immediately launch any tool.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <input type="text" id="dir-search-input" placeholder="Search 60+ calculators..." style="padding: 0.5rem 1rem; font-size: 0.9rem; width: 260px; border-radius: var(--radius-full); background: var(--bg-surface); border: 1px solid var(--border-card); color: var(--text-primary);">
+          </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="category-filter-nav" id="directory-category-filter" style="margin-bottom: 1.75rem;">
+          <button class="cat-filter-btn active" data-cat="all">All (${CALCULATORS_DATA.length})</button>
+          ${CATEGORIES_DATA.map(c => `
+            <button class="cat-filter-btn" data-cat="${c.id}">${c.name} (${getCalculatorsByCategory(c.id).length})</button>
+          `).join('')}
+        </div>
+
+        <div class="calculators-grid" id="directory-all-calcs-grid">
+          ${CALCULATORS_DATA.map(calc => this.renderCalcCard(calc)).join('')}
+        </div>
+
+        <!-- Loading More Calculators Line (User Requirement) -->
+        <div class="more-calculators-loading-banner">
+          <div class="loading-pulse-indicator">
+            <span class="pulse-ring"></span>
+            <span class="pulse-dot"></span>
+          </div>
+          <span class="loading-text">many more calculators are loading</span>
         </div>
       </div>
     `;
+
+    // Filter event listeners
+    const filterBtns = mainEl.querySelectorAll('#directory-category-filter .cat-filter-btn');
+    const gridEl = mainEl.querySelector('#directory-all-calcs-grid');
+    const searchInput = mainEl.querySelector('#dir-search-input');
+
+    let activeCat = 'all';
+    let searchQuery = '';
+
+    const applyDirFilter = () => {
+      let filtered = activeCat === 'all'
+        ? CALCULATORS_DATA
+        : CALCULATORS_DATA.filter(c => c.category === activeCat);
+
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase().trim();
+        filtered = filtered.filter(c =>
+          c.title.toLowerCase().includes(q) ||
+          c.summary.toLowerCase().includes(q) ||
+          (c.formula && c.formula.toLowerCase().includes(q))
+        );
+      }
+
+      gridEl.innerHTML = filtered.map(calc => this.renderCalcCard(calc)).join('');
+      this.bindCardEvents();
+    };
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeCat = btn.getAttribute('data-cat') || 'all';
+        applyDirFilter();
+      });
+    });
+
+    searchInput?.addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      applyDirFilter();
+    });
+
+    this.bindCardEvents();
   },
 
   // ==========================================
@@ -1169,7 +2217,20 @@ const AppUI = {
     }
 
     const calcs = getCalculatorsByCategory(catId);
-    document.title = `${category.name} - letscalculate.in`;
+    this.updateSeoMeta(
+      `${category.name} - Free Online Calculators | letscalculate.in`,
+      `${category.description || category.tagline}. Accurate, free calculators for ${category.name.toLowerCase()} computations. No signup required.`,
+      `https://letscalculate.in/#/category/${category.id}`,
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+          { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': 'https://letscalculate.in/#/' },
+          { '@type': 'ListItem', 'position': 2, 'name': 'Categories', 'item': 'https://letscalculate.in/#/categories' },
+          { '@type': 'ListItem', 'position': 3, 'name': category.name, 'item': `https://letscalculate.in/#/category/${category.id}` }
+        ]
+      }
+    );
     const mainEl = document.getElementById('app-main');
 
     mainEl.innerHTML = `
@@ -1210,6 +2271,15 @@ const AppUI = {
         <div class="calculators-grid" id="category-calcs-grid">
           ${calcs.map(calc => this.renderCalcCard(calc)).join('')}
         </div>
+
+        <!-- Loading More Calculators Line (User Requirement) -->
+        <div class="more-calculators-loading-banner">
+          <div class="loading-pulse-indicator">
+            <span class="pulse-ring"></span>
+            <span class="pulse-dot"></span>
+          </div>
+          <span class="loading-text">More calculators coming soon...</span>
+        </div>
       </div>
     `;
 
@@ -1230,11 +2300,6 @@ const AppUI = {
   // VIEW: DEDICATED CALCULATOR PAGE
   // ==========================================
   renderCalculatorPage(calcId) {
-    if (!AppState.isLoggedIn()) {
-      this.renderAuthPage({ mode: 'signup', redirectCalcId: calcId });
-      return;
-    }
-
     const calc = getCalculatorById(calcId);
     if (!calc) {
       window.location.hash = '#/';
@@ -1243,7 +2308,36 @@ const AppUI = {
 
     AppState.currentCalculator = calc;
     const cat = getCategoryById(calc.category);
-    document.title = `${calc.title} - letscalculate.in | Accurate & Instant Online Calculator`;
+    this.updateSeoMeta(
+      `${calc.title} - Free Online Calculator | letscalculate.in`,
+      `${calc.description || calc.summary}. Free online calculator with instant precision results, formulas, and visual breakdowns. 100% free with no signup.`,
+      `https://letscalculate.in/#/calculator/${calc.id}`,
+      {
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'BreadcrumbList',
+            'itemListElement': [
+              { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': 'https://letscalculate.in/#/' },
+              { '@type': 'ListItem', 'position': 2, 'name': cat.name, 'item': `https://letscalculate.in/#/category/${cat.id}` },
+              { '@type': 'ListItem', 'position': 3, 'name': calc.title, 'item': `https://letscalculate.in/#/calculator/${calc.id}` }
+            ]
+          },
+          {
+            '@type': 'SoftwareApplication',
+            'name': calc.title,
+            'operatingSystem': 'All',
+            'applicationCategory': cat.id === 'financial' ? 'FinanceApplication' : (cat.id === 'health' ? 'HealthApplication' : 'EducationalApplication'),
+            'description': calc.description || calc.summary,
+            'offers': {
+              '@type': 'Offer',
+              'price': '0',
+              'priceCurrency': 'INR'
+            }
+          }
+        ]
+      }
+    );
 
     // Default inputs
     AppState.calcInputs = {};
@@ -1299,6 +2393,33 @@ const AppUI = {
           </div>
         ` : ''}
 
+        <!-- Two-Way Connection: NPS Calculator -> NPS Educational Blog Callout -->
+        ${calc.id === 'nps-calculator' ? `
+          <div class="nps-blog-callout glass-panel">
+            <div class="nps-blog-callout-content">
+              <span class="nps-blog-callout-badge">
+                ${getIconSvg('sparkles', 12)} Educational Guide
+              </span>
+              <h3 class="nps-blog-callout-title">Want to understand NPS before calculating?</h3>
+              <p class="nps-blog-callout-desc">
+                Learn how Tier 1 vs Tier 2 works, Section 80CCD(1B) extra ₹50,000 tax deduction, 60% tax-free lump sum exit, and annuity pension mechanics in our complete educational guide.
+              </p>
+            </div>
+            <a href="#/blog/nps" class="nps-blog-callout-btn" id="nps-calc-to-blog-btn">
+              <span>Read Complete NPS Guide</span>
+              ${getIconSvg('arrow-right', 14)}
+            </a>
+          </div>
+
+          <!-- Mandatory Regulatory Disclaimer on NPS Calculator -->
+          <div class="disclaimer-banner nps-disclaimer" id="nps-calculator-mandatory-disclaimer">
+            ${getIconSvg('alert-triangle', 22)}
+            <div>
+              <strong>Mandatory Regulatory Disclaimer:</strong> NPS calculator results are estimates provided strictly for informational and educational purposes only. Actual NPS returns, accumulated retirement corpus, annuity rates, monthly pension payouts, and tax benefits depend on market performance, individual asset allocation (Equity, Corporate Debt, Government Bonds), fund manager performance, prevailing annuity rates at retirement, and future amendments to PFRDA regulations and Income Tax laws. This calculator does not constitute financial, investment, taxation, or legal advice. Users should verify current official rules and consult a qualified SEBI-registered financial advisor or tax consultant before making investment decisions.
+            </div>
+          </div>
+        ` : ''}
+
         <!-- Workspace Container (Custom Keypad, Matrix, or 2-Column Inputs/Results) -->
         <div id="calculator-dynamic-workspace">
           ${this.renderCalculatorWorkspace(calc)}
@@ -1348,6 +2469,33 @@ const AppUI = {
             </div>
           </div>
         </div>
+
+        ${cat.id === 'financial' ? `
+          <!-- Direct Investment Callout for Financial Tools -->
+          <div class="glass-panel" style="margin-top: 2.5rem; padding: 2rem; border-radius: var(--radius-xl); border: 1px solid var(--border-card); background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(99, 102, 241, 0.08) 50%, rgba(15, 23, 42, 0.95) 100%); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+            <div>
+              <span style="display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--emerald); color: var(--emerald); padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">
+                ${getIconSvg('sparkles', 12)} Start Your Wealth Journey
+              </span>
+              <h3 style="font-size: 1.45rem; font-weight: 800; color: var(--text-primary); margin: 0.6rem 0 0.3rem;">
+                Ready to put this calculation into action?
+              </h3>
+              <p style="color: var(--text-secondary); font-size: 0.95rem; margin: 0; line-height: 1.5;">
+                Start direct mutual fund SIPs with zero commission or trade stocks with zero delivery brokerage.
+              </p>
+            </div>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+              <a href="https://zerodha.com/open-account?c=ZAPCVV" target="_blank" rel="noopener noreferrer" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.4rem; border-radius: var(--radius-full); font-weight: 700; font-size: 0.92rem; text-decoration: none; box-shadow: 0 4px 14px var(--emerald-glow);">
+                <span>Invest in Mutual Funds</span>
+                ${getIconSvg('arrow-right', 14)}
+              </a>
+              <a href="https://zerodha.com/open-account?c=ZAPCVV" target="_blank" rel="noopener noreferrer" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.4rem; border-radius: var(--radius-full); font-weight: 700; font-size: 0.92rem; text-decoration: none; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);">
+                <span>Invest in Stocks</span>
+                ${getIconSvg('arrow-right', 14)}
+              </a>
+            </div>
+          </div>
+        ` : ''}
 
         <!-- Related Calculators Carousel -->
         <div style="margin-top: 3rem;">
@@ -1759,7 +2907,7 @@ const AppUI = {
       if (k === 'Escape') k = 'C';
       if (k === 'Backspace') k = 'backspace';
 
-      if (['0','1','2','3','4','5','6','7','8','9','.','+','-','*','/','=','C','backspace'].includes(k)) {
+      if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '+', '-', '*', '/', '=', 'C', 'backspace'].includes(k)) {
         e.preventDefault();
         const state = KeypadController.handleBasic(k);
         if (dispEl) dispEl.textContent = state.display;
@@ -2164,7 +3312,11 @@ const AppUI = {
   // VIEW: FAVORITES PAGE
   // ==========================================
   renderFavoritesPage() {
-    document.title = 'Saved Favorite Calculators - letscalculate.in';
+    this.updateSeoMeta(
+      'Saved Favorite Calculators - letscalculate.in',
+      'Quick access to your saved favorite calculators across finance, mathematics, and health metrics.',
+      'https://letscalculate.in/#/favorites'
+    );
     const mainEl = document.getElementById('app-main');
     const favCalcs = CALCULATORS_DATA.filter(c => AppState.isFavorite(c.id));
 
@@ -2253,24 +3405,36 @@ const AppUI = {
   // LIVE SEARCH MODAL RESULTS
   // ==========================================
   renderSearchResults(query) {
-    const listEl = document.getElementById('search-results-list');
+    const listEl = document.getElementById('global-search-results') || document.getElementById('search-results-list');
     const countEl = document.getElementById('search-results-count');
     if (!listEl) return;
 
-    const results = searchCalculators(query);
+    let results = [];
+    const q = (query || '').trim();
+    if (!q) {
+      // Suggest top popular calculators when search is first opened
+      results = CALCULATORS_DATA.filter(c => ['sip-calculator', 'emi-calculator', 'loan-calculator', 'bmi-calculator', 'percentage-calculator', 'gst-calculator', 'compound-interest-calculator', 'fd-calculator'].includes(c.id));
+      if (results.length === 0) results = CALCULATORS_DATA.slice(0, 8);
+    } else {
+      results = searchCalculators(q);
+    }
+
     if (countEl) countEl.textContent = `${results.length} found`;
 
     if (results.length === 0) {
       listEl.innerHTML = `
-        <div style="padding: 2.5rem; text-align: center; color: var(--text-muted);">
-          No calculators found matching "${query}". Try searching "loan", "bmi", "mortgage", or "percent".
+        <div style="padding: 2.5rem 1.5rem; text-align: center; color: var(--text-muted);">
+          <p style="font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 600;">No calculators found matching "${this.escapeHtml(query)}"</p>
+          <p style="font-size: 0.88rem; margin: 0;">Try searching for "loan", "emi", "sip", "finance", "percentage", or "bmi".</p>
         </div>
       `;
       return;
     }
 
-    listEl.innerHTML = results.slice(0, 15).map(calc => {
-      const cat = getCategoryById(calc.category);
+    const headerNote = !q ? `<div style="padding: 0.5rem 0.75rem; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Popular Calculators</div>` : '';
+
+    listEl.innerHTML = headerNote + results.slice(0, 15).map(calc => {
+      const cat = getCategoryById(calc.category) || { name: 'Tools', color: 'emerald' };
       return `
         <div class="search-result-item" data-id="${calc.id}">
           <div class="search-result-item-left">
@@ -2300,7 +3464,7 @@ const AppUI = {
   // DRAWERS: HISTORY & FAVORITES
   // ==========================================
   renderHistoryDrawer() {
-    const body = document.getElementById('history-drawer-body');
+    const body = document.getElementById('history-list') || document.getElementById('history-drawer-body');
     if (!body) return;
 
     if (AppState.history.length === 0) {
@@ -2325,7 +3489,7 @@ const AppUI = {
   },
 
   renderFavoritesDrawer() {
-    const body = document.getElementById('favorites-drawer-body');
+    const body = document.getElementById('favorites-list') || document.getElementById('favorites-drawer-body');
     if (!body) return;
 
     const favCalcs = CALCULATORS_DATA.filter(c => AppState.isFavorite(c.id));
