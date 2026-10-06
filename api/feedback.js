@@ -7,20 +7,26 @@ const https = require('https');
 
 function getSupabaseConfig() {
   let hostname = 'tjkjyjrjolooivcnqvll.supabase.co';
-  if (process.env.SUPABASE_URL) {
+  if (process.env.SUPABASE_URL && !process.env.SUPABASE_URL.includes('oeoyfplweclmutgzbzll')) {
     try {
       const u = new URL(process.env.SUPABASE_URL);
       hostname = u.hostname;
     } catch (e) {}
-  } else if (process.env.SUPABASE_HOST) {
+  } else if (process.env.SUPABASE_HOST && !process.env.SUPABASE_HOST.includes('oeoyfplweclmutgzbzll')) {
     hostname = process.env.SUPABASE_HOST;
   }
 
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || [
+  let key = [
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
     'eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqa2p5anJqb2xvb2l2Y25xdmxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyODM0MzgsImV4cCI6MjEwNjg1OTQzOH0',
     'jymQpw1wX9DjBILWvhFi1dE69HhSRgWZ1-VoL_TnNWE'
   ].join('.');
+
+  if (process.env.SUPABASE_ANON_KEY && !process.env.SUPABASE_ANON_KEY.includes('oeoyfplweclmutgzbzll')) {
+    key = process.env.SUPABASE_ANON_KEY;
+  } else if (process.env.SUPABASE_SERVICE_ROLE_KEY && !process.env.SUPABASE_SERVICE_ROLE_KEY.includes('oeoyfplweclmutgzbzll')) {
+    key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  }
 
   return { hostname, key };
 }
@@ -54,16 +60,20 @@ function appendFeedbackToSupabase(fbData) {
         let body = '';
         res.on('data', chunk => body += chunk);
         res.on('end', () => {
-          resolve(res.statusCode >= 200 && res.statusCode < 300);
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            resolve({ success: true, status: res.statusCode, hostname });
+          } else {
+            resolve({ success: false, status: res.statusCode, error: body, hostname });
+          }
         });
       });
 
-      req.on('timeout', () => { req.destroy(); resolve(false); });
-      req.on('error', () => resolve(false));
+      req.on('timeout', () => { req.destroy(); resolve({ success: false, error: 'timeout', hostname }); });
+      req.on('error', (err) => resolve({ success: false, error: err.message, hostname }));
       req.write(payload);
       req.end();
     } catch (e) {
-      resolve(false);
+      resolve({ success: false, error: e.message });
     }
   });
 }
@@ -251,7 +261,7 @@ module.exports = async (req, res) => {
       }
     }
 
-    await appendFeedbackToSupabase({ name: name.trim(), email: cleanEmail, phone_number: String(phone_number).trim(), best_here: best_here.trim(), improvements: improvements?.trim() || null });
+    const sbResult = await appendFeedbackToSupabase({ name: name.trim(), email: cleanEmail, phone_number: String(phone_number).trim(), best_here: best_here.trim(), improvements: improvements?.trim() || null });
 
     appendFeedbackToExcel({
       id: insertedId,
@@ -265,7 +275,8 @@ module.exports = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Thank you for your feedback!',
-      id: insertedId
+      id: insertedId,
+      supabase: sbResult?.success ? 'connected' : (sbResult?.error || 'offline')
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to record feedback: ' + err.message });
