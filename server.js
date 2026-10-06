@@ -1,7 +1,81 @@
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
+
+function getSupabaseConfig() {
+  let hostname = 'tjkjyjrjolooivcnqvll.supabase.co';
+  if (process.env.SUPABASE_URL && !process.env.SUPABASE_URL.includes('oeoyfplweclmutgzbzll')) {
+    try {
+      const u = new URL(process.env.SUPABASE_URL);
+      hostname = u.hostname;
+    } catch (e) {}
+  } else if (process.env.SUPABASE_HOST && !process.env.SUPABASE_HOST.includes('oeoyfplweclmutgzbzll')) {
+    hostname = process.env.SUPABASE_HOST;
+  }
+
+  let key = [
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
+    'eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqa2p5anJqb2xvb2l2Y25xdmxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyODM0MzgsImV4cCI6MjEwNjg1OTQzOH0',
+    'jymQpw1wX9DjBILWvhFi1dE69HhSRgWZ1-VoL_TnNWE'
+  ].join('.');
+
+  if (process.env.SUPABASE_ANON_KEY && !process.env.SUPABASE_ANON_KEY.includes('oeoyfplweclmutgzbzll')) {
+    key = process.env.SUPABASE_ANON_KEY;
+  } else if (process.env.SUPABASE_SERVICE_ROLE_KEY && !process.env.SUPABASE_SERVICE_ROLE_KEY.includes('oeoyfplweclmutgzbzll')) {
+    key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  }
+
+  return { hostname, key };
+}
+
+function appendFeedbackToSupabase(fbData) {
+  return new Promise((resolve) => {
+    try {
+      const { hostname, key } = getSupabaseConfig();
+      const payload = JSON.stringify({
+        name: fbData.name,
+        email: fbData.email,
+        phone_number: fbData.phone_number,
+        best_here: fbData.best_here,
+        improvements: fbData.improvements || null
+      });
+
+      const req = https.request({
+        hostname: hostname,
+        port: 443,
+        path: '/rest/v1/feedbacks',
+        method: 'POST',
+        timeout: 4000,
+        headers: {
+          'apikey': key,
+          'Authorization': 'Bearer ' + key,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal',
+          'Content-Length': Buffer.byteLength(payload)
+        }
+      }, (res) => {
+        let body = '';
+        res.on('data', chunk => body += chunk);
+        res.on('end', () => {
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            resolve({ success: true, status: res.statusCode, hostname });
+          } else {
+            resolve({ success: false, status: res.statusCode, error: body, hostname });
+          }
+        });
+      });
+
+      req.on('timeout', () => { req.destroy(); resolve({ success: false, error: 'timeout', hostname }); });
+      req.on('error', (err) => resolve({ success: false, error: err.message, hostname }));
+      req.write(payload);
+      req.end();
+    } catch (e) {
+      resolve({ success: false, error: e.message });
+    }
+  });
+}
 
 const PORT = process.env.PORT || 3000;
 let EXCEL_PATH = path.join(__dirname, 'letscalculate.in_data.xlsx');
@@ -421,7 +495,7 @@ const server = http.createServer((req, res) => {
         req.destroy();
       }
     });
-    req.on('end', () => {
+    req.on('end', async () => {
       if (bodyTooLarge) return;
       try {
         const payload = JSON.parse(body || '{}');
@@ -510,6 +584,14 @@ const server = http.createServer((req, res) => {
           }
         }
 
+        // Save to Supabase Cloud PostgreSQL
+        let sbResult = null;
+        try {
+          sbResult = await appendFeedbackToSupabase({ name, email, phone_number, best_here, improvements });
+        } catch (sbErr) {
+          console.warn('[Supabase Warning]:', sbErr.message);
+        }
+
         // Append to Excel Sheet for spreadsheet reporting
         try {
           appendFeedbackToExcel({ id: insertedId, name, email, phone_number, best_here, improvements });
@@ -522,7 +604,8 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify({
           success: true,
           message: 'Thank you for your feedback!',
-          id: insertedId
+          id: insertedId,
+          supabase: sbResult?.success ? 'connected' : (sbResult?.error || 'offline')
         }));
       } catch (err) {
         console.error('[API Error] /api/feedback:', err);
