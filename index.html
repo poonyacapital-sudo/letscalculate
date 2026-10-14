@@ -1429,6 +1429,70 @@ input:focus, select:focus, textarea:focus {
   color: var(--emerald);
 }
 
+/* Footer Special Thanks Section */
+.footer-thanks-section {
+  margin-top: 1.25rem;
+  padding: 0.85rem 1rem;
+  background: rgba(16, 185, 129, 0.04);
+  border: 1px solid rgba(16, 185, 129, 0.18);
+  border-radius: 10px;
+  max-width: 320px;
+}
+
+.footer-thanks-header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--emerald);
+  margin-bottom: 0.4rem;
+}
+
+.footer-thanks-header svg {
+  color: var(--emerald);
+}
+
+.footer-thanks-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin: 0 0 0.65rem 0;
+}
+
+.footer-thanks-names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.thanks-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.65rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+}
+
+.thanks-badge svg {
+  color: var(--emerald);
+  flex-shrink: 0;
+}
+
+.thanks-badge:hover {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+
 .footer-bottom {
   padding-top: 1.75rem;
   border-top: 1px solid var(--border-subtle);
@@ -4012,6 +4076,25 @@ input:focus, select:focus, textarea:focus {
         <p class="footer-tagline">
           Precision calculators for personal finance, mathematics, and health metrics. 100% Free, instant access, no signup required.
         </p>
+        <div class="footer-thanks-section">
+          <div class="footer-thanks-header">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <span>Special Thanks</span>
+          </div>
+          <p class="footer-thanks-subtitle">
+            Special thanks to the people who helped in developing the website:
+          </p>
+          <div class="footer-thanks-names">
+            <span class="thanks-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Ankit Surana
+            </span>
+            <span class="thanks-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Ankit Paliwal
+            </span>
+          </div>
+        </div>
       </div>
 
       <div class="footer-col about-col">

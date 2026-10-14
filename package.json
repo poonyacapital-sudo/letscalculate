@@ -1,4 +1,10 @@
 {
+  "name": "letscalculate1",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
   "dependencies": {
     "xlsx": "^0.18.5"
   }

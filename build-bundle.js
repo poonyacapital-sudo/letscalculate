@@ -501,6 +501,25 @@ ${combinedCss}
         <p class="footer-tagline">
           Precision calculators for personal finance, mathematics, and health metrics. 100% Free, instant access, no signup required.
         </p>
+        <div class="footer-thanks-section">
+          <div class="footer-thanks-header">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <span>Special Thanks</span>
+          </div>
+          <p class="footer-thanks-subtitle">
+            Special thanks to the people who helped in developing the website:
+          </p>
+          <div class="footer-thanks-names">
+            <span class="thanks-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Ankit Surana
+            </span>
+            <span class="thanks-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Ankit Paliwal
+            </span>
+          </div>
+        </div>
       </div>
 
       <div class="footer-col about-col">
