@@ -22,7 +22,6 @@ const htmlContent = `<!DOCTYPE html>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-VXBDESQ0E4"></script>
   <script>
-    window.GA_MEASUREMENT_ID = 'G-VXBDESQ0E4';
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
