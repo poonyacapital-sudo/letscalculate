@@ -636,6 +636,39 @@ const server = http.createServer((req, res) => {
     }
   }
 
+  // API Route: First-Party Google Tag Proxy (resilient against adblockers)
+  if (reqUrl.startsWith('/api/gtag')) {
+    const parsedUrl = new URL(req.url, 'http://' + (req.headers.host || 'localhost:3000'));
+    const gaId = parsedUrl.searchParams.get('id') || 'G-VXBDESQ0E4';
+    const targetUrl = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(gaId);
+
+    https.get(targetUrl, (proxyRes) => {
+      res.writeHead(proxyRes.statusCode || 200, {
+        'Content-Type': 'application/javascript; charset=UTF-8',
+        'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
+        'Access-Control-Allow-Origin': '*'
+      });
+      proxyRes.pipe(res);
+    }).on('error', (err) => {
+      console.error('[GA Proxy Notice]:', err.message);
+      res.writeHead(200, { 'Content-Type': 'application/javascript; charset=UTF-8' });
+      res.end('/* GA Proxy Fallback */ window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);}');
+    });
+    return;
+  }
+
+  // Vercel Web Analytics (@vercel/analytics) local stub handler
+  if (reqUrl.startsWith('/_vercel/insights')) {
+    if (reqUrl.includes('/script')) {
+      res.writeHead(200, { 'Content-Type': 'application/javascript; charset=UTF-8' });
+      res.end('/* @vercel/analytics local mode */ window.va = window.va || function(){(window.vaq=window.vaq||[]).push(arguments)};');
+      return;
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ ok: true }));
+    return;
+  }
+
   // 1. Prevent Directory Traversal and Null Byte Injection
   if (reqUrl.includes('\0') || reqUrl.includes('..')) {
     res.writeHead(400, { 'Content-Type': 'text/plain' });
