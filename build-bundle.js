@@ -150,6 +150,19 @@ const htmlContent = `<!DOCTYPE html>
   <style>
 ${combinedCss}
   </style>
+
+  <!-- Google Analytics 4 (GA4) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VXBDESQ0E4"></script>
+  <script>
+    window.GA_MEASUREMENT_ID = 'G-VXBDESQ0E4';
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-VXBDESQ0E4', {
+      page_path: window.location.pathname + (window.location.hash || '#/'),
+      send_page_view: true
+    });
+  </script>
 </head>
 <body>
 
@@ -564,6 +577,12 @@ ${combinedCss}
   <script>
 ${combinedJs}
   </script>
+
+  <!-- Vercel Web Analytics (@vercel/analytics) -->
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>`;
 

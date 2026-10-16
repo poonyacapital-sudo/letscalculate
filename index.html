@@ -3725,6 +3725,19 @@ input:focus, select:focus, textarea:focus {
 }
 
   </style>
+
+  <!-- Google Analytics 4 (GA4) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VXBDESQ0E4"></script>
+  <script>
+    window.GA_MEASUREMENT_ID = 'G-VXBDESQ0E4';
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-VXBDESQ0E4', {
+      page_path: window.location.pathname + (window.location.hash || '#/'),
+      send_page_view: true
+    });
+  </script>
 </head>
 <body>
 
@@ -10648,6 +10661,19 @@ const AppState = {
     if (this.history.length > 25) this.history.pop();
     localStorage.setItem('letscalculate_history', JSON.stringify(this.history));
     AppUI.updateHeaderBadges();
+
+    // Track Calculation Event (Vercel & Google Analytics)
+    if (typeof window.va === 'function') {
+      try { window.va('event', { name: 'calculate', calculator_id: calcId, calculator_title: calcTitle }); } catch (e) {}
+    }
+    if (typeof window.gtag === 'function' && window.GA_MEASUREMENT_ID && window.GA_MEASUREMENT_ID !== 'G-XXXXXXXXXX') {
+      try {
+        window.gtag('event', 'calculate', {
+          calculator_id: calcId,
+          calculator_title: calcTitle
+        });
+      } catch (e) {}
+    }
   },
 
   clearHistory() {
@@ -11363,6 +11389,37 @@ const AppUI = {
       dynamicSchema.textContent = JSON.stringify(schemaData);
     } else if (dynamicSchema) {
       dynamicSchema.remove();
+    }
+
+    // Unified Analytics Pageview Dispatcher (Vercel & Google Analytics)
+    this.trackAnalyticsPageview(title, canonicalUrl);
+  },
+
+  trackAnalyticsPageview(title, canonicalUrl) {
+    const currentPath = window.location.pathname + (window.location.hash || '#/');
+    const pageTitle = title || document.title;
+    const pageLocation = canonicalUrl || window.location.href;
+
+    // 1. Vercel Web Analytics (@vercel/analytics)
+    if (typeof window.va === 'function') {
+      try {
+        window.va('pageview', {
+          route: window.location.hash || '#/',
+          path: currentPath,
+          title: pageTitle
+        });
+      } catch (e) {}
+    }
+
+    // 2. Google Analytics (GA4)
+    if (typeof window.gtag === 'function' && window.GA_MEASUREMENT_ID && window.GA_MEASUREMENT_ID !== 'G-XXXXXXXXXX') {
+      try {
+        window.gtag('event', 'page_view', {
+          page_title: pageTitle,
+          page_location: pageLocation,
+          page_path: currentPath
+        });
+      } catch (e) {}
     }
   },
 
@@ -13946,6 +14003,11 @@ const AppUI = {
   }
 };
 
+if (typeof window !== 'undefined') {
+  window.AppState = AppState;
+  window.AppUI = AppUI;
+}
+
 // Initialize App immediately if DOM is ready, or on DOMContentLoaded
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
@@ -13956,5 +14018,11 @@ if (document.readyState === 'loading') {
 }
 
   </script>
+
+  <!-- Vercel Web Analytics (@vercel/analytics) -->
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

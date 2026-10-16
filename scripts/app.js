@@ -215,6 +215,19 @@ const AppState = {
     if (this.history.length > 25) this.history.pop();
     localStorage.setItem('letscalculate_history', JSON.stringify(this.history));
     AppUI.updateHeaderBadges();
+
+    // Track Calculation Event (Vercel & Google Analytics)
+    if (typeof window.va === 'function') {
+      try { window.va('event', { name: 'calculate', calculator_id: calcId, calculator_title: calcTitle }); } catch (e) {}
+    }
+    if (typeof window.gtag === 'function' && window.GA_MEASUREMENT_ID && window.GA_MEASUREMENT_ID !== 'G-XXXXXXXXXX') {
+      try {
+        window.gtag('event', 'calculate', {
+          calculator_id: calcId,
+          calculator_title: calcTitle
+        });
+      } catch (e) {}
+    }
   },
 
   clearHistory() {
@@ -930,6 +943,37 @@ const AppUI = {
       dynamicSchema.textContent = JSON.stringify(schemaData);
     } else if (dynamicSchema) {
       dynamicSchema.remove();
+    }
+
+    // Unified Analytics Pageview Dispatcher (Vercel & Google Analytics)
+    this.trackAnalyticsPageview(title, canonicalUrl);
+  },
+
+  trackAnalyticsPageview(title, canonicalUrl) {
+    const currentPath = window.location.pathname + (window.location.hash || '#/');
+    const pageTitle = title || document.title;
+    const pageLocation = canonicalUrl || window.location.href;
+
+    // 1. Vercel Web Analytics (@vercel/analytics)
+    if (typeof window.va === 'function') {
+      try {
+        window.va('pageview', {
+          route: window.location.hash || '#/',
+          path: currentPath,
+          title: pageTitle
+        });
+      } catch (e) {}
+    }
+
+    // 2. Google Analytics (GA4)
+    if (typeof window.gtag === 'function' && window.GA_MEASUREMENT_ID && window.GA_MEASUREMENT_ID !== 'G-XXXXXXXXXX') {
+      try {
+        window.gtag('event', 'page_view', {
+          page_title: pageTitle,
+          page_location: pageLocation,
+          page_path: currentPath
+        });
+      } catch (e) {}
     }
   },
 
@@ -3512,6 +3556,11 @@ const AppUI = {
     `).join('');
   }
 };
+
+if (typeof window !== 'undefined') {
+  window.AppState = AppState;
+  window.AppUI = AppUI;
+}
 
 // Initialize App immediately if DOM is ready, or on DOMContentLoaded
 if (document.readyState === 'loading') {
