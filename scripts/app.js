@@ -221,7 +221,8 @@ const AppState = {
       try { window.va('event', { name: 'calculate', calculator_id: calcId, calculator_title: calcTitle }); } catch (e) {}
     }
     const gaId = window.GA_MEASUREMENT_ID || 'G-VXBDESQ0E4';
-    if (typeof window.gtag === 'function' && gaId && gaId !== 'G-XXXXXXXXXX') {
+    window.GA_MEASUREMENT_ID = window.GA_MEASUREMENT_ID || 'G-VXBDESQ0E4';
+    if (typeof window.gtag === 'function' && window.GA_MEASUREMENT_ID) {
       try {
         window.gtag('event', 'calculate', {
           calculator_id: calcId,
@@ -968,7 +969,8 @@ const AppUI = {
 
     // 2. Google Analytics (GA4)
     const gaId = window.GA_MEASUREMENT_ID || 'G-VXBDESQ0E4';
-    if (typeof window.gtag === 'function' && gaId && gaId !== 'G-XXXXXXXXXX') {
+    window.GA_MEASUREMENT_ID = window.GA_MEASUREMENT_ID || 'G-VXBDESQ0E4';
+    if (typeof window.gtag === 'function' && window.GA_MEASUREMENT_ID) {
       try {
         window.gtag('event', 'page_view', {
           page_title: pageTitle,
