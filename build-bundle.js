@@ -152,7 +152,7 @@ ${combinedCss}
   </style>
 
   <!-- Google Analytics 4 (GA4) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VXBDESQ0E4"></script>
+  <script async src="/api/gtag?id=G-VXBDESQ0E4" onerror="this.onerror=null;this.src='https://www.googletagmanager.com/gtag/js?id=G-VXBDESQ0E4';"></script>
   <script>
     window.GA_MEASUREMENT_ID = 'G-VXBDESQ0E4';
     window.dataLayer = window.dataLayer || [];
