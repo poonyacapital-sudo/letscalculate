@@ -2799,16 +2799,16 @@ const AppUI = {
           </ul>
         </li>
 
-        <!-- New Launch -->
-        <li class="nav-item ${isNewLaunch ? 'active' : ''}">
+        <!-- New Launch (Hidden on letscalculate.in) -->
+        <li class="nav-item nav-item-new-launch ${isNewLaunch ? 'active' : ''}" style="display: none !important;">
           <a href="#/new-launch">
             <span>New Launch</span>
             <span class="nav-new-badge">NEW</span>
           </a>
         </li>
 
-        <!-- Game -->
-        <li class="nav-item ${isGame ? 'active' : ''}">
+        <!-- Game (Hidden on letscalculate.in) -->
+        <li class="nav-item nav-item-game ${isGame ? 'active' : ''}" style="display: none !important;">
           <a href="#/game">
             <span>Game</span>
             <span class="nav-game-badge">🎮</span>
@@ -3041,7 +3041,7 @@ const AppUI = {
       hash === '#/new-launch' || hash === '#new-launch' ||
       (typeof window !== 'undefined' && window.location.pathname && window.location.pathname.endsWith('/new-launch'))
     ) {
-      this.renderNewLaunchPage();
+      this.renderHomePage();
       this.updateHeaderBadges();
       return;
     }
@@ -3056,8 +3056,7 @@ const AppUI = {
         window.location.pathname.endsWith('/calculator/cross-math-game')
       ))
     ) {
-      const initialMode = hash.includes('blitz') ? 'blitz' : (hash.includes('tycoon') ? 'tycoon' : 'crossmath');
-      this.renderGamePage(initialMode);
+      this.renderHomePage();
       this.updateHeaderBadges();
       return;
     }
@@ -5499,8 +5498,8 @@ const AppUI = {
         </div>
       </section>
 
-      <!-- Dedicated EMI & Loan Calculator Suite Section -->
-      <section class="container" id="home-emi-suite-section" style="padding-top: 1.5rem; margin-bottom: 3.5rem;">
+      <!-- Dedicated EMI & Loan Calculator Suite Section (Hidden on letscalculate.in) -->
+      <section class="container" id="home-emi-suite-section" style="display: none !important;">
         <div class="glass-panel" id="home-emi-suite-panel" style="padding: 2.5rem 2rem; border-radius: var(--radius-2xl); border: 1px solid rgba(16, 185, 129, 0.28); background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(99, 102, 241, 0.05) 50%, rgba(15, 23, 42, 0.96) 100%); position: relative; overflow: hidden;">
           <div class="section-header" style="margin-bottom: 1.75rem;">
             <div>
@@ -5561,8 +5560,8 @@ const AppUI = {
         </div>
       </section>
 
-      <!-- Newly Launched & Trending Tools Showcase -->
-      <section class="container" style="padding-top: 1rem; margin-bottom: 2.5rem;">
+      <!-- Newly Launched & Trending Tools Showcase (Hidden on letscalculate.in) -->
+      <section class="container" id="home-newly-launched-section" style="display: none !important;">
         <div class="section-header">
           <div>
             <div style="display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.65rem;">
@@ -5581,8 +5580,8 @@ const AppUI = {
         </div>
       </section>
 
-      <!-- Broker Selection & Relative Calculations Module -->
-      <section class="container invest-section broker-module-wrapper" id="home-broker-module" style="margin-top: 2rem; margin-bottom: 3.5rem;">
+      <!-- Broker Selection & Relative Calculations Module (Hidden on letscalculate.in) -->
+      <section class="container invest-section broker-module-wrapper" id="home-broker-module" style="display: none !important;">
         <div class="section-header">
           <div>
             <div class="invest-section-tagline-badge">
@@ -5807,8 +5806,8 @@ const AppUI = {
           </div>
         </div>
 
-        <!-- Relative Calculations Suite (Zerodha Edition) -->
-        <div class="broker-calc-box" id="broker-calc-box">
+        <!-- Relative Calculations Suite (Zerodha Edition - Hidden on letscalculate.in) -->
+        <div class="broker-calc-box" id="broker-calc-box" style="display: none !important;">
           <div class="section-header" style="margin-bottom: 1.5rem;">
             <div>
               <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: var(--emerald); font-weight: 700; padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.76rem; text-transform: uppercase; margin-bottom: 0.5rem;">

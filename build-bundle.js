@@ -198,8 +198,8 @@ ${combinedCss}
           <div class="brand-name">LetsCalculate<span class="highlight">.in</span></div>
         </a>
 
-        <!-- Country Selector Dropdown -->
-        <div class="country-selector-wrap" id="country-selector-widget">
+        <!-- Country Selector Dropdown (Hidden on letscalculate.in) -->
+        <div class="country-selector-wrap" id="country-selector-widget" style="display: none !important;">
           <label for="country-selector-dropdown" class="country-selector-label" title="Select your country to view currency‑specific results.">
             <span class="country-label-text">SELECT COUNTRY</span>
           </label>
