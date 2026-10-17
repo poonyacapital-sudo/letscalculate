@@ -638,9 +638,9 @@ const server = http.createServer((req, res) => {
 
   // API Route: First-Party Google Tag Proxy (resilient against adblockers)
   if (reqUrl.startsWith('/api/gtag')) {
-    const parsedUrl = new URL(req.url, 'http://' + (req.headers.host || 'localhost:3000'));
+    const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost:3000'}`);
     const gaId = parsedUrl.searchParams.get('id') || 'G-VXBDESQ0E4';
-    const targetUrl = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(gaId);
+    const targetUrl = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`;
 
     https.get(targetUrl, (proxyRes) => {
       res.writeHead(proxyRes.statusCode || 200, {

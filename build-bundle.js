@@ -29,6 +29,18 @@ const htmlContent = `<!DOCTYPE html>
     gtag('config', 'G-VXBDESQ0E4');
   </script>
 
+  <!-- Environment-based Conditional Visibility: Localhost 3000 Check -->
+  <script>
+    (function() {
+      const isLocal3000 = window.location.port === "3000";
+      if (isLocal3000) {
+        document.documentElement.classList.add('hide-country-on-port-3000');
+        document.documentElement.setAttribute('data-port', '3000');
+        document.documentElement.setAttribute('data-is-local-3000', 'true');
+      }
+    })();
+  </script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>letscalculate.in - Free Precision Finance, Math &amp; Health Calculators</title>
@@ -160,30 +172,68 @@ const htmlContent = `<!DOCTYPE html>
   <style>
 ${combinedCss}
   </style>
-
-  </head>
+</head>
 <body>
 
   <!-- Site Header (Antigravity Modern Style) -->
   <header class="site-header" id="site-header">
     <div class="container header-container">
-      <!-- Logo -->
-      <a href="#/" class="brand-logo" title="letscalculate.in Home">
-        <div class="brand-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <rect width="16" height="20" x="4" y="2" rx="2"/>
-            <line x1="8" x2="16" y1="6" y2="6"/>
-            <path d="M16 10h.01"/>
-            <path d="M12 10h.01"/>
-            <path d="M8 10h.01"/>
-            <path d="M12 14h.01"/>
-            <path d="M8 14h.01"/>
-            <path d="M12 18h.01"/>
-            <path d="M8 18h.01"/>
-          </svg>
+      <!-- Header Left Alignment Group: Logo + Country Selector -->
+      <div class="header-left-group">
+        <!-- Logo -->
+        <a href="#/" class="brand-logo" title="letscalculate.in Home">
+          <div class="brand-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="16" height="20" x="4" y="2" rx="2"/>
+              <line x1="8" x2="16" y1="6" y2="6"/>
+              <path d="M16 10h.01"/>
+              <path d="M12 10h.01"/>
+              <path d="M8 10h.01"/>
+              <path d="M12 14h.01"/>
+              <path d="M8 14h.01"/>
+              <path d="M12 18h.01"/>
+              <path d="M8 18h.01"/>
+            </svg>
+          </div>
+          <div class="brand-name">LetsCalculate<span class="highlight">.in</span></div>
+        </a>
+
+        <!-- Country Selector Dropdown -->
+        <div class="country-selector-wrap" id="country-selector-widget">
+          <label for="country-selector-dropdown" class="country-selector-label" title="Select your country to view currency‑specific results.">
+            <span class="country-label-text">SELECT COUNTRY</span>
+          </label>
+          <div class="country-selector-pill" title="Select your country to view currency‑specific results.">
+            <span class="country-active-flag" id="country-active-flag" aria-hidden="true">🇮🇳</span>
+            <select id="country-selector-dropdown" class="country-dropdown-select" aria-label="SELECT COUNTRY" title="Select your country to view currency‑specific results.">
+              <option value="INR‑INDIA‑₹" data-currency="₹" data-flag="🇮🇳" selected>INR‑INDIA‑₹</option>
+              <option value="USD‑UNITED STATES‑$" data-currency="$" data-flag="🇺🇸">USD‑UNITED STATES‑$</option>
+              <option value="GBP‑UNITED KINGDOM‑£" data-currency="£" data-flag="🇬🇧">GBP‑UNITED KINGDOM‑£</option>
+              <option value="EUR‑EUROPE‑€" data-currency="€" data-flag="🇪🇺">EUR‑EUROPE‑€</option>
+              <option value="JPY‑JAPAN‑¥" data-currency="¥" data-flag="🇯🇵">JPY‑JAPAN‑¥</option>
+              <option value="AUD‑AUSTRALIA‑A$" data-currency="A$" data-flag="🇦🇺">AUD‑AUSTRALIA‑A$</option>
+              <option value="CAD‑CANADA‑C$" data-currency="C$" data-flag="🇨🇦">CAD‑CANADA‑C$</option>
+              <option value="AED‑UNITED ARAB EMIRATES‑د.إ" data-currency="د.إ" data-flag="🇦🇪">AED‑UNITED ARAB EMIRATES‑د.إ</option>
+              <option value="CHF‑SWITZERLAND‑CHF" data-currency="CHF" data-flag="🇨🇭">CHF‑SWITZERLAND‑CHF</option>
+              <option value="CNY‑CHINA‑¥" data-currency="¥" data-flag="🇨🇳">CNY‑CHINA‑¥</option>
+              <option value="SGD‑SINGAPORE‑S$" data-currency="S$" data-flag="🇸🇬">SGD‑SINGAPORE‑S$</option>
+              <option value="HKD‑HONG KONG‑HK$" data-currency="HK$" data-flag="🇭🇰">HKD‑HONG KONG‑HK$</option>
+              <option value="NZD‑NEW ZEALAND‑NZ$" data-currency="NZ$" data-flag="🇳🇿">NZD‑NEW ZEALAND‑NZ$</option>
+              <option value="ZAR‑SOUTH AFRICA‑R" data-currency="R" data-flag="🇿🇦">ZAR‑SOUTH AFRICA‑R</option>
+              <option value="BRL‑BRAZIL‑R$" data-currency="R$" data-flag="🇧🇷">BRL‑BRAZIL‑R$</option>
+              <option value="MXN‑MEXICO‑$" data-currency="$" data-flag="🇲🇽">MXN‑MEXICO‑$</option>
+              <option value="SEK‑SWEDEN‑kr" data-currency="kr" data-flag="🇸🇪">SEK‑SWEDEN‑kr</option>
+              <option value="NOK‑NORWAY‑kr" data-currency="kr" data-flag="🇳🇴">NOK‑NORWAY‑kr</option>
+              <option value="DKK‑DENMARK‑kr" data-currency="kr" data-flag="🇩🇰">DKK‑DENMARK‑kr</option>
+              <option value="TRY‑TURKEY‑₺" data-currency="₺" data-flag="🇹🇷">TRY‑TURKEY‑₺</option>
+              <option value="RUB‑RUSSIA‑₽" data-currency="₽" data-flag="🇷🇺">RUB‑RUSSIA‑₽</option>
+              <option value="KRW‑SOUTH KOREA‑₩" data-currency="₩" data-flag="🇰🇷">KRW‑SOUTH KOREA‑₩</option>
+            </select>
+            <svg class="country-dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <div class="country-tooltip-bubble" role="tooltip">Select your country to view currency‑specific results.</div>
         </div>
-        <div class="brand-name">LetsCalculate<span class="highlight">.in</span></div>
-      </a>
+      </div>
 
       <!-- Navigation Links: Home, All Calculators, 3 Categories & Favorites -->
       <nav aria-label="Main Navigation">
@@ -566,10 +616,107 @@ ${combinedCss}
     <div class="footer-bottom">
       <div class="container footer-bottom-inner">
         <div class="footer-copy">&copy; ${new Date().getFullYear()} letscalculate.in. All rights reserved.</div>
+        <div class="footer-social-connect">
+          <a href="https://www.instagram.com/letscalculate.in?utm_source=qr&amp;mdxt=bDM3MjR2cDdrOTc5" target="_blank" rel="noopener noreferrer" class="footer-instagram-link" title="Connect with us on Instagram">
+            <span class="footer-instagram-badge" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+            </span>
+            <span>Connect with us on Instagram</span>
+          </a>
+        </div>
         <div class="footer-badge">Finance, Math &amp; Health Suite • 100% Free</div>
       </div>
     </div>
   </footer>
+
+  <!-- Festive Seasonal Promotional Bottom Bar & Banner -->
+  <div id="festive-diwali-banner" class="festive-diwali-banner" role="region" aria-label="Seasonal Promotion" style="display: none;">
+    <canvas id="festive-banner-fireworks-canvas" class="festive-banner-fireworks-canvas" aria-hidden="true"></canvas>
+    <div class="festive-banner-container">
+      <div class="festive-banner-main">
+        <div class="festive-banner-icon-badge" aria-hidden="true">
+          <span class="festive-banner-icon" id="festive-banner-icon">🌸</span>
+        </div>
+        <div class="festive-banner-text">
+          <div class="festive-banner-title" id="festive-banner-message">
+            <strong>🌸 Happy Navratri! Wishing you strength, devotion, and joy.</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="festive-banner-actions" id="festive-banner-actions">
+        <a href="/calculators/jewellery-price" id="festive-diwali-cta-btn" class="festive-banner-cta-btn" title="Open Free Demat Account" style="display: none;">
+          <span>Open Free Demat Account</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </a>
+
+        <a href="https://www.instagram.com/letscalculate.in?utm_source=qr&amp;mdxt=bDM3MjR2cDdrOTc5" target="_blank" rel="noopener noreferrer" class="festive-banner-instagram-btn" id="festive-banner-instagram-btn" title="Join us on Instagram">
+          <span class="instagram-icon-badge" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+            </svg>
+          </span>
+          <span class="instagram-btn-text">Join us on Instagram</span>
+        </a>
+      </div>
+
+      <div class="festive-banner-controls">
+        <button type="button" class="festive-banner-toggle-btn" id="festive-banner-toggle-btn" aria-label="Toggle banner options" title="Collapse / Expand">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="chevron-icon">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <button type="button" class="festive-banner-close-btn" id="festive-diwali-close-btn" aria-label="Dismiss banner" title="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Festive Diwali Muhurat Trading Popup Reminder -->
+  <div id="muhurat-trading-popup-overlay" class="muhurat-popup-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="muhurat-popup-title">
+    <div class="muhurat-popup-backdrop" id="muhurat-popup-backdrop"></div>
+    <div class="muhurat-popup-dialog">
+      <canvas id="muhurat-popup-fireworks-canvas" class="muhurat-popup-fireworks-canvas" aria-hidden="true"></canvas>
+      <button type="button" class="muhurat-popup-close-btn" id="muhurat-popup-close-btn" aria-label="Close dialog">×</button>
+      <div class="muhurat-popup-header">
+        <div class="muhurat-popup-badge">✨ Special Diwali Tradition ✨</div>
+        <h3 class="muhurat-popup-title" id="muhurat-popup-title">🔥 Muhurat Trading Reminder 🔥</h3>
+      </div>
+      <div class="muhurat-popup-body">
+        <p class="muhurat-popup-desc" id="muhurat-popup-desc">
+          Get ready! Muhurat Trading is on 8th November 2026 — a special Diwali tradition to begin your investment journey. Don’t miss it!
+        </p>
+        <div class="muhurat-popup-countdown" id="muhurat-popup-countdown">
+          ⏳ -- hours -- minutes left until Muhurat Trading!
+        </div>
+      </div>
+      <div class="muhurat-popup-actions">
+        <a href="https://zerodha.com/open-account?c=ZAPCVV" target="_blank" rel="noopener noreferrer" class="muhurat-popup-cta-btn" id="muhurat-popup-cta-btn">
+          <span>Open Free Demat Account Now</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </a>
+        <button type="button" class="muhurat-popup-snooze-btn" id="muhurat-popup-snooze-btn">
+          Remind Me Tomorrow
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Bundled Application Logic -->
   <script>
