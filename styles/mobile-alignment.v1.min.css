@@ -6,7 +6,7 @@ html,body{width:100%!important;max-width:100vw!important;overflow-x:hidden!impor
 .brand-logo{display:-webkit-box;display:-webkit-flex;display:-moz-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-webkit-align-items:center;-moz-box-align:center;-ms-flex-align:center;align-items:center;gap:0.5rem;min-width:0;max-width:100%}
 .brand-name{font-size:1.25rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;display:-webkit-flex;display:-moz-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-webkit-align-items:center;-moz-box-align:center;-ms-flex-align:center;align-items:center}
 .header-actions{display:-webkit-box;display:-webkit-flex;display:-moz-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-webkit-align-items:center;-moz-box-align:center;-ms-flex-align:center;align-items:center;gap:0.35rem;-webkit-flex-shrink:0;-ms-flex-negative:0;flex-shrink:0}
-.container{width:100%!important;max-width:100%!important;box-sizing:border-box!important;padding-left:1rem!important;padding-right:1rem!important;margin-left:auto!important;margin-right:auto!important}
+@media(max-width:768px){.container{width:100%!important;max-width:100%!important;box-sizing:border-box!important;padding-left:1rem!important;padding-right:1rem!important;margin-left:auto!important;margin-right:auto!important}}
 #app-main{width:100%!important;max-width:100vw!important;overflow-x:hidden!important;box-sizing:border-box!important}
 .hero-section{width:100%!important;max-width:100vw!important;box-sizing:border-box!important;overflow-x:hidden!important;padding:3rem 1rem 2.5rem!important;text-align:center}
 .hero-glow-bg{max-width:100vw!important;overflow:hidden!important}

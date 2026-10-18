@@ -3,12 +3,13 @@ const path = require('path');
 
 console.log('Building bundled index.html for Branch-Antigravity (Finance, Math & Health)...');
 
-// 1. Read Styles (Core, Components, Calculator & Mobile Alignment Patch)
+// 1. Read Styles (Core, Components, Calculator, Mobile & Desktop Alignment Patches)
 const mainCss = fs.readFileSync(path.join(__dirname, 'styles', 'main.css'), 'utf8');
 const compCss = fs.readFileSync(path.join(__dirname, 'styles', 'components.css'), 'utf8');
 const calcCss = fs.readFileSync(path.join(__dirname, 'styles', 'calculator.css'), 'utf8');
 const mobileCss = fs.readFileSync(path.join(__dirname, 'styles', 'mobile-alignment.v1.min.css'), 'utf8');
-const combinedCss = [mainCss, compCss, calcCss, mobileCss].join('\n\n');
+const desktopCss = fs.readFileSync(path.join(__dirname, 'styles', 'desktop-alignment.v1.min.css'), 'utf8');
+const combinedCss = [mainCss, compCss, calcCss, mobileCss, desktopCss].join('\n\n');
 
 // 2. Read Scripts (No Learning Data, No Unit Converter Widgets)
 const dataJs = fs.readFileSync(path.join(__dirname, 'scripts', 'calculators-data.js'), 'utf8');
@@ -46,6 +47,8 @@ const htmlContent = `<!DOCTYPE html>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
   <!-- Mobile Alignment & Compatibility Patch (v1.0.0 CDN versioned) -->
   <link rel="stylesheet" href="/styles/mobile-alignment.v1.min.css?v=1.0.0" id="mobile-alignment-css">
+  <!-- Desktop Alignment & Grid Scaling Patch (v1.0.0 CDN versioned) -->
+  <link rel="stylesheet" href="/styles/desktop-alignment.v1.min.css?v=1.0.0" id="desktop-alignment-css">
   <title>letscalculate.in - Free Precision Finance, Math &amp; Health Calculators</title>
   
   <!-- Security Directives -->
@@ -736,3 +739,13 @@ ${combinedJs}
 
 fs.writeFileSync(path.join(__dirname, 'index.html'), htmlContent, 'utf8');
 console.log('Successfully built index.html for Branch-Antigravity! (' + (Buffer.byteLength(htmlContent, 'utf8') / 1024).toFixed(1) + ' KB)');
+
+// Ensure build, dist and public/styles are kept in sync
+const copyTargets = ['dist', 'build', 'public/styles'];
+copyTargets.forEach(dir => {
+  const fullDir = path.join(__dirname, dir);
+  if (!fs.existsSync(fullDir)) fs.mkdirSync(fullDir, { recursive: true });
+  fs.copyFileSync(path.join(__dirname, 'styles', 'desktop-alignment.v1.min.css'), path.join(fullDir, 'desktop-alignment.v1.min.css'));
+  fs.copyFileSync(path.join(__dirname, 'styles', 'mobile-alignment.v1.min.css'), path.join(fullDir, 'mobile-alignment.v1.min.css'));
+});
+console.log('Successfully synced CSS patches to dist, build, and public/styles.');
