@@ -3,11 +3,12 @@ const path = require('path');
 
 console.log('Building bundled index.html for Branch-Antigravity (Finance, Math & Health)...');
 
-// 1. Read Styles (Only Core, Components & Calculator - No Learning CSS)
+// 1. Read Styles (Core, Components, Calculator & Mobile Alignment Patch)
 const mainCss = fs.readFileSync(path.join(__dirname, 'styles', 'main.css'), 'utf8');
 const compCss = fs.readFileSync(path.join(__dirname, 'styles', 'components.css'), 'utf8');
 const calcCss = fs.readFileSync(path.join(__dirname, 'styles', 'calculator.css'), 'utf8');
-const combinedCss = [mainCss, compCss, calcCss].join('\n\n');
+const mobileCss = fs.readFileSync(path.join(__dirname, 'styles', 'mobile-alignment.v1.min.css'), 'utf8');
+const combinedCss = [mainCss, compCss, calcCss, mobileCss].join('\n\n');
 
 // 2. Read Scripts (No Learning Data, No Unit Converter Widgets)
 const dataJs = fs.readFileSync(path.join(__dirname, 'scripts', 'calculators-data.js'), 'utf8');
@@ -42,7 +43,9 @@ const htmlContent = `<!DOCTYPE html>
   </script>
 
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <!-- Mobile Alignment & Compatibility Patch (v1.0.0 CDN versioned) -->
+  <link rel="stylesheet" href="/styles/mobile-alignment.v1.min.css?v=1.0.0" id="mobile-alignment-css">
   <title>letscalculate.in - Free Precision Finance, Math &amp; Health Calculators</title>
   
   <!-- Security Directives -->
