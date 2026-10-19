@@ -1,0 +1,127 @@
+/* letscalculate.in - Desktop Alignment & Grid Scaling Patch (v1.0.0) | CDN: desktop-alignment.v1.min.css */
+@media (min-width: 769px) {
+  .container,
+  .header-container,
+  .hero-content {
+    width: 100% !important;
+    max-width: 1280px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* Section Header & Action Button Alignment */
+.section-header {
+  display: -webkit-box !important;
+  display: -webkit-flex !important;
+  display: -ms-flexbox !important;
+  display: flex !important;
+  -webkit-box-align: end !important;
+  -webkit-align-items: flex-end !important;
+  -ms-flex-align: end !important;
+  align-items: flex-end !important;
+  -webkit-box-pack: justify !important;
+  -webkit-justify-content: space-between !important;
+  -ms-flex-pack: justify !important;
+  justify-content: space-between !important;
+  margin-bottom: 2rem !important;
+  -webkit-flex-wrap: wrap !important;
+  -ms-flex-wrap: wrap !important;
+  flex-wrap: wrap !important;
+  gap: 1rem !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.section-header .btn-secondary,
+.section-header a.btn-secondary {
+  margin-left: auto !important;
+  -webkit-align-self: flex-end !important;
+  -ms-flex-item-align: end !important;
+  align-self: flex-end !important;
+  white-space: nowrap !important;
+  -webkit-flex-shrink: 0 !important;
+  -ms-flex-negative: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+/* Responsive Grid / Flex Rules for .calculator-grid, .calculators-grid, and .calc-hub-cards-grid */
+.calculator-grid,
+.calculators-grid,
+.calc-hub-cards-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)) !important;
+  gap: 1.25rem !important;
+  margin-bottom: 3.5rem !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Main Categories Grid - Responsive 3-Card Balanced Desktop Distribution */
+.categories-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+  gap: 1.5rem !important;
+  margin-bottom: 3.5rem !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (min-width: 1024px) {
+  .categories-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Equal Card Height & Content Distribution */
+.category-card,
+.calc-card {
+  display: -webkit-box !important;
+  display: -webkit-flex !important;
+  display: -ms-flexbox !important;
+  display: flex !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-box-direction: normal !important;
+  -webkit-flex-direction: column !important;
+  -ms-flex-direction: column !important;
+  flex-direction: column !important;
+  -webkit-box-pack: justify !important;
+  -webkit-justify-content: space-between !important;
+  -ms-flex-pack: justify !important;
+  justify-content: space-between !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+/* High-Resolution & Zoom-Out Scaling (75%, 80%, ultra-wide 1440px - 1920px+) */
+@media (min-width: 1440px) {
+  .container,
+  .header-container,
+  .hero-content {
+    max-width: 1320px !important;
+  }
+}
+
+@media (min-width: 1800px) {
+  .container,
+  .header-container,
+  .hero-content {
+    max-width: 1400px !important;
+  }
+}
+
+/* Zoomed-In Scaling (125% - 150%) / Tablet Landscape (769px - 1023px) */
+@media (min-width: 769px) and (max-width: 1023px) {
+  .categories-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+  }
+  .calculator-grid,
+  .calculators-grid {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+  }
+}

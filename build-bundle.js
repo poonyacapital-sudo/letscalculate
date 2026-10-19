@@ -760,8 +760,5 @@ copyTargets.forEach(dir => {
   if (!fs.existsSync(fullDir)) fs.mkdirSync(fullDir, { recursive: true });
   fs.copyFileSync(path.join(__dirname, 'styles', 'desktop-alignment.v1.min.css'), path.join(fullDir, 'desktop-alignment.v1.min.css'));
   fs.copyFileSync(path.join(__dirname, 'styles', 'mobile-alignment.v1.min.css'), path.join(fullDir, 'mobile-alignment.v1.min.css'));
-  if (dir === 'dist' || dir === 'build') {
-    fs.writeFileSync(path.join(fullDir, 'index.html'), htmlContent, 'utf8');
-  }
 });
-console.log('Successfully synced index.html and CSS patches to dist, build, and public/styles.');
+console.log('Successfully synced CSS patches to dist, build, and public/styles.');
