@@ -2109,42 +2109,108 @@ const AppUI = {
   },
 
   setupDropdownMenus() {
-    // Delegated click handler: toggle dropdown on trigger click, close on outside click or menu item click
+    // Delegated click handler: toggle dropdown on trigger click, handle submenu clicks/taps, close on leaf item click or outside click
     document.addEventListener('click', (e) => {
-      const trigger = e.target.closest('.nav-dropdown-trigger, .dropdown-toggle');
-      const dropdown = trigger ? trigger.closest('.dropdown, .nav-item-has-dropdown') : null;
+      // 1. Check if user clicked/tapped on a category with a submenu (Finance, Math, Health)
+      const subTrigger = e.target.closest('.nav-dropdown-item-has-sub, .dropdown-submenu-item > a, .nav-dropdown-item-wrapper > a');
+      if (subTrigger) {
+        const submenuItem = subTrigger.closest('.dropdown-submenu-item, .nav-dropdown-item-wrapper');
+        if (submenuItem) {
+          e.preventDefault();
+          e.stopPropagation();
 
-      // If clicked inside an actual dropdown item link, close all dropdowns
-      if (e.target.closest('.dropdown-menu a, .nav-dropdown-menu a')) {
-        document.querySelectorAll('.dropdown.open, .nav-item-has-dropdown.open').forEach(d => d.classList.remove('open'));
+          const isSubOpen = submenuItem.classList.contains('open');
+
+          // Close sibling submenus within the same parent menu
+          const parentMenu = submenuItem.closest('.dropdown-menu, .nav-dropdown-menu');
+          if (parentMenu) {
+            parentMenu.querySelectorAll('.dropdown-submenu-item.open, .nav-dropdown-item-wrapper.open').forEach(item => {
+              if (item !== submenuItem) item.classList.remove('open');
+            });
+          }
+
+          // Toggle this submenu
+          submenuItem.classList.toggle('open', !isSubOpen);
+
+          // Boundary check: flip flyout left if it exceeds the viewport right edge
+          if (!isSubOpen) {
+            const subMenu = submenuItem.querySelector('.sub-dropdown-menu, .nav-dropdown-submenu');
+            if (subMenu) {
+              const rect = subMenu.getBoundingClientRect();
+              const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+              if (rect.right > viewportWidth - 10 && rect.left >= 280) {
+                subMenu.classList.add('flyout-left');
+              } else {
+                subMenu.classList.remove('flyout-left');
+              }
+            }
+          }
+          return;
+        }
+      }
+
+      // 2. If user clicked on a leaf link inside a dropdown or submenu, close all menus and navigate
+      const leafLink = e.target.closest('.dropdown-menu a, .nav-dropdown-menu a');
+      if (leafLink && !leafLink.classList.contains('nav-dropdown-item-has-sub')) {
+        document.querySelectorAll('.dropdown.open, .nav-item-has-dropdown.open, .dropdown-submenu-item.open, .nav-dropdown-item-wrapper.open')
+          .forEach(d => d.classList.remove('open'));
         return;
       }
 
+      // 3. Check if user clicked/tapped the main dropdown trigger (All Calculators)
+      const trigger = e.target.closest('.nav-dropdown-trigger, .dropdown-toggle');
+      const dropdown = trigger ? trigger.closest('.dropdown, .nav-item-has-dropdown') : null;
+
       if (trigger && dropdown) {
         const isOpen = dropdown.classList.contains('open');
-        // Close any other open dropdowns
-        document.querySelectorAll('.dropdown.open, .nav-item-has-dropdown.open').forEach(d => {
-          if (d !== dropdown) d.classList.remove('open');
-        });
+        // Close any other open dropdowns and submenus
+        document.querySelectorAll('.dropdown.open, .nav-item-has-dropdown.open, .dropdown-submenu-item.open, .nav-dropdown-item-wrapper.open')
+          .forEach(d => {
+            if (d !== dropdown) d.classList.remove('open');
+          });
 
         dropdown.classList.toggle('open', !isOpen);
-        // If clicking trigger while closed, prevent navigation so menu is displayed
-        if (!isOpen) {
+
+        if (isOpen) {
+          dropdown.querySelectorAll('.dropdown-submenu-item.open, .nav-dropdown-item-wrapper.open').forEach(sub => sub.classList.remove('open'));
+        } else {
+          // Prevent navigating away when opening dropdown
           e.preventDefault();
         }
       } else {
-        // Clicked outside or on another navigation button (e.g. Home) -> close all dropdowns
-        document.querySelectorAll('.dropdown.open, .nav-item-has-dropdown.open').forEach(d => {
-          d.classList.remove('open');
-        });
+        // 4. Clicked outside or on another navigation button -> close all open dropdowns and submenus
+        document.querySelectorAll('.dropdown.open, .nav-item-has-dropdown.open, .dropdown-submenu-item.open, .nav-dropdown-item-wrapper.open')
+          .forEach(d => d.classList.remove('open'));
       }
     });
 
-    // Delegated mouse hover handlers for smooth 200ms fade-out
+    // Keyboard accessibility: Escape key closes all dropdowns & submenus
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.dropdown.open, .nav-item-has-dropdown.open, .dropdown-submenu-item.open, .nav-dropdown-item-wrapper.open')
+          .forEach(d => d.classList.remove('open'));
+      }
+    });
+
+    // Delegated mouse hover handlers for smooth 200ms fade-out and boundary checking
     document.addEventListener('mouseover', (e) => {
       const dropdown = e.target.closest('.dropdown, .nav-item-has-dropdown');
       if (dropdown) {
         dropdown.querySelectorAll('.dropdown-menu, .nav-dropdown-menu').forEach(m => m.classList.remove('hide'));
+      }
+
+      const subItem = e.target.closest('.dropdown-submenu-item, .nav-dropdown-item-wrapper');
+      if (subItem) {
+        const subMenu = subItem.querySelector('.sub-dropdown-menu, .nav-dropdown-submenu');
+        if (subMenu) {
+          const rect = subMenu.getBoundingClientRect();
+          const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+          if (rect.right > viewportWidth - 10 && rect.left >= 280) {
+            subMenu.classList.add('flyout-left');
+          } else {
+            subMenu.classList.remove('flyout-left');
+          }
+        }
       }
     });
 

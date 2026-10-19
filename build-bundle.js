@@ -258,7 +258,94 @@ ${combinedCss}
       <nav aria-label="Main Navigation">
         <ul class="nav-links">
           <li class="nav-item active"><a href="#/">Home</a></li>
-          <li class="nav-item"><a href="#/categories">All Calculators</a></li>
+          <!-- All Calculators with Dropdown & Subcategories -->
+          <li class="nav-item nav-item-has-dropdown dropdown">
+            <a href="#/calculators/all" class="nav-dropdown-trigger dropdown-toggle" title="All Calculators">
+              <span>All Calculators</span>
+              <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+            </a>
+            <ul class="dropdown-menu nav-dropdown-menu glass-panel">
+              <!-- Finance with Flyout Submenu -->
+              <li class="dropdown-submenu-item nav-dropdown-item-wrapper">
+                <a href="#/calculators/finance" class="nav-dropdown-item nav-dropdown-item-has-sub">
+                  <span class="dropdown-item-icon" style="color: #10b981;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+                  </span>
+                  <div class="dropdown-item-content">
+                    <span class="dropdown-item-title">Finance</span>
+                    <span class="dropdown-item-desc">Loans, SIP, Trading &amp; Wealth</span>
+                  </div>
+                  <svg class="submenu-chevron-right" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                </a>
+                <ul class="dropdown-menu sub-dropdown-menu nav-dropdown-submenu">
+                  <li><a href="#/calculators/finance/emi-loan" class="nav-sub-item"><span class="sub-icon">💳</span><span>EMI &amp; Loan Calculators</span></a></li>
+                  <li><a href="#/calculators/finance/sip" class="nav-sub-item"><span class="sub-icon">🔄</span><span>SIP Calculators</span></a></li>
+                  <li><a href="#/calculators/finance/trading" class="nav-sub-item"><span class="sub-icon">📊</span><span>Trading Calculators</span></a></li>
+                  <li><a href="#/calculators/finance/investment" class="nav-sub-item"><span class="sub-icon">📈</span><span>Investment Calculators</span></a></li>
+                  <li class="nav-dropdown-divider"></li>
+                  <li><a href="#/calculators/finance" class="nav-sub-item" style="color: #10b981; font-weight: 700;"><span>View All Finance →</span></a></li>
+                </ul>
+              </li>
+
+              <!-- Math with Flyout Submenu -->
+              <li class="dropdown-submenu-item nav-dropdown-item-wrapper">
+                <a href="#/calculators/math" class="nav-dropdown-item nav-dropdown-item-has-sub">
+                  <span class="dropdown-item-icon" style="color: #6366f1;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h2l4 8 4-16h8"/></svg>
+                  </span>
+                  <div class="dropdown-item-content">
+                    <span class="dropdown-item-title">Math</span>
+                    <span class="dropdown-item-desc">Basic, Advanced &amp; Analytics</span>
+                  </div>
+                  <svg class="submenu-chevron-right" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                </a>
+                <ul class="dropdown-menu sub-dropdown-menu nav-dropdown-submenu">
+                  <li><a href="#/calculators/math/basic" class="nav-sub-item"><span class="sub-icon">➕</span><span>Basic Math Tools</span></a></li>
+                  <li><a href="#/calculators/math/advanced" class="nav-sub-item"><span class="sub-icon">📐</span><span>Advanced Math Tools</span></a></li>
+                  <li><a href="#/calculators/math/statistics" class="nav-sub-item"><span class="sub-icon">🎲</span><span>Probability &amp; Statistics</span></a></li>
+                  <li><a href="#/calculators/math/comparison" class="nav-sub-item"><span class="sub-icon">⚖️</span><span>Comparison Tools</span></a></li>
+                  <li class="nav-dropdown-divider"></li>
+                  <li><a href="#/calculators/math" class="nav-sub-item" style="color: #6366f1; font-weight: 700;"><span>View All Math Tools →</span></a></li>
+                </ul>
+              </li>
+
+              <!-- Health with Flyout Submenu -->
+              <li class="dropdown-submenu-item nav-dropdown-item-wrapper">
+                <a href="#/calculators/health" class="nav-dropdown-item nav-dropdown-item-has-sub">
+                  <span class="dropdown-item-icon" style="color: #f43f5e;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                  </span>
+                  <div class="dropdown-item-content">
+                    <span class="dropdown-item-title">Health</span>
+                    <span class="dropdown-item-desc">General, Medical Scores &amp; Wellness</span>
+                  </div>
+                  <svg class="submenu-chevron-right" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                </a>
+                <ul class="dropdown-menu sub-dropdown-menu nav-dropdown-submenu">
+                  <li><a href="#/calculators/health/general" class="nav-sub-item"><span class="sub-icon">🩺</span><span>General Health</span></a></li>
+                  <li><a href="#/calculators/health/scores" class="nav-sub-item"><span class="sub-icon">📋</span><span>Medical Scores</span></a></li>
+                  <li><a href="#/calculators/health/wellness" class="nav-sub-item"><span class="sub-icon">🌿</span><span>Wellness &amp; Lifestyle</span></a></li>
+                  <li class="nav-dropdown-divider"></li>
+                  <li><a href="#/calculators/health" class="nav-sub-item" style="color: #f43f5e; font-weight: 700;"><span>View All Health Tools →</span></a></li>
+                </ul>
+              </li>
+
+              <li class="nav-dropdown-divider"></li>
+
+              <li>
+                <a href="#/calculators/all" class="nav-dropdown-item nav-dropdown-all">
+                  <span class="dropdown-item-icon" style="color: #fbbf24;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+                  </span>
+                  <div class="dropdown-item-content">
+                    <span class="dropdown-item-title">All Calculators Directory</span>
+                    <span class="dropdown-item-desc">Browse complete 110+ directory</span>
+                  </div>
+                  <span class="dropdown-arrow-hint">→</span>
+                </a>
+              </li>
+            </ul>
+          </li>
           <li class="nav-item"><a href="#/category/financial">Finance <span class="nav-calc-word">Calculator</span></a></li>
           <li class="nav-item"><a href="#/category/math">Math <span class="nav-calc-word">Calculator</span></a></li>
           <li class="nav-item"><a href="#/category/health">Health &amp; Fitness <span class="nav-calc-word">Calculator</span></a></li>
@@ -514,10 +601,40 @@ ${combinedCss}
           </a>
         </li>
         <li>
-          <a href="#/categories" class="mobile-drawer-link">
+          <a href="#/calculators/all" class="mobile-drawer-link">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
-            <span>All Calculators (60+)</span>
+            <span>All Calculators</span>
           </a>
+          <div class="mobile-drawer-cat-block">
+            <div class="mobile-drawer-cat-title">
+              <a href="#/calculators/finance">💳 Finance</a>
+            </div>
+            <ul class="mobile-drawer-sub-links">
+              <li><a href="#/calculators/finance/emi-loan" class="mobile-drawer-sub-link">EMI &amp; Loan Calculators</a></li>
+              <li><a href="#/calculators/finance/sip" class="mobile-drawer-sub-link">SIP Calculators</a></li>
+              <li><a href="#/calculators/finance/trading" class="mobile-drawer-sub-link">Trading Calculators</a></li>
+              <li><a href="#/calculators/finance/investment" class="mobile-drawer-sub-link">Investment Calculators</a></li>
+            </ul>
+
+            <div class="mobile-drawer-cat-title">
+              <a href="#/calculators/math">📐 Math</a>
+            </div>
+            <ul class="mobile-drawer-sub-links">
+              <li><a href="#/calculators/math/basic" class="mobile-drawer-sub-link">Basic Math Tools</a></li>
+              <li><a href="#/calculators/math/advanced" class="mobile-drawer-sub-link">Advanced Math Tools</a></li>
+              <li><a href="#/calculators/math/statistics" class="mobile-drawer-sub-link">Probability &amp; Statistics</a></li>
+              <li><a href="#/calculators/math/comparison" class="mobile-drawer-sub-link">Comparison Tools</a></li>
+            </ul>
+
+            <div class="mobile-drawer-cat-title">
+              <a href="#/calculators/health">🩺 Health</a>
+            </div>
+            <ul class="mobile-drawer-sub-links">
+              <li><a href="#/calculators/health/general" class="mobile-drawer-sub-link">General Health</a></li>
+              <li><a href="#/calculators/health/scores" class="mobile-drawer-sub-link">Medical Scores</a></li>
+              <li><a href="#/calculators/health/wellness" class="mobile-drawer-sub-link">Wellness &amp; Lifestyle</a></li>
+            </ul>
+          </div>
         </li>
         <li>
           <a href="#/category/financial" class="mobile-drawer-link">
@@ -761,4 +878,6 @@ copyTargets.forEach(dir => {
   fs.copyFileSync(path.join(__dirname, 'styles', 'desktop-alignment.v1.min.css'), path.join(fullDir, 'desktop-alignment.v1.min.css'));
   fs.copyFileSync(path.join(__dirname, 'styles', 'mobile-alignment.v1.min.css'), path.join(fullDir, 'mobile-alignment.v1.min.css'));
 });
-console.log('Successfully synced CSS patches to dist, build, and public/styles.');
+fs.copyFileSync(path.join(__dirname, 'index.html'), path.join(__dirname, 'dist', 'index.html'));
+fs.copyFileSync(path.join(__dirname, 'index.html'), path.join(__dirname, 'build', 'index.html'));
+console.log('Successfully synced index.html and CSS patches to dist, build, and public/styles.');

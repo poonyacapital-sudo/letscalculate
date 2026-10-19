@@ -4,6 +4,22 @@ All notable changes to the **letscalculate.in** platform will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version v1.3 – All Calculators Submenu & Navigation Fix
+- **Submenu Touch & Click Support**: Replaced hover-only CSS dependency with active `.open` class toggling in `scripts/app.js`, enabling smooth tap/click access for mobile devices, WebViews, and desktop touch screens.
+- **Header Overflow & Clipping Fix**: Removed `overflow: hidden !important` from `.site-header` in `styles/mobile-alignment.v1.min.css` and set `overflow: visible !important`, preventing flyout submenus from being clipped.
+- **Z-Index Stacking**: Elevated `.dropdown-menu` to `z-index: 10000` and submenus to `z-index: 10010` to guarantee dropdowns render on top of all page elements.
+- **Submenu Viewport Boundary Detection**: Added automatic left-flip (`.flyout-left`) when submenus approach the viewport right boundary.
+- **Mobile Drawer Subcategories**: Integrated subcategories block (`.mobile-drawer-cat-block`) into the mobile navigation drawer (`#mobile-nav-drawer`) for Finance, Math, and Health calculators.
+- **Cross-Environment Sync**: Synchronized all navigation HTML, CSS, and JS across localhost:3000, localhost:3001, and production (`letscalculate.in`).
+
+---
+
+## Version v1.2 – Math Evaluator & Converters-and-Widgets Fix
+- Bundled `scripts/converters-and-widgets.js` with mathematical AST expression parser into `build-bundle.js`.
+- Fixed Basic and Scientific calculators on localhost:3000, localhost:3001, and production (`letscalculate.in`).
+
+---
+
 ## Version v1.1 – GTM Integration
 - Added GTM script in <head>
 - Added GTM noscript in <body>

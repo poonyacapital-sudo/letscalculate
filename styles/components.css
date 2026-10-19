@@ -4797,7 +4797,7 @@
   border-radius: var(--radius-xl);
   padding: 0.65rem;
   box-shadow: 0 18px 45px rgba(0, 0, 0, 0.65), 0 0 25px -5px rgba(0, 191, 255, 0.15);
-  z-index: 1000;
+  z-index: 10000;
   list-style: none;
 }
 
@@ -4976,6 +4976,8 @@
   transition: background-color 0.2s ease, color 0.2s ease;
   border: 1px solid transparent !important;
   cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .submenu-chevron-right {
@@ -4991,15 +4993,38 @@
   transform: translateX(3px);
 }
 
-/* Submenu flyout container - exact same 200ms ease fade-in + slide-down animation */
+/* Chevron indicator rotates down when submenu is opened via tap/click */
+.dropdown-submenu-item.open .submenu-chevron-right,
+.nav-dropdown-item-wrapper.open .submenu-chevron-right {
+  opacity: 1 !important;
+  color: #00bfff !important;
+  transform: rotate(90deg) !important;
+}
+
+/* Highlight trigger item when submenu is open */
+.dropdown-submenu-item.open > .nav-dropdown-item-has-sub,
+.nav-dropdown-item-wrapper.open > .nav-dropdown-item-has-sub {
+  background-color: rgba(0, 191, 255, 0.12) !important;
+  border-color: rgba(0, 191, 255, 0.3) !important;
+  color: #00bfff !important;
+}
+
+.dropdown-submenu-item.open > .nav-dropdown-item-has-sub .dropdown-item-title,
+.nav-dropdown-item-wrapper.open > .nav-dropdown-item-has-sub .dropdown-item-title {
+  color: #00bfff !important;
+}
+
+/* Submenu flyout container */
 .dropdown-submenu-item > .dropdown-menu,
 .dropdown-submenu-item > .sub-dropdown-menu,
-.nav-dropdown-submenu {
+.dropdown-submenu-item > .nav-dropdown-submenu,
+.nav-dropdown-item-wrapper > .sub-dropdown-menu,
+.nav-dropdown-item-wrapper > .nav-dropdown-submenu {
   display: none;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transform: translateY(-10px);
+  transform: translateY(-6px);
   transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
   position: absolute;
   left: calc(100% + 6px);
@@ -5012,8 +5037,17 @@
   border-radius: var(--radius-xl);
   padding: 0.55rem;
   box-shadow: 0 18px 45px rgba(0, 0, 0, 0.7), 0 0 25px -5px rgba(0, 191, 255, 0.2);
-  z-index: 1010;
+  z-index: 10010;
   list-style: none;
+}
+
+/* Flip flyout to the left if right edge of viewport is reached */
+.dropdown-submenu-item > .sub-dropdown-menu.flyout-left,
+.dropdown-submenu-item > .nav-dropdown-submenu.flyout-left,
+.nav-dropdown-item-wrapper > .sub-dropdown-menu.flyout-left,
+.nav-dropdown-item-wrapper > .nav-dropdown-submenu.flyout-left {
+  left: auto !important;
+  right: calc(100% + 6px) !important;
 }
 
 /* Invisible bridge so mouse hover doesn't drop */
@@ -5027,13 +5061,31 @@
   width: 14px;
 }
 
-/* Show submenu with smooth animation */
+.sub-dropdown-menu.flyout-left::before,
+.nav-dropdown-submenu.flyout-left::before {
+  left: auto;
+  right: -12px;
+}
+
+/* Show submenu with smooth animation on hover, focus-within, and tap/click (.open class) */
 .dropdown-submenu-item:hover > .dropdown-menu,
 .dropdown-submenu-item:hover > .sub-dropdown-menu,
+.dropdown-submenu-item:hover > .nav-dropdown-submenu,
 .dropdown-submenu-item:focus-within > .dropdown-menu,
 .dropdown-submenu-item:focus-within > .sub-dropdown-menu,
+.dropdown-submenu-item:focus-within > .nav-dropdown-submenu,
+.dropdown-submenu-item.open > .dropdown-menu,
+.dropdown-submenu-item.open > .sub-dropdown-menu,
+.dropdown-submenu-item.open > .nav-dropdown-submenu,
+.nav-dropdown-item-wrapper:hover > .dropdown-menu,
+.nav-dropdown-item-wrapper:hover > .sub-dropdown-menu,
 .nav-dropdown-item-wrapper:hover > .nav-dropdown-submenu,
-.nav-dropdown-item-wrapper:focus-within > .nav-dropdown-submenu {
+.nav-dropdown-item-wrapper:focus-within > .dropdown-menu,
+.nav-dropdown-item-wrapper:focus-within > .sub-dropdown-menu,
+.nav-dropdown-item-wrapper:focus-within > .nav-dropdown-submenu,
+.nav-dropdown-item-wrapper.open > .dropdown-menu,
+.nav-dropdown-item-wrapper.open > .sub-dropdown-menu,
+.nav-dropdown-item-wrapper.open > .nav-dropdown-submenu {
   display: block !important;
   opacity: 1 !important;
   visibility: visible !important;
@@ -5060,6 +5112,24 @@
   font-size: 1rem;
   flex-shrink: 0;
   line-height: 1;
+}
+
+/* Responsive fallback for narrow / mobile screens */
+@media (max-width: 768px) {
+  .dropdown-submenu-item > .dropdown-menu,
+  .dropdown-submenu-item > .sub-dropdown-menu,
+  .dropdown-submenu-item > .nav-dropdown-submenu,
+  .nav-dropdown-item-wrapper > .sub-dropdown-menu,
+  .nav-dropdown-item-wrapper > .nav-dropdown-submenu {
+    position: static !important;
+    transform: none !important;
+    min-width: 100% !important;
+    box-shadow: none !important;
+    border-left: 2px solid #00bfff !important;
+    margin-top: 0.35rem !important;
+    margin-bottom: 0.35rem !important;
+    padding-left: 0.75rem !important;
+  }
 }
 
 /* Category Page Subcategory Tabs */
