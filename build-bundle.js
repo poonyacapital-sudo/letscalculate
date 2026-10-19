@@ -11,11 +11,12 @@ const mobileCss = fs.readFileSync(path.join(__dirname, 'styles', 'mobile-alignme
 const desktopCss = fs.readFileSync(path.join(__dirname, 'styles', 'desktop-alignment.v1.min.css'), 'utf8');
 const combinedCss = [mainCss, compCss, calcCss, mobileCss, desktopCss].join('\n\n');
 
-// 2. Read Scripts (No Learning Data, No Unit Converter Widgets)
+// 2. Read Scripts (Data, Engine, Specialized Widgets/Keypads & Main App)
 const dataJs = fs.readFileSync(path.join(__dirname, 'scripts', 'calculators-data.js'), 'utf8');
 const engineJs = fs.readFileSync(path.join(__dirname, 'scripts', 'calculator-engine.js'), 'utf8');
+const widgetsJs = fs.readFileSync(path.join(__dirname, 'scripts', 'converters-and-widgets.js'), 'utf8');
 const appJs = fs.readFileSync(path.join(__dirname, 'scripts', 'app.js'), 'utf8');
-const combinedJs = [dataJs, engineJs, appJs].join('\n\n');
+const combinedJs = [dataJs, engineJs, widgetsJs, appJs].join('\n\n');
 
 // 3. Assemble HTML
 const htmlContent = `<!DOCTYPE html>
@@ -759,5 +760,8 @@ copyTargets.forEach(dir => {
   if (!fs.existsSync(fullDir)) fs.mkdirSync(fullDir, { recursive: true });
   fs.copyFileSync(path.join(__dirname, 'styles', 'desktop-alignment.v1.min.css'), path.join(fullDir, 'desktop-alignment.v1.min.css'));
   fs.copyFileSync(path.join(__dirname, 'styles', 'mobile-alignment.v1.min.css'), path.join(fullDir, 'mobile-alignment.v1.min.css'));
+  if (dir === 'dist' || dir === 'build') {
+    fs.writeFileSync(path.join(fullDir, 'index.html'), htmlContent, 'utf8');
+  }
 });
-console.log('Successfully synced CSS patches to dist, build, and public/styles.');
+console.log('Successfully synced index.html and CSS patches to dist, build, and public/styles.');
