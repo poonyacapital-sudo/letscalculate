@@ -18,3 +18,40 @@ html,body{width:100%!important;max-width:100vw!important;overflow-x:hidden!impor
 @media(max-width:480px){.header-container{padding-left:0.5rem!important;padding-right:0.5rem!important;gap:0.25rem!important}.brand-name{font-size:1.05rem}.brand-icon{width:28px;height:28px}.brand-icon svg{width:16px;height:16px}.header-actions{gap:0.25rem}.icon-btn{width:34px!important;height:34px!important;padding:0.25rem!important}.search-trigger-btn{width:34px!important;height:34px!important;padding:0.25rem!important;justify-content:center!important;border-radius:var(--radius-md)!important}.search-trigger-btn span{display:none!important}.hero-section{padding:2.25rem 0.75rem 2rem!important}.hero-title{font-size:1.55rem!important;line-height:1.25!important}.hero-subtitle{font-size:0.88rem!important;line-height:1.5!important}.hero-tagline-pill{font-size:0.72rem!important;padding:0.3rem 0.65rem!important;max-width:100%!important;white-space:normal!important}}
 @media(max-width:360px){#header-history-btn,#header-favorites-btn{display:none!important}.brand-name{font-size:0.95rem!important}}
 @supports not (display:flex){.site-header{display:block!important;height:auto!important;padding:0.5rem 0!important;text-align:center!important}.header-container{display:block!important;text-align:center!important;padding:0.5rem 1rem!important}.header-left-group,.brand-logo{display:inline-block!important;text-align:center!important;margin:0 auto!important}.header-actions{display:block!important;text-align:center!important;margin-top:0.4rem!important}.icon-btn,.search-trigger-btn,.mobile-menu-toggle-btn{display:inline-block!important;vertical-align:middle!important;margin:0 2px!important}.container{width:94%!important;margin:0 auto!important}}
+/* Calculator Mobile Responsiveness & NPS Alignment Patch */
+.calc-page-container,.calculator-container,.nps-calculator-wrapper{width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+.calc-workspace-grid{width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+.calc-inputs-card,.calc-results-card,.summary-card{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;overflow:hidden!important}
+.card-title{display:-webkit-box!important;display:-webkit-flex!important;display:flex!important;-webkit-box-align:center!important;-webkit-align-items:center!important;align-items:center!important;-webkit-box-pack:justify!important;-webkit-justify-content:space-between!important;justify-content:space-between!important;-webkit-flex-wrap:wrap!important;flex-wrap:wrap!important;gap:0.5rem!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+.input-with-addons{width:100%!important;max-width:100%!important;box-sizing:border-box!important;min-width:0!important;display:-webkit-box!important;display:-webkit-flex!important;display:flex!important}
+.form-input{width:100%!important;max-width:100%!important;box-sizing:border-box!important;min-width:0!important}
+.form-range-slider{width:100%!important;max-width:100%!important;box-sizing:border-box!important;display:block!important}
+.form-group,.field-wrap{width:100%!important;max-width:100%!important;box-sizing:border-box!important;min-width:0!important}
+.form-label-row{display:-webkit-box!important;display:-webkit-flex!important;display:flex!important;-webkit-flex-wrap:wrap!important;flex-wrap:wrap!important;gap:0.35rem!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+.form-label{min-width:0!important;word-break:break-word!important}
+.primary-result-box{width:100%!important;max-width:100%!important;box-sizing:border-box!important;overflow:hidden!important}
+.primary-result-value{font-size:clamp(1.65rem, 5.5vw, 2.75rem)!important;word-break:break-word!important;overflow-wrap:break-word!important;max-width:100%!important}
+.secondary-metrics-grid,.summary-grid{width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+.metric-tile,.summary-card{width:100%!important;max-width:100%!important;box-sizing:border-box!important;min-width:0!important;overflow:hidden!important}
+.metric-tile-value{font-size:clamp(1.05rem, 4vw, 1.25rem)!important;word-break:break-word!important;overflow-wrap:break-word!important;max-width:100%!important}
+@media(max-width:768px){
+.calc-page-container{padding:1.5rem 1rem 3.5rem!important}
+.calc-workspace-grid{grid-template-columns:1fr!important;gap:1.25rem!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important;margin-bottom:2rem!important}
+.calc-inputs-card,.calc-results-card,.summary-card{padding:1.25rem 1rem!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+.card-title{font-size:1.1rem!important;margin-bottom:1rem!important}
+.card-title .btn-secondary{padding:0.35rem 0.6rem!important;font-size:0.78rem!important;white-space:nowrap!important;flex-shrink:0!important}
+.secondary-metrics-grid,.summary-grid{grid-template-columns:1fr!important;gap:0.75rem!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+.calc-header-meta{flex-direction:column!important;align-items:flex-start!important;gap:0.75rem!important;width:100%!important}
+.calc-title-row{width:100%!important;flex-wrap:wrap!important;gap:0.5rem!important}
+.calc-actions-toolbar{width:100%!important;display:flex!important;flex-wrap:wrap!important;gap:0.4rem!important}
+.calc-actions-toolbar .btn-secondary{flex:1 1 auto!important;justify-content:center!important;font-size:0.8rem!important;padding:0.4rem 0.6rem!important}
+.calc-page-title{font-size:1.75rem!important;word-break:break-word!important}
+.disclaimer-banner,.nps-blog-callout{width:100%!important;max-width:100%!important;box-sizing:border-box!important;padding:1rem!important;word-break:break-word!important}
+}
+@media(max-width:480px){
+.calc-page-container{padding:1rem 0.75rem 3rem!important}
+.calc-inputs-card,.calc-results-card,.summary-card{padding:1rem 0.75rem!important}
+.primary-result-box{padding:1.25rem 0.85rem!important}
+.primary-result-value{font-size:clamp(1.45rem, 5vw, 1.85rem)!important}
+.calc-page-title{font-size:1.55rem!important}
+}

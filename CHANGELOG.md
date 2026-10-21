@@ -4,6 +4,17 @@ All notable changes to the **letscalculate.in** platform will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version v1.4 – Dhanteras Banner Date Logic & Mobile Calculator Alignment
+- **Dhanteras Banner/Popup Date Threshold**: Updated date logic to display "Dhanteras is coming" until 5 Nov 2026 (inclusive) and switch automatically to "Happy Dhanteras" from 6 Nov 2026 onward across seasonal banners and celebratory popups.
+- **Calculator Mobile Responsive Alignment**: Resolved mobile horizontal overflow across the NPS Calculator and all calculator workspaces.
+  - Set `.calc-workspace-grid` to stack in a single column (`1fr`) on viewports $\le 768px$ and $\le 480px$.
+  - Added fluid typography `clamp(1.65rem, 5.5vw, 2.75rem)` with `word-break: break-word` on `.primary-result-value` to prevent large figures (e.g., ₹1,83,39,584.00) from overflowing screen borders.
+  - Ensured `.calc-inputs-card`, `.calc-results-card`, inputs, sliders, and `.summary-grid` metric cards strictly respect 100% viewport width without horizontal scrollbars.
+  - Applied flex-wrap to `.card-title` and `.calc-header-actions` to keep control buttons aligned inside mobile viewports.
+- **Cross-Environment Sync**: Deployed changes to localhost:3000, localhost:3001, and production (`letscalculate.in`).
+
+---
+
 ## Version v1.3 – All Calculators Submenu & Navigation Fix
 - **Submenu Touch & Click Support**: Replaced hover-only CSS dependency with active `.open` class toggling in `scripts/app.js`, enabling smooth tap/click access for mobile devices, WebViews, and desktop touch screens.
 - **Header Overflow & Clipping Fix**: Removed `overflow: hidden !important` from `.site-header` in `styles/mobile-alignment.v1.min.css` and set `overflow: visible !important`, preventing flyout submenus from being clipped.

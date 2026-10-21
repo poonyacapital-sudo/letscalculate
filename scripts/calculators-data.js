@@ -57,6 +57,7 @@ const CALCULATOR_HUB_TAXONOMY = {
         description: 'Calculate monthly EMIs, total interest, and borrowing affordability across homes, cars, personal loans, and reverse loans.',
         calculatorIds: [
           'home-loan-calculator',
+          'home-purchase-planner',
           'car-loan-calculator',
           'personal-loan-calculator',
           'loan-reverse-calculator',
@@ -100,6 +101,7 @@ const CALCULATOR_HUB_TAXONOMY = {
         icon: 'wallet',
         description: 'Analyze capital appreciation with ROI formulas, compound interest schedules, retirement milestones, and mutual fund rolling CAGR.',
         calculatorIds: [
+          'us-stocks-calculator',
           'roi-calculator',
           'compound-interest-calculator',
           'retirement-calculator',
@@ -238,6 +240,7 @@ const EMI_SUITE_CATEGORIES = {
     name: 'Mainstream Loans',
     icon: '🏠',
     calculators: [
+      { id: 'home-purchase-planner', name: 'Home Purchase Planner', badge: 'New' },
       { id: 'home-loan-calculator', name: 'Home Loan', badge: 'Essential' },
       { id: 'personal-loan-calculator', name: 'Personal Loan', badge: 'Popular' },
       { id: 'car-loan-calculator', name: 'Car Loan', badge: 'Vehicle' },
@@ -401,6 +404,7 @@ const BROKERS_DATA = {
 };
 
 const NEW_CALCULATOR_IDS = new Set([
+  'us-stocks-calculator',
   'jewellery-price-calculator',
   'gold-loan-calculator',
   'two-wheeler-loan-calculator',
@@ -426,7 +430,9 @@ const NEW_CALCULATOR_IDS = new Set([
   'mortgage-loan-calculator',
   'business-loan-calculator',
   'loan-prepayment-calculator',
-  'loan-amortization-calculator'
+  'loan-amortization-calculator',
+  'home-purchase-planner',
+  'flat-purchase-planner'
 ]);
 
 function isNewCalculator(calcOrId) {
@@ -488,6 +494,68 @@ function getEmiSuiteCategoryForCalc(calcId) {
 }
 
 const CALCULATORS_DATA = [
+  {
+    "id": "us-stocks-calculator",
+    "category": "financial",
+    "title": "US Stocks Calculator",
+    "badge": "Popular • US Equities",
+    "keywords": "us stocks usa equities shares fractional dollar inr rupee exchange wall street nasdaq nyse apple nvda tsla zerodha invest investment calculator",
+    "icon": "trending-up",
+    "summary": "Calculate how many full and fractional US stock shares you can buy with an INR rupee investment.",
+    "description": "Convert Indian Rupees (INR) to US Dollars (USD) at live or custom exchange rates and calculate exactly how many full and fractional shares of US companies (Apple, Microsoft, Nvidia, Tesla, Google, Amazon, etc.) your rupee investment will purchase.",
+    "formula": "USD Available = Investment (INR) / Exchange Rate (USD/INR); Total Shares = USD Available / Stock Price (USD)",
+    "formulaDesc": "Converts rupee capital into US Dollars and divides by the US share price to determine full and fractional share allocations.",
+    "fields": [
+      {
+        "id": "amountInr",
+        "label": "Investment Amount (INR ₹)",
+        "fixedLabel": true,
+        "type": "number",
+        "default": 50000,
+        "min": 500,
+        "max": 2000000,
+        "step": 500,
+        "prefix": "₹",
+        "fixedPrefix": "₹",
+        "tooltip": "The amount in Indian Rupees (₹) you want to invest in US stocks."
+      },
+      {
+        "id": "usdInrRate",
+        "label": "USD / INR Exchange Rate",
+        "fixedLabel": true,
+        "type": "number",
+        "default": 86.5,
+        "min": 60,
+        "max": 120,
+        "step": 0.1,
+        "prefix": "₹",
+        "fixedPrefix": "₹",
+        "tooltip": "Exchange rate for 1 US Dollar in Indian Rupees (e.g. ₹86.50 per USD)."
+      },
+      {
+        "id": "stockName",
+        "label": "Stock Name / Ticker",
+        "fixedLabel": true,
+        "type": "text",
+        "default": "Apple Inc. (AAPL)",
+        "placeholder": "e.g. Apple Inc. (AAPL), Nvidia (NVDA), Tesla (TSLA)",
+        "tooltip": "Name or ticker symbol of the US company or ETF."
+      },
+      {
+        "id": "stockPriceUsd",
+        "label": "Stock Price in USD ($)",
+        "fixedLabel": true,
+        "type": "number",
+        "default": 230,
+        "min": 1,
+        "max": 2000,
+        "step": 1,
+        "prefix": "$",
+        "fixedPrefix": "$",
+        "tooltip": "Market price of 1 share in US Dollars ($)."
+      }
+    ]
+  },
   {
   "id": "gold-loan-calculator",
   "category": "financial",
@@ -1932,6 +2000,104 @@ const CALCULATORS_DATA = [
       "q": "What is FOIR?",
       "a": "FOIR = Fixed Obligations to Income Ratio. It represents the percentage of your monthly income already committed to EMIs or fixed expenses. Banks in India typically allow FOIR up to 50 %."
     }
+  ]
+},
+  {
+  "id": "home-purchase-planner",
+  "category": "financial",
+  "title": "Home Purchase Planner",
+  "badge": "New",
+  "icon": "home",
+  "customUi": "home-purchase-planner",
+  "summary": "Compare builder construction schedule, bank loan EMI with Yr/Mo tenure toggle, and buyer capacity side-by-side.",
+  "description": "Comprehensive property purchase planner. Synchronize builder construction milestones with bank loan disbursements and evaluate personal savings and income affordability.",
+  "formula": "Affordability = Buyer Savings - Down Payment; Safe EMI = 50% Monthly Income - Obligations",
+  "formulaDesc": "Evaluates upfront cash surplus/shortfall against construction milestones and checks debt service ratio (FOIR).",
+  "fields": [
+    {
+      "id": "flatPrice",
+      "label": "Home Purchase Price",
+      "type": "number",
+      "default": 6250000,
+      "min": 500000,
+      "max": 200000000,
+      "step": 50000,
+      "prefix": "₹"
+    },
+    {
+      "id": "downPaymentPct",
+      "label": "Down Payment (%)",
+      "type": "number",
+      "default": 20,
+      "min": 10,
+      "max": 80,
+      "step": 1,
+      "suffix": "%"
+    },
+    {
+      "id": "interestRate",
+      "label": "Annual Interest Rate (%)",
+      "type": "number",
+      "default": 8.5,
+      "min": 5,
+      "max": 18,
+      "step": 0.05,
+      "suffix": "%"
+    },
+    {
+      "id": "loanTenure",
+      "label": "Loan Tenure",
+      "type": "number",
+      "default": 20,
+      "min": 1,
+      "max": 30,
+      "step": 1,
+      "suffix": "Yrs"
+    },
+    {
+      "id": "buyerSavings",
+      "label": "Available Liquid Savings",
+      "type": "number",
+      "default": 1000000,
+      "min": 0,
+      "max": 100000000,
+      "step": 50000,
+      "prefix": "₹"
+    },
+    {
+      "id": "buyerIncome",
+      "label": "Monthly Take-Home Income",
+      "type": "number",
+      "default": 80000,
+      "min": 15000,
+      "max": 5000000,
+      "step": 5000,
+      "prefix": "₹"
+    }
+  ],
+  "faq": [
+    {
+      "q": "What is the 3-Card Home Purchase Planner?",
+      "a": "It evaluates home buying viability across three pillars simultaneously: (1) Builder construction milestone schedule, (2) Bank loan financing & monthly EMI, and (3) Buyer savings and monthly income affordability."
+    },
+    {
+      "q": "How does tenure toggling between years and months help?",
+      "a": "It lets you examine loan payoffs at both macro horizon (e.g. 20 years) and granular monthly loan tenure (e.g. 240 months) with identical calculation precision."
+    }
+  ]
+},
+  {
+  "id": "flat-purchase-planner",
+  "category": "financial",
+  "title": "Home Purchase Planner",
+  "badge": "New",
+  "icon": "home",
+  "customUi": "home-purchase-planner",
+  "aliasFor": "home-purchase-planner",
+  "summary": "Compare builder construction schedule, bank loan EMI with Yr/Mo tenure toggle, and buyer capacity side-by-side.",
+  "description": "Comprehensive property purchase planner. Synchronize builder construction milestones with bank loan disbursements and evaluate personal savings and income affordability.",
+  "fields": [
+    { "id": "flatPrice", "default": 6250000 }
   ]
 },
   {
@@ -6886,28 +7052,38 @@ function searchCalculators(query) {
   const q = query.toLowerCase().trim();
   const qWords = q.split(/\s+/).filter(Boolean);
 
-  return CALCULATORS_DATA.filter(c => {
+  const matched = CALCULATORS_DATA.filter(c => {
     const title = (c.title || '').toLowerCase();
     const summary = (c.summary || '').toLowerCase();
     const description = (c.description || '').toLowerCase();
     const category = (c.category || '').toLowerCase();
     const badge = (c.badge || '').toLowerCase();
     const formula = (c.formula || '').toLowerCase();
+    const keywords = (c.keywords || '').toLowerCase();
 
     let catKeywords = '';
     if (category === 'financial') {
-      catKeywords = 'finance financial money investment loan emi tax interest banking wealth stock';
+      catKeywords = 'finance financial money investment loan emi tax interest banking wealth stock stocks equities shares dollar usd inr';
     } else if (category === 'health') {
       catKeywords = 'health fitness medical diet body weight calories workout';
     } else if (category === 'math') {
       catKeywords = 'math mathematics numbers algebra geometry percentage equation';
     }
 
-    const fullText = `${title} ${summary} ${description} ${category} ${catKeywords} ${badge} ${formula}`;
+    const fullText = `${title} ${summary} ${description} ${category} ${catKeywords} ${badge} ${formula} ${keywords}`;
 
     if (fullText.includes(q)) return true;
     return qWords.every(w => fullText.includes(w));
   });
+
+  // Ensure US Stocks Calculator appears at the top of search results whenever matched
+  matched.sort((a, b) => {
+    if (a.id === 'us-stocks-calculator') return -1;
+    if (b.id === 'us-stocks-calculator') return 1;
+    return 0;
+  });
+
+  return matched;
 }
 
 

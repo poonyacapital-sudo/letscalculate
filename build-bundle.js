@@ -282,6 +282,7 @@ ${combinedCss}
                   <li><a href="#/calculators/finance/sip" class="nav-sub-item"><span class="sub-icon">🔄</span><span>SIP Calculators</span></a></li>
                   <li><a href="#/calculators/finance/trading" class="nav-sub-item"><span class="sub-icon">📊</span><span>Trading Calculators</span></a></li>
                   <li><a href="#/calculators/finance/investment" class="nav-sub-item"><span class="sub-icon">📈</span><span>Investment Calculators</span></a></li>
+                  <li><a href="#/calculator/us-stocks-calculator" class="nav-sub-item"><span class="sub-icon">🇺🇸</span><span>US Stocks Calculator</span></a></li>
                   <li class="nav-dropdown-divider"></li>
                   <li><a href="#/calculators/finance" class="nav-sub-item" style="color: #10b981; font-weight: 700;"><span>View All Finance →</span></a></li>
                 </ul>
@@ -664,6 +665,12 @@ ${combinedCss}
           <a href="#/calculator/nps-calculator" class="mobile-drawer-link">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/></svg>
             <span>NPS Calculator</span>
+          </a>
+        </li>
+        <li>
+          <a href="#/calculator/us-stocks-calculator" class="mobile-drawer-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            <span>US Stocks Calculator 🇺🇸</span>
           </a>
         </li>
         <li>

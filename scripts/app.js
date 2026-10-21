@@ -747,12 +747,18 @@ const BrokerModuleController = {
       </div>
 
       <div class="broker-input-group">
-        <div class="broker-input-label-row">
-          <span>Investment Tenure (Years)</span>
-          <span style="color: var(--emerald); font-weight: 700;">${this.state.sipTenure} Years</span>
+        <div class="broker-input-label-row" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.35rem;">
+          <span>Investment Tenure</span>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div class="tenure-toggle-container" id="tenure-toggle-broker-sip" role="group" aria-label="Broker SIP tenure toggle">
+              <button type="button" class="tenure-unit-btn ${this.state.sipTenureUnit === 'months' ? '' : 'active'}" data-brk-tenure="years">Yr</button>
+              <button type="button" class="tenure-unit-btn ${this.state.sipTenureUnit === 'months' ? 'active' : ''}" data-brk-tenure="months">Mo</button>
+            </div>
+            <span id="brk-sip-tenure-disp" style="color: var(--emerald); font-weight: 700;">${this.state.sipTenureUnit === 'months' ? (Math.round(this.state.sipTenure * 12)) + ' Mos' : this.state.sipTenure + ' Years'}</span>
+          </div>
         </div>
-        <input type="number" id="brk-sip-tenure" class="broker-input-field" value="${this.state.sipTenure}" min="1" max="40" step="1">
-        <input type="range" id="brk-sip-tenure-slider" class="broker-slider" min="1" max="35" step="1" value="${this.state.sipTenure}">
+        <input type="number" id="brk-sip-tenure" class="broker-input-field" value="${this.state.sipTenureUnit === 'months' ? Math.round(this.state.sipTenure * 12) : this.state.sipTenure}" min="${this.state.sipTenureUnit === 'months' ? 12 : 1}" max="${this.state.sipTenureUnit === 'months' ? 420 : 35}" step="1">
+        <input type="range" id="brk-sip-tenure-slider" class="broker-slider" min="${this.state.sipTenureUnit === 'months' ? 12 : 1}" max="${this.state.sipTenureUnit === 'months' ? 420 : 35}" step="1" value="${this.state.sipTenureUnit === 'months' ? Math.round(this.state.sipTenure * 12) : this.state.sipTenure}">
       </div>
     `;
 
@@ -771,8 +777,58 @@ const BrokerModuleController = {
     bindLive('#brk-sip-amt-slider', 'sipMonthly', true);
     bindLive('#brk-sip-roi', 'sipRoi', false);
     bindLive('#brk-sip-roi-slider', 'sipRoi', true);
-    bindLive('#brk-sip-tenure', 'sipTenure', false);
-    bindLive('#brk-sip-tenure-slider', 'sipTenure', true);
+
+    const tenureToggle = container.querySelector('#tenure-toggle-broker-sip');
+    if (tenureToggle) {
+      tenureToggle.querySelectorAll('.tenure-unit-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const targetUnit = btn.getAttribute('data-brk-tenure');
+          if (this.state.sipTenureUnit === targetUnit) return;
+          this.state.sipTenureUnit = targetUnit;
+          tenureToggle.querySelectorAll('.tenure-unit-btn').forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-brk-tenure') === targetUnit);
+          });
+          const numEl = container.querySelector('#brk-sip-tenure');
+          const rngEl = container.querySelector('#brk-sip-tenure-slider');
+          const dispEl = container.querySelector('#brk-sip-tenure-disp');
+          if (targetUnit === 'months') {
+            const mos = Math.round(this.state.sipTenure * 12);
+            if (numEl) { numEl.min = 12; numEl.max = 420; numEl.step = 1; numEl.value = mos; }
+            if (rngEl) { rngEl.min = 12; rngEl.max = 420; rngEl.step = 1; rngEl.value = mos; }
+            if (dispEl) dispEl.textContent = `${mos} Mos`;
+          } else {
+            const yrs = this.state.sipTenure;
+            if (numEl) { numEl.min = 1; numEl.max = 35; numEl.step = 1; numEl.value = yrs; }
+            if (rngEl) { rngEl.min = 1; rngEl.max = 35; rngEl.step = 1; rngEl.value = yrs; }
+            if (dispEl) dispEl.textContent = `${yrs} Years`;
+          }
+          this.computeSip(this.container.querySelector('#broker-results-panel'));
+        });
+      });
+    }
+
+    const bindLiveTenure = (id, isSlider) => {
+      const el = container.querySelector(id);
+      if (!el) return;
+      el.addEventListener('input', () => {
+        const raw = parseFloat(el.value) || 0;
+        if (this.state.sipTenureUnit === 'months') {
+          this.state.sipTenure = raw / 12;
+          const dispEl = container.querySelector('#brk-sip-tenure-disp');
+          if (dispEl) dispEl.textContent = `${raw} Mos`;
+        } else {
+          this.state.sipTenure = raw;
+          const dispEl = container.querySelector('#brk-sip-tenure-disp');
+          if (dispEl) dispEl.textContent = `${raw} Years`;
+        }
+        const companion = container.querySelector(isSlider ? '#brk-sip-tenure' : '#brk-sip-tenure-slider');
+        if (companion) companion.value = raw;
+        this.computeSip(this.container.querySelector('#broker-results-panel'));
+      });
+    };
+    bindLiveTenure('#brk-sip-tenure', false);
+    bindLiveTenure('#brk-sip-tenure-slider', true);
   },
 
   computeSip(resEl) {
@@ -1232,9 +1288,21 @@ const AppUI = {
       instagramText: "Join us on Instagram"
     },
     {
+      title: "✨ Dhanteras is coming! ✨",
+      message: "✨ Dhanteras is coming! ✨ Buy gold and silver this Dhanteras in ETF form by opening a free demat account.",
+      start: "2026-10-21T00:00:00",
+      end: "2026-11-05T23:59:59",
+      link: "https://zerodha.com/open-account?c=ZAPCVV",
+      ctaText: "Open Free Demat Account Now",
+      instagramText: "Join us on Instagram",
+      theme: "dhanteras",
+      icon: "✨",
+      animation: "gold coins"
+    },
+    {
       title: "✨ Happy Dhanteras! ✨",
       message: "✨ Happy Dhanteras! ✨ Buy gold and silver this Dhanteras in ETF form by opening a free demat account.",
-      start: "2026-10-21T00:00:00",
+      start: "2026-11-06T00:00:00",
       end: "2026-11-06T12:00:00",
       link: "https://zerodha.com/open-account?c=ZAPCVV",
       ctaText: "Open Free Demat Account Now",
@@ -1313,8 +1381,12 @@ const AppUI = {
         instagramText: "Join us on Instagram"
       });
     } else if (now >= dhanterasStart && now < dhanterasEnd) {
+      const dhanterasMessage = (now <= new Date("2026-11-05T23:59:59"))
+        ? "✨ Dhanteras is coming! ✨ Buy gold and silver this Dhanteras in ETF form by opening a free demat account."
+        : "✨ Happy Dhanteras! ✨ Buy gold and silver this Dhanteras in ETF form by opening a free demat account.";
+
       this.showBanner(
-        "✨ Happy Dhanteras! ✨ Buy gold and silver this Dhanteras in ETF form by opening a free demat account.",
+        dhanterasMessage,
         "https://zerodha.com/open-account?c=ZAPCVV",
         {
           ctaText: "Open Free Demat Account Now",
@@ -1656,9 +1728,15 @@ const AppUI = {
       } catch (e) {}
     }
 
+    const isHappyDhanteras = now >= new Date("2026-11-06T00:00:00");
+    const popupTitle = isHappyDhanteras ? "✨ Happy Dhanteras! ✨" : "✨ Dhanteras is coming! ✨";
+    const popupMessage = isHappyDhanteras
+      ? "Buy gold and silver this Dhanteras in ETF form by opening a free demat account."
+      : "Dhanteras is coming! Buy gold and silver this Dhanteras in ETF form by opening a free demat account.";
+
     this.showDhanterasPopup(
-      "✨ Happy Dhanteras! ✨",
-      "Buy gold and silver this Dhanteras in ETF form by opening a free demat account.",
+      popupTitle,
+      popupMessage,
       "https://zerodha.com/open-account?c=ZAPCVV",
       {
         theme: "dhanteras",
@@ -2806,6 +2884,7 @@ const AppUI = {
                 <li><a href="#/calculators/finance/sip" class="nav-sub-item"><span class="sub-icon">🔄</span><span>SIP Calculators</span></a></li>
                 <li><a href="#/calculators/finance/trading" class="nav-sub-item"><span class="sub-icon">📊</span><span>Trading Calculators</span></a></li>
                 <li><a href="#/calculators/finance/investment" class="nav-sub-item"><span class="sub-icon">📈</span><span>Investment Calculators</span></a></li>
+                <li><a href="#/calculator/us-stocks-calculator" class="nav-sub-item"><span class="sub-icon">🇺🇸</span><span>US Stocks Calculator</span></a></li>
                 <li class="nav-dropdown-divider"></li>
                 <li><a href="#/calculators/finance" class="nav-sub-item" style="color: #10b981; font-weight: 700;"><span>View All Finance →</span></a></li>
               </ul>
@@ -3254,9 +3333,10 @@ const AppUI = {
 
     if (hash === '#/' || hash === '#' || hash === '') {
       this.renderHomePage();
-    } else if (hash === '#/broker-calculator' || hash === '#/invest' || hash === '#/broker-selection') {
+    } else if (hash === '#/broker-calculator' || hash === '#/invest' || hash === '#/broker-selection' || hash === '#/investing-in-us-stocks') {
       const scrollToBroker = () => {
-        const brokerEl = document.getElementById('home-broker-module');
+        const usStocksEl = document.getElementById('us-stocks-broker-section');
+        const brokerEl = usStocksEl || document.getElementById('home-broker-module');
         if (brokerEl) {
           brokerEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
           brokerEl.classList.remove('emi-section-highlight');
@@ -5491,6 +5571,12 @@ const AppUI = {
           <!-- Quick Navigation Chips -->
           <div class="hero-quick-tags">
             <span style="font-size: 0.85rem; color: var(--text-muted); margin-right: 0.25rem;">Popular:</span>
+            <a href="#/calculator/us-stocks-calculator" class="quick-tag quick-tag-popular" title="Popular US Stocks Calculator" style="border-color: rgba(59, 130, 246, 0.45); background: rgba(37, 99, 235, 0.12); color: #93c5fd;">
+              <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                <span>🇺🇸 US Stocks</span>
+              </span>
+              <span class="quick-tag-badge-new" style="background: #2563eb; color: #fff;">POPULAR</span>
+            </a>
             <a href="#/calculator/loan-calculator" class="quick-tag">Loan Calculator</a>
             <a href="#/calculator/emi-calculator" class="quick-tag">EMI Calculator</a>
             <a href="#/calculator/bmi-calculator" class="quick-tag">BMI Calculator</a>
@@ -5626,8 +5712,8 @@ const AppUI = {
         </div>
       </section>
 
-      <!-- Newly Launched & Trending Tools Showcase (Hidden on letscalculate.in) -->
-      <section class="container" id="home-newly-launched-section" style="display: none !important;">
+      <!-- Newly Launched & Trending Tools Showcase -->
+      <section class="container" id="home-newly-launched-section" style="padding-top: 1.5rem;">
         <div class="section-header">
           <div>
             <div style="display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.65rem;">
@@ -5641,13 +5727,37 @@ const AppUI = {
           </a>
         </div>
 
-        <div class="calculators-grid">
-          ${CALCULATORS_DATA.filter(c => typeof isNewCalculator === 'function' ? isNewCalculator(c) : false).slice(0, 6).map(c => this.renderCalcCard(c)).join('')}
+        <div class="calculators-grid" id="home-newly-launched-grid">
+          ${[getCalculatorById('us-stocks-calculator'), ...CALCULATORS_DATA.filter(c => c.id !== 'us-stocks-calculator' && (typeof isNewCalculator === 'function' ? isNewCalculator(c) : false))].filter(Boolean).slice(0, 6).map(c => this.renderCalcCard(c)).join('')}
         </div>
       </section>
 
-      <!-- Broker Selection & Relative Calculations Module (Hidden on letscalculate.in) -->
-      <section class="container invest-section broker-module-wrapper" id="home-broker-module" style="display: none !important;">
+      <!-- Popular Calculators Section -->
+      <section class="container" id="home-popular-section" style="padding-top: 1.5rem;">
+        <div class="section-header">
+          <div>
+            <div style="display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); color: #60a5fa; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.65rem;">
+              ${getIconSvg('star', 13)} Most Popular Calculators
+            </div>
+            <h2 class="section-title">Popular Calculators</h2>
+            <p class="section-desc">The most widely used financial, stock investment, loan, and health calculation tools.</p>
+          </div>
+          <a href="#/categories" class="btn-secondary">
+            View All ${CALCULATORS_DATA.length} Calculators ${getIconSvg('arrow-right', 16)}
+          </a>
+        </div>
+
+        <div class="calculators-grid" id="home-popular-cards-grid">
+          ${['us-stocks-calculator', 'sip-calculator', 'emi-calculator', 'loan-calculator', 'compound-interest-calculator', 'fd-calculator']
+            .map(id => getCalculatorById(id))
+            .filter(Boolean)
+            .map(c => this.renderCalcCard(c))
+            .join('')}
+        </div>
+      </section>
+
+      <!-- Broker Selection & Relative Calculations Module -->
+      <section class="container invest-section broker-module-wrapper" id="home-broker-module" style="margin-top: 2rem; margin-bottom: 3.5rem;">
         <div class="section-header">
           <div>
             <div class="invest-section-tagline-badge">
@@ -5868,6 +5978,107 @@ const AppUI = {
                 <span>Start Trading</span>
                 ${getIconSvg('arrow-right', 16)}
               </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Investing in US Stocks -->
+        <div class="us-stocks-section-wrap" id="us-stocks-broker-section">
+          <div class="section-header" style="margin-bottom: 1.25rem;">
+            <div>
+              <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(37, 99, 235, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); color: #60a5fa; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.76rem; text-transform: uppercase; margin-bottom: 0.5rem;">
+                <span style="font-size: 0.9rem;">🇺🇸</span> Global Equities • US Markets
+              </div>
+              <h3 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.35rem; letter-spacing: -0.015em; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <span>Investing in US Stocks</span>
+                <span style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: var(--radius-full); background: rgba(37, 99, 235, 0.18); color: #93c5fd; font-weight: 600; border: 1px solid rgba(59, 130, 246, 0.35);">NYSE &amp; NASDAQ</span>
+              </h3>
+              <p style="font-size: 0.92rem; color: var(--text-secondary); max-width: 720px; margin: 0;">
+                Invest directly in leading US technology giants and global ETFs with fractional shares, and calculate your rupee allocation in real-time.
+              </p>
+            </div>
+            <div class="invest-header-meta">
+              <a href="#/calculator/us-stocks-calculator" style="color: #60a5fa; font-size: 0.86rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+                <span>Open Calculator Directly</span>
+                ${getIconSvg('arrow-right', 14)}
+              </a>
+            </div>
+          </div>
+
+          <!-- US Stocks Responsive 2-Card Grid -->
+          <div class="invest-grid us-stocks-grid" id="us-stocks-cards-grid">
+            <!-- Card 1: Invest in US Stocks -->
+            <div class="invest-card featured-us-stocks">
+              <div class="invest-card-top">
+                <div class="invest-card-header-row">
+                  <div class="invest-card-icon-box icon-us-blue">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="2" y1="12" x2="22" y2="12"/>
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                  </div>
+                  <span class="invest-badge badge-us-pill">
+                    🇺🇸 Direct US Equities
+                  </span>
+                </div>
+                <h3 class="invest-card-title">Invest in US Stocks</h3>
+                <p class="invest-card-desc">
+                  Open a Zerodha account to start investing in US companies.
+                </p>
+                <ul class="invest-perks-list">
+                  <li><span class="perk-bullet">✓</span> Access Apple, Microsoft, Google, Nvidia &amp; Tesla</li>
+                  <li><span class="perk-bullet">✓</span> Start with affordable fractional share investing</li>
+                </ul>
+              </div>
+              <div class="invest-card-bottom" style="display: flex; flex-direction: column; gap: 0.65rem;">
+                <a href="https://zerodha.com/open-account?c=ZAPCVV" target="_blank" rel="noopener noreferrer" class="invest-cta-btn btn-cta-us-blue">
+                  <span>Open Account</span>
+                  ${getIconSvg('arrow-right', 16)}
+                </a>
+                <a href="#/calculator/us-stocks-calculator" class="invest-cta-btn-secondary btn-sec-us-blue">
+                  ${getIconSvg('calculator', 16)}
+                  <span>Use US Stocks Calculator</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Card 2: US Stocks Calculator -->
+            <div class="invest-card featured-us-stocks">
+              <div class="invest-card-top">
+                <div class="invest-card-header-row">
+                  <div class="invest-card-icon-box icon-us-cyan">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect width="16" height="20" x="4" y="2" rx="2"/>
+                      <line x1="8" x2="16" y1="6" y2="6"/>
+                      <path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/>
+                      <path d="M12 14h.01"/><path d="M8 14h.01"/>
+                      <path d="M12 18h.01"/><path d="M8 18h.01"/>
+                    </svg>
+                  </div>
+                  <span class="invest-badge badge-calc-pill">
+                    ⚡ Instant FX &amp; Allocation
+                  </span>
+                </div>
+                <h3 class="invest-card-title">US Stocks Calculator</h3>
+                <p class="invest-card-desc">
+                  Convert INR to USD and check how many shares you can buy.
+                </p>
+                <ul class="invest-perks-list">
+                  <li><span class="perk-bullet">✓</span> Full &amp; fractional shares breakdown with donut chart</li>
+                  <li><span class="perk-bullet">✓</span> Real-time exchange rate conversion &amp; presets</li>
+                </ul>
+              </div>
+              <div class="invest-card-bottom" style="display: flex; flex-direction: column; gap: 0.65rem;">
+                <a href="#/calculator/us-stocks-calculator" class="invest-cta-btn btn-cta-us-cyan">
+                  <span>Calculate Now</span>
+                  ${getIconSvg('arrow-right', 16)}
+                </a>
+                <a href="https://zerodha.com/open-account?c=ZAPCVV" target="_blank" rel="noopener noreferrer" class="invest-cta-btn-secondary btn-sec-us-cyan">
+                  ${getIconSvg('arrow-right', 15)}
+                  <span>Open Zerodha Account</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -6582,6 +6793,97 @@ const AppUI = {
     }
   },
 
+  // ==========================================
+  // TENURE FIELD HELPERS (Years <-> Months Toggle)
+  // ==========================================
+  isTenureField(field, calc) {
+    if (!field) return false;
+    if (field.hasTenureToggle !== undefined) return field.hasTenureToggle;
+    if (field.isTenure !== undefined) return field.isTenure;
+    if (field.type === 'select' || field.type === 'date' || field.type === 'text') return false;
+
+    // Explicit exclusions for fields that are not loan/investment duration
+    if (/grace|moratorium|course|crop|age|birth|processingFee|foir|interestRate|amount|principal|price|downPayment|exchangeValue|margin|tax/i.test(field.id)) return false;
+
+    // 1. Any field with 'tenure' in id or label
+    if (/tenure/i.test(field.id) || /tenure/i.test(field.label)) return true;
+
+    // 2. Specific loan/repayment term fields
+    if (field.id === 'termMonths' || field.id === 'loanTermMonths' || field.id === 'topUpTenureYears' || 
+        field.id === 'remainingTenureMonths' || field.id === 'originalTenureYears' || 
+        field.id === 'repaymentTenureYears' || field.id === 'tenureYearsA' || field.id === 'tenureYearsB' ||
+        field.id === 'tenureYears' || field.id === 'tenureMonths') {
+      return true;
+    }
+
+    // 3. Label contains Loan Term, Repayment Period, Time Horizon, Investment Period, etc.
+    if (/loan\s*term|repayment\s*period|time\s*period|time\s*horizon|investment\s*horizon|investment\s*length|investment\s*duration|holding\s*period/i.test(field.label)) {
+      if (field.suffix && /yr|year|mo|month/i.test(field.suffix)) {
+        return true;
+      }
+    }
+
+    // 4. In investment/loan calculators, any years/timeYears/periodMonths/timePeriod/holdingYears field
+    if ((field.id === 'years' || field.id === 'timeYears' || field.id === 'timePeriod' || field.id === 'periodMonths' || field.id === 'holdingYears') &&
+        field.suffix && /yr|year|mo|month/i.test(field.suffix)) {
+      return true;
+    }
+
+    return false;
+  },
+
+  getFieldBaseUnit(field) {
+    if (field.baseUnit) return field.baseUnit;
+    if (field.id && field.id.toLowerCase().includes('month')) return 'months';
+    if (field.suffix && /mo|month/i.test(field.suffix)) return 'months';
+    return 'years';
+  },
+
+  getTenureBounds(field, activeUnit, baseUnit) {
+    baseUnit = baseUnit || this.getFieldBaseUnit(field);
+    const baseMin = field.min !== undefined ? Number(field.min) : (baseUnit === 'years' ? 1 : 12);
+    const baseMax = field.max !== undefined ? Number(field.max) : (baseUnit === 'years' ? 30 : 360);
+    const baseStep = field.step !== undefined ? Number(field.step) : 1;
+
+    if (baseUnit === 'years') {
+      if (activeUnit === 'months') {
+        return {
+          min: Math.max(1, Math.round(baseMin * 12)),
+          max: Math.round(baseMax * 12),
+          step: 1,
+          suffix: 'Mos'
+        };
+      } else {
+        return {
+          min: baseMin,
+          max: baseMax,
+          step: baseStep,
+          suffix: field.suffix || 'Yrs'
+        };
+      }
+    } else {
+      // baseUnit === 'months'
+      if (activeUnit === 'years') {
+        const minYears = Math.max(0.5, Math.round((baseMin / 12) * 10) / 10);
+        const maxYears = Math.round(baseMax / 12);
+        const step = (baseMin < 12 || baseMax % 12 !== 0) ? 0.5 : 1;
+        return {
+          min: minYears,
+          max: maxYears,
+          step: step,
+          suffix: 'Yrs'
+        };
+      } else {
+        return {
+          min: baseMin,
+          max: baseMax,
+          step: baseStep,
+          suffix: field.suffix || 'Mos'
+        };
+      }
+    }
+  },
+
   getFieldValidationMessage(calc, field, limitType) {
     const calcId = calc ? calc.id : '';
     const fieldId = field ? field.id : '';
@@ -6624,8 +6926,14 @@ const AppUI = {
       }
       if (fieldId === 'tenureYearsA' || fieldId === 'tenureYearsB') {
         const loanLabel = fieldId === 'tenureYearsA' ? 'Loan A' : 'Loan B';
-        if (limitType === 'min') return `Minimum allowed ${loanLabel} tenure is 1 year.`;
-        if (limitType === 'max') return `Maximum allowed ${loanLabel} tenure is 30 years.`;
+        const activeUnit = (AppState.tenureUnits && AppState.tenureUnits[fieldId]) || 'years';
+        if (activeUnit === 'months') {
+          if (limitType === 'min') return `Minimum allowed ${loanLabel} tenure is 12 months.`;
+          if (limitType === 'max') return `Maximum allowed ${loanLabel} tenure is 360 months.`;
+        } else {
+          if (limitType === 'min') return `Minimum allowed ${loanLabel} tenure is 1 year.`;
+          if (limitType === 'max') return `Maximum allowed ${loanLabel} tenure is 30 years.`;
+        }
       }
       if (fieldId === 'feeA' || fieldId === 'feeB') {
         const loanLabel = fieldId === 'feeA' ? 'Loan A' : 'Loan B';
@@ -6659,7 +6967,19 @@ const AppUI = {
       if (limitType === 'max') return `Maximum daily intake allowed is ${field.max ? field.max : '8000'} kcal.`;
     }
 
-    // Universal Smart Generator across all 113 calculators
+    // Universal Smart Generator across all calculators
+    if (this.isTenureField(field, calc)) {
+      const baseUnit = this.getFieldBaseUnit(field);
+      const activeUnit = (AppState.tenureUnits && AppState.tenureUnits[fieldId]) || baseUnit;
+      const bounds = this.getTenureBounds(field, activeUnit, baseUnit);
+      const cleanTLabel = (field.label || 'Tenure').replace(/\s*\(.*?\)/g, '').trim();
+      if (limitType === 'min') {
+        return `Minimum allowed ${cleanTLabel.toLowerCase()} is ${bounds.min} ${bounds.suffix}.`;
+      } else {
+        return `Maximum allowed ${cleanTLabel.toLowerCase()} is ${bounds.max} ${bounds.suffix}.`;
+      }
+    }
+
     const cleanLabel = (field.label || 'Value')
       .replace(/\s*\(.*?\)/g, '')
       .replace(/\[.*?\]/g, '')
@@ -6730,6 +7050,8 @@ const AppUI = {
       this.initGpaBuilderBehavior();
     } else if (calc.customUi === 'compare-loan-calculator' || calc.id === 'compare-loan-calculator') {
       this.resetCompareLoanCalculator(calc);
+    } else if (calc.customUi === 'home-purchase-planner' || calc.id === 'home-purchase-planner' || calc.customUi === 'flat-purchase-planner' || calc.id === 'flat-purchase-planner') {
+      this.resetHomePurchasePlanner(calc);
     } else if (calc.customUi === 'loan-reverse-calculator' || calc.id === 'loan-reverse-calculator') {
       this.resetReverseLoanCalculator(calc);
     } else {
@@ -6766,6 +7088,33 @@ const AppUI = {
               badge.style.color = '#94a3b8';
             }
           }
+          if (this.isTenureField(f, calc)) {
+            const baseUnit = this.getFieldBaseUnit(f);
+            AppState.tenureUnits = AppState.tenureUnits || {};
+            AppState.tenureUnits[f.id] = baseUnit;
+            const toggleContainer = document.getElementById(`tenure-toggle-${f.id}`);
+            if (toggleContainer) {
+              toggleContainer.querySelectorAll('.tenure-unit-btn').forEach(b => {
+                const isAct = b.getAttribute('data-unit') === baseUnit;
+                b.classList.toggle('active', isAct);
+                b.setAttribute('aria-pressed', isAct ? 'true' : 'false');
+              });
+            }
+            const bounds = this.getTenureBounds(f, baseUnit, baseUnit);
+            const numEl = document.getElementById(`input-${f.id}`);
+            const rngEl = document.getElementById(`range-${f.id}`);
+            const suffixEl = numEl?.parentElement?.querySelector('.input-addon-suffix');
+            const labelSpan = document.getElementById(`label-text-${f.id}`);
+            if (numEl) {
+              numEl.min = bounds.min; numEl.max = bounds.max; numEl.step = bounds.step; numEl.value = f.default;
+            }
+            if (rngEl) {
+              rngEl.min = bounds.min; rngEl.max = bounds.max; rngEl.step = bounds.step; rngEl.value = f.default;
+            }
+            if (suffixEl) suffixEl.textContent = bounds.suffix;
+            if (labelSpan) labelSpan.textContent = f.label;
+          }
+
           const inp = document.getElementById(`input-${f.id}`);
           if (inp) {
             inp.value = f.default;
@@ -6849,7 +7198,7 @@ const AppUI = {
     const mainEl = document.getElementById('app-main');
 
     mainEl.innerHTML = `
-      <div class="container" style="padding: 2.5rem 1.5rem 5rem;">
+      <div class="container calc-page-container">
         <!-- Breadcrumbs -->
         <div class="calc-breadcrumb">
           <a href="#/">Home</a>
@@ -6919,6 +7268,32 @@ const AppUI = {
           </div>
         ` : ''}
 
+        <!-- Two-Way Connection: US Stocks Calculator -> Invest in US Stocks Broker Section -->
+        ${calc.id === 'us-stocks-calculator' ? `
+          <div class="us-stocks-broker-callout glass-panel">
+            <div style="display: flex; align-items: center; gap: 0.9rem;">
+              <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(37, 99, 235, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0;">
+                🇺🇸
+              </div>
+              <div>
+                <div style="font-size: 0.78rem; text-transform: uppercase; font-weight: 700; color: #60a5fa; letter-spacing: 0.04em;">Direct US Investing • Zerodha Account</div>
+                <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin-top: 0.1rem;">Investing in US Stocks</div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.15rem;">Open a Zerodha account to start investing in US companies.</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+              <a href="#/broker-selection" class="btn-secondary" id="back-to-us-broker-btn" style="color: #60a5fa; border-color: rgba(59, 130, 246, 0.4); display: inline-flex; align-items: center; gap: 0.45rem; font-weight: 600; padding: 0.55rem 1rem;">
+                ${getIconSvg('arrow-left', 16)}
+                <span>Back to Invest in US Stocks</span>
+              </a>
+              <a href="https://zerodha.com/open-account?c=ZAPCVV" target="_blank" rel="noopener noreferrer" class="btn-primary" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; display: inline-flex; align-items: center; gap: 0.45rem; font-weight: 600; padding: 0.55rem 1rem; border: none; text-decoration: none; border-radius: var(--radius-md, 8px);">
+                <span>Open Account</span>
+                ${getIconSvg('arrow-right', 15)}
+              </a>
+            </div>
+          </div>
+        ` : ''}
+
         <!-- EMI Suite Category & Calculator Switcher -->
         ${(typeof isEmiSuiteCalculator === 'function' && isEmiSuiteCalculator(calc.id)) ? this.renderEmiSuiteSwitcher(calc.id) : ''}
 
@@ -6933,6 +7308,12 @@ const AppUI = {
             ${getIconSvg('arrow-left', 18)}
             <span>Back</span>
           </button>
+          ${calc.id === 'us-stocks-calculator' ? `
+            <a href="#/broker-selection" class="btn-calc-action btn-calc-broker-back" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.45rem; color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); background: rgba(37, 99, 235, 0.15); padding: 0.65rem 1.15rem; border-radius: var(--radius-md, 8px); font-weight: 600; font-size: 0.88rem;">
+              ${getIconSvg('arrow-left', 16)}
+              <span>Back to Invest in US Stocks</span>
+            </a>
+          ` : ''}
           <button type="button" class="btn-calc-action btn-calc-reset" id="calc-page-reset-btn" title="Reset all input fields to defaults">
             ${getIconSvg('refresh-cw', 18)}
             <span>Reset</span>
@@ -7090,6 +7471,10 @@ const AppUI = {
     if (calc.customUi === 'compare-loan-calculator' || calc.id === 'compare-loan-calculator') {
       return this.renderCompareLoanUi(calc);
     }
+    // Custom UI: Home Purchase Planner
+    if (calc.customUi === 'home-purchase-planner' || calc.id === 'home-purchase-planner' || calc.customUi === 'flat-purchase-planner' || calc.id === 'flat-purchase-planner') {
+      return this.renderHomePurchasePlannerUi(calc);
+    }
     // Custom UI: Reverse EMI Calculators (Calculate Interest & Period)
     if (calc.customUi === 'loan-reverse-calculator' || calc.id === 'loan-reverse-calculator') {
       return this.renderReverseLoanUi(calc);
@@ -7101,7 +7486,7 @@ const AppUI = {
 
     // Standard 2-Column Form & Visual Dashboard
     return `
-      <div class="calc-workspace-grid">
+      <div class="calc-workspace-grid calculator-container ${calc.id === 'nps-calculator' ? 'nps-calculator-wrapper' : ''}">
         <!-- Input Form Card -->
         <div class="calc-inputs-card glass-panel">
           <div class="card-title">
@@ -7117,13 +7502,49 @@ const AppUI = {
               const isCheckboxField = !!field.hasCheckbox;
               const currSym = AppState.getCurrencySymbol();
               const currRegex = /\((AED|CHF|HK\$|NZ\$|A\$|C\$|S\$|R\$|د\.إ|kr|₹|\$|£|€|¥|R|₺|₽|₩)\)/g;
-              const cleanLabel = field.label ? field.label.replace(currRegex, `(${currSym})`) : '';
+              const cleanLabel = field.fixedLabel ? field.label : (field.label ? field.label.replace(currRegex, `(${currSym})`) : '');
               const allCurrencies = ['AED', 'CHF', 'HK$', 'NZ$', 'A$', 'C$', 'S$', 'R$', 'د.إ', 'kr', '₹', '$', '£', '€', '¥', 'R', '₺', '₽', '₩'];
-              const isCurr = field.prefix === '₹' || allCurrencies.includes(field.prefix);
-              const fieldPrefix = isCurr ? currSym : (field.prefix || '');
-              const formattedDefault = (isCurr && !isNaN(Number(field.default)))
-                ? Number(field.default).toLocaleString(AppState.getLocale())
-                : field.default;
+              const isCurr = !field.fixedPrefix && (field.prefix === '₹' || allCurrencies.includes(field.prefix));
+              const fieldPrefix = field.fixedPrefix || (isCurr ? currSym : (field.prefix || ''));
+
+              // Tenure Unit Toggle Support (Years <-> Months)
+              const isTenure = this.isTenureField(field, calc);
+              const baseUnit = isTenure ? this.getFieldBaseUnit(field) : null;
+              const activeUnit = isTenure ? ((AppState.tenureUnits && AppState.tenureUnits[field.id]) || baseUnit) : null;
+              const bounds = isTenure ? this.getTenureBounds(field, activeUnit, baseUnit) : null;
+
+              const fieldMin = bounds ? bounds.min : (field.min !== undefined ? field.min : '');
+              const fieldMax = bounds ? bounds.max : (field.max !== undefined ? field.max : '');
+              const fieldStep = bounds ? bounds.step : (field.step || 1);
+              const fieldSuffix = bounds ? bounds.suffix : (field.suffix || '');
+
+              let currentVal = AppState.calcInputs[field.id] !== undefined ? AppState.calcInputs[field.id] : field.default;
+              if (isTenure && activeUnit !== baseUnit) {
+                if (baseUnit === 'years' && activeUnit === 'months') {
+                  currentVal = Math.round(Number(currentVal) * 12);
+                } else if (baseUnit === 'months' && activeUnit === 'years') {
+                  currentVal = Math.round((Number(currentVal) / 12) * 10) / 10;
+                }
+              }
+
+              let displayLabel = cleanLabel;
+              if (isTenure) {
+                if (activeUnit === 'months') {
+                  displayLabel = displayLabel.replace(/\(Years\)/gi, '(Months)').replace(/\(Yrs\)/gi, '(Mos)');
+                } else {
+                  displayLabel = displayLabel.replace(/\(Months\)/gi, '(Years)').replace(/\(Mos\)/gi, '(Yrs)');
+                }
+              }
+
+              const formattedDefault = isTenure
+                ? currentVal
+                : (isCurr && !isNaN(Number(field.default)))
+                  ? Number(field.default).toLocaleString(AppState.getLocale())
+                  : (field.fixedPrefix === '₹' && !isNaN(Number(field.default)))
+                    ? Number(field.default).toLocaleString(AppState.getLocale())
+                    : (!isNaN(Number(field.default)) && field.type !== 'text')
+                      ? Number(field.default).toLocaleString('en-US')
+                      : field.default;
 
               return `
               <div class="form-group" id="form-group-${field.id}">
@@ -7147,7 +7568,7 @@ const AppUI = {
 
                 <div class="form-label-row">
                   <label class="form-label" for="input-${field.id}">
-                    <span>${cleanLabel}</span>
+                    <span id="label-text-${field.id}">${displayLabel}</span>
                     ${field.tooltip ? `
                       <span class="field-tooltip-wrapper" tabindex="0" role="tooltip" aria-label="Information">
                         <span class="field-tooltip-icon" title="View details" aria-label="Information">
@@ -7161,9 +7582,17 @@ const AppUI = {
                       </span>
                     ` : ''}
                   </label>
-                  <span class="form-value-display" id="val-display-${field.id}">
-                    ${fieldPrefix}${formattedDefault}${field.suffix ? ' ' + field.suffix : ''}
-                  </span>
+                  <div class="form-label-controls">
+                    ${isTenure ? `
+                      <div class="tenure-toggle-container" id="tenure-toggle-${field.id}" role="group" aria-label="Tenure unit toggle">
+                        <button type="button" class="tenure-unit-btn ${activeUnit === 'years' ? 'active' : ''}" data-field-id="${field.id}" data-unit="years" aria-pressed="${activeUnit === 'years'}">Yr</button>
+                        <button type="button" class="tenure-unit-btn ${activeUnit === 'months' ? 'active' : ''}" data-field-id="${field.id}" data-unit="months" aria-pressed="${activeUnit === 'months'}">Mo</button>
+                      </div>
+                    ` : ''}
+                    <span class="form-value-display" id="val-display-${field.id}">
+                      ${fieldPrefix}${formattedDefault}${fieldSuffix ? ' ' + fieldSuffix : ''}
+                    </span>
+                  </div>
                 </div>
 
                 <div id="field-wrap-${field.id}" class="field-wrap" style="${isCheckboxField && !isChecked ? 'opacity: 0.45; pointer-events: none;' : ''}">
@@ -7178,33 +7607,33 @@ const AppUI = {
                   ` : field.type === 'time' ? `
                     <input type="time" class="form-input" id="input-${field.id}" data-id="${field.id}" value="${field.default}" ${isCheckboxField && !isChecked ? 'disabled' : ''}>
                   ` : field.type === 'text' ? `
-                    <input type="text" class="form-input" id="input-${field.id}" data-id="${field.id}" value="${field.default}" ${isCheckboxField && !isChecked ? 'disabled' : ''}>
+                    <input type="text" class="form-input" id="input-${field.id}" data-id="${field.id}" value="${field.default || ''}" placeholder="${field.placeholder || ''}" ${isCheckboxField && !isChecked ? 'disabled' : ''}>
                   ` : `
                     <div class="input-with-addons">
                       ${fieldPrefix ? `<span class="input-addon-prefix">${fieldPrefix}</span>` : ''}
                       <input 
                         type="number" 
-                        class="form-input ${field.prefix ? 'has-prefix' : ''} ${field.suffix ? 'has-suffix' : ''}" 
+                        class="form-input ${field.prefix ? 'has-prefix' : ''} ${fieldSuffix ? 'has-suffix' : ''}" 
                         id="input-${field.id}" 
                         data-id="${field.id}" 
-                        value="${field.default}"
-                        min="${field.min !== undefined ? field.min : ''}" 
-                        max="${field.max !== undefined ? field.max : ''}" 
-                        step="${field.step || 1}"
+                        value="${currentVal}"
+                        min="${fieldMin}" 
+                        max="${fieldMax}" 
+                        step="${fieldStep}"
                         ${isCheckboxField && !isChecked ? 'disabled' : ''}
                       >
-                      ${field.suffix ? `<span class="input-addon-suffix">${field.suffix}</span>` : ''}
+                      ${fieldSuffix ? `<span class="input-addon-suffix">${fieldSuffix}</span>` : ''}
                     </div>
-                    ${field.min !== undefined && field.max !== undefined ? `
+                    ${fieldMin !== '' && fieldMax !== '' ? `
                       <input 
                         type="range" 
                         class="form-range-slider" 
                         id="range-${field.id}" 
                         data-id="${field.id}" 
-                        value="${field.default}" 
-                        min="${field.min}" 
-                        max="${field.max}" 
-                        step="${field.step || 1}"
+                        value="${currentVal}" 
+                        min="${fieldMin}" 
+                        max="${fieldMax}" 
+                        step="${fieldStep}"
                         ${isCheckboxField && !isChecked ? 'disabled' : ''}
                       >
                     ` : ''}
@@ -7332,10 +7761,23 @@ const AppUI = {
         if (calc.fields) {
           calc.fields.forEach(f => {
             if (f.type !== 'select' && safeInputs[f.id] !== undefined && safeInputs[f.id] !== '') {
-              const n = Number(safeInputs[f.id]);
+              let n = Number(safeInputs[f.id]);
               if (!isNaN(n)) {
-                if (f.min !== undefined && n < f.min) safeInputs[f.id] = f.min;
-                if (f.max !== undefined && n > f.max) safeInputs[f.id] = f.max;
+                if (this.isTenureField(f, calc)) {
+                  const baseUnit = this.getFieldBaseUnit(f);
+                  const activeUnit = (AppState.tenureUnits && AppState.tenureUnits[f.id]) || baseUnit;
+                  if (baseUnit === 'years' && activeUnit === 'months') {
+                    n = n / 12;
+                  } else if (baseUnit === 'months' && activeUnit === 'years') {
+                    n = n * 12;
+                  }
+                  if (f.min !== undefined && n < f.min) n = f.min;
+                  if (f.max !== undefined && n > f.max) n = f.max;
+                  safeInputs[f.id] = n;
+                } else {
+                  if (f.min !== undefined && n < f.min) safeInputs[f.id] = f.min;
+                  if (f.max !== undefined && n > f.max) safeInputs[f.id] = f.max;
+                }
               }
             }
           });
@@ -7400,6 +7842,93 @@ const AppUI = {
         });
       }
 
+      // Tenure Unit Toggle Event Handlers (Years <-> Months)
+      const formCard = document.querySelector('.calc-inputs-card');
+      if (formCard) {
+        formCard.querySelectorAll('.tenure-unit-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const fieldId = btn.getAttribute('data-field-id');
+            const targetUnit = btn.getAttribute('data-unit');
+            const fieldDef = (calc.fields || []).find(f => f.id === fieldId);
+            if (!fieldDef) return;
+
+            const baseUnit = this.getFieldBaseUnit(fieldDef);
+            AppState.tenureUnits = AppState.tenureUnits || {};
+            const currentUnit = AppState.tenureUnits[fieldId] || baseUnit;
+            if (currentUnit === targetUnit) return;
+
+            AppState.tenureUnits[fieldId] = targetUnit;
+
+            const numEl = document.getElementById(`input-${fieldId}`);
+            const rangeEl = document.getElementById(`range-${fieldId}`);
+            const valDispEl = document.getElementById(`val-display-${fieldId}`);
+            const valMsgEl = document.getElementById(`validation-msg-${fieldId}`);
+            const toggleContainer = document.getElementById(`tenure-toggle-${fieldId}`);
+            const suffixEl = numEl?.parentElement?.querySelector('.input-addon-suffix');
+            const labelSpan = document.getElementById(`label-text-${fieldId}`);
+
+            let currentVal = parseFloat(AppState.calcInputs[fieldId]);
+            if (isNaN(currentVal)) currentVal = Number(fieldDef.default) || 0;
+
+            let newVal = currentVal;
+            if (targetUnit === 'months' && currentUnit === 'years') {
+              newVal = Math.round(currentVal * 12);
+            } else if (targetUnit === 'years' && currentUnit === 'months') {
+              newVal = Math.round((currentVal / 12) * 10) / 10;
+            }
+
+            const bounds = this.getTenureBounds(fieldDef, targetUnit, baseUnit);
+
+            if (numEl) {
+              numEl.min = bounds.min;
+              numEl.max = bounds.max;
+              numEl.step = bounds.step;
+              numEl.value = newVal;
+              numEl.classList.remove('has-error');
+            }
+            if (rangeEl) {
+              rangeEl.min = bounds.min;
+              rangeEl.max = bounds.max;
+              rangeEl.step = bounds.step;
+              rangeEl.value = newVal;
+            }
+            if (suffixEl) {
+              suffixEl.textContent = bounds.suffix;
+            }
+            if (valMsgEl) {
+              valMsgEl.style.display = 'none';
+              valMsgEl.textContent = '';
+            }
+            if (toggleContainer) {
+              toggleContainer.querySelectorAll('.tenure-unit-btn').forEach(b => {
+                const isAct = b.getAttribute('data-unit') === targetUnit;
+                b.classList.toggle('active', isAct);
+                b.setAttribute('aria-pressed', isAct ? 'true' : 'false');
+              });
+            }
+
+            if (labelSpan) {
+              let lbl = labelSpan.textContent;
+              if (targetUnit === 'months') {
+                lbl = lbl.replace(/\(Years\)/gi, '(Months)').replace(/\(Yrs\)/gi, '(Mos)');
+              } else {
+                lbl = lbl.replace(/\(Months\)/gi, '(Years)').replace(/\(Mos\)/gi, '(Yrs)');
+              }
+              labelSpan.textContent = lbl;
+            }
+
+            AppState.calcInputs[fieldId] = newVal;
+
+            if (valDispEl) {
+              valDispEl.textContent = `${newVal} ${bounds.suffix}`;
+            }
+
+            updateOutputs();
+          });
+        });
+      }
+
       // Form input listeners & prevent default submit on Enter
       const formEl = document.getElementById('calc-parameters-form');
       if (formEl) {
@@ -7418,18 +7947,31 @@ const AppUI = {
             const rangeEl = document.getElementById(`range-${fieldId}`);
             const valMsgEl = document.getElementById(`validation-msg-${fieldId}`);
 
+            const isTenure = this.isTenureField(fieldDef, calc);
+            let effMin = fieldDef ? fieldDef.min : undefined;
+            let effMax = fieldDef ? fieldDef.max : undefined;
+            let effSuffix = fieldDef ? (fieldDef.suffix || '') : '';
+            if (isTenure && fieldDef) {
+              const baseUnit = this.getFieldBaseUnit(fieldDef);
+              const activeUnit = (AppState.tenureUnits && AppState.tenureUnits[fieldId]) || baseUnit;
+              const bounds = this.getTenureBounds(fieldDef, activeUnit, baseUnit);
+              effMin = bounds.min;
+              effMax = bounds.max;
+              effSuffix = bounds.suffix;
+            }
+
             // Validation check against defined min / max ranges
             let isFieldValid = true;
             if (fieldDef && fieldDef.type !== 'select' && val !== '' && !isNaN(Number(val))) {
               const numVal = Number(val);
-              if (fieldDef.min !== undefined && numVal < fieldDef.min) {
+              if (effMin !== undefined && numVal < effMin) {
                 isFieldValid = false;
                 if (valMsgEl) {
                   valMsgEl.textContent = this.getFieldValidationMessage(calc, fieldDef, 'min');
                   valMsgEl.style.display = 'block';
                 }
                 if (numEl) numEl.classList.add('has-error');
-              } else if (fieldDef.max !== undefined && numVal > fieldDef.max) {
+              } else if (effMax !== undefined && numVal > effMax) {
                 isFieldValid = false;
                 if (valMsgEl) {
                   valMsgEl.textContent = this.getFieldValidationMessage(calc, fieldDef, 'max');
@@ -7447,12 +7989,12 @@ const AppUI = {
               if (numEl) numEl.classList.remove('has-error');
             }
 
-            // Sync range slider if exists (clamp within min/max)
+            // Sync range slider if exists (clamp within active min/max)
             if (rangeEl && e.target !== rangeEl) {
-              if (fieldDef && fieldDef.min !== undefined && fieldDef.max !== undefined) {
+              if (effMin !== undefined && effMax !== undefined) {
                 const numVal = Number(val);
                 if (!isNaN(numVal)) {
-                  rangeEl.value = Math.min(Math.max(numVal, fieldDef.min), fieldDef.max);
+                  rangeEl.value = Math.min(Math.max(numVal, effMin), effMax);
                 }
               } else {
                 rangeEl.value = val;
@@ -7464,17 +8006,25 @@ const AppUI = {
               numEl.value = val;
             }
 
-            // Update value display tag with dynamic currency formatting
+            // Update value display tag with dynamic currency or tenure formatting
             const disp = document.getElementById(`val-display-${fieldId}`);
             if (disp && fieldDef) {
-              const currSym = AppState.getCurrencySymbol();
-              const allCurrencies = ['AED', 'CHF', 'HK$', 'NZ$', 'A$', 'C$', 'S$', 'R$', 'د.إ', 'kr', '₹', '$', '£', '€', '¥', 'R', '₺', '₽', '₩'];
-              const isCurr = fieldDef.prefix === '₹' || allCurrencies.includes(fieldDef.prefix);
-              const fieldPrefix = isCurr ? currSym : (fieldDef.prefix || '');
-              const formattedVal = (isCurr && !isNaN(Number(val)) && val !== '')
-                ? Number(val).toLocaleString(AppState.getLocale())
-                : val;
-              disp.textContent = `${fieldPrefix}${formattedVal}${fieldDef.suffix ? ' ' + fieldDef.suffix : ''}`;
+              if (isTenure) {
+                disp.textContent = `${val}${effSuffix ? ' ' + effSuffix : ''}`;
+              } else {
+                const currSym = AppState.getCurrencySymbol();
+                const allCurrencies = ['AED', 'CHF', 'HK$', 'NZ$', 'A$', 'C$', 'S$', 'R$', 'د.إ', 'kr', '₹', '$', '£', '€', '¥', 'R', '₺', '₽', '₩'];
+                const isCurr = !fieldDef.fixedPrefix && (fieldDef.prefix === '₹' || allCurrencies.includes(fieldDef.prefix));
+                const fieldPrefix = fieldDef.fixedPrefix || (isCurr ? currSym : (fieldDef.prefix || ''));
+                const formattedVal = (isCurr && !isNaN(Number(val)) && val !== '')
+                  ? Number(val).toLocaleString(AppState.getLocale())
+                  : (fieldDef.fixedPrefix === '₹' && !isNaN(Number(val)) && val !== '')
+                    ? Number(val).toLocaleString(AppState.getLocale())
+                    : (!isNaN(Number(val)) && val !== '' && fieldDef.type !== 'text')
+                      ? Number(val).toLocaleString('en-US')
+                      : val;
+                disp.textContent = `${fieldPrefix}${formattedVal}${fieldDef.suffix ? ' ' + fieldDef.suffix : ''}`;
+              }
             }
 
             // Loan Affordability Calculator: dynamic FOIR sync when income or obligations change
@@ -7661,6 +8211,36 @@ const AppUI = {
         });
       }
 
+      // Stock Preset chips for US Stocks Calculator
+      if (calc.id === 'us-stocks-calculator') {
+        const workspaceEl = document.getElementById('calculator-view') || document;
+        workspaceEl.addEventListener('click', (e) => {
+          const chip = e.target.closest('.us-stock-chip');
+          if (!chip) return;
+          const sName = chip.getAttribute('data-name');
+          const sPrice = chip.getAttribute('data-price');
+
+          if (sName) {
+            const nameInput = document.getElementById('input-stockName');
+            const nameDisp = document.getElementById('val-display-stockName');
+            if (nameInput) nameInput.value = sName;
+            if (nameDisp) nameDisp.textContent = sName;
+            AppState.calcInputs.stockName = sName;
+          }
+          if (sPrice) {
+            const priceInput = document.getElementById('input-stockPriceUsd');
+            const priceRange = document.getElementById('range-stockPriceUsd');
+            const priceDisp = document.getElementById('val-display-stockPriceUsd');
+            if (priceInput) priceInput.value = sPrice;
+            if (priceRange) priceRange.value = Math.min(Math.max(Number(sPrice) || 0, 1), 2000);
+            if (priceDisp) priceDisp.textContent = `$${Number(sPrice).toLocaleString('en-US')}`;
+            AppState.calcInputs.stockPriceUsd = sPrice;
+          }
+          updateOutputs();
+          this.showToast(`Selected ${sName} ($${sPrice})`);
+        });
+      }
+
       // Reset button
       document.getElementById('reset-inputs-btn')?.addEventListener('click', () => {
         this.resetCalculator(calc);
@@ -7692,6 +8272,8 @@ const AppUI = {
       this.initJewelleryPriceCalculatorBehavior();
     } else if (calc.customUi === 'compare-loan-calculator' || calc.id === 'compare-loan-calculator') {
       this.initCompareLoanBehavior(calc);
+    } else if (calc.customUi === 'home-purchase-planner' || calc.id === 'home-purchase-planner' || calc.customUi === 'flat-purchase-planner' || calc.id === 'flat-purchase-planner') {
+      this.initHomePurchasePlannerBehavior(calc);
     } else if (calc.customUi === 'loan-reverse-calculator' || calc.id === 'loan-reverse-calculator') {
       this.initReverseLoanBehavior(calc);
     } else if (calc.customUi === 'cross-math-game' || calc.id === 'cross-math-game') {
@@ -8715,6 +9297,694 @@ const AppUI = {
   },
 
   // ==========================================
+  // HOME PURCHASE PLANNER CUSTOM UI & BEHAVIOR
+  // ==========================================
+  renderHomePurchasePlannerUi(calc) {
+    const currSym = AppState.getCurrencySymbol();
+    const flatPrice = AppState.calcInputs.flatPrice !== undefined ? AppState.calcInputs.flatPrice : 4000000;
+    const downPct = AppState.calcInputs.downPaymentPct !== undefined ? AppState.calcInputs.downPaymentPct : 10;
+    const loanRate = AppState.calcInputs.interestRate !== undefined ? AppState.calcInputs.interestRate : 8.5;
+    const loanTenure = AppState.calcInputs.loanTenure !== undefined ? AppState.calcInputs.loanTenure : 25;
+    const buyerSavings = AppState.calcInputs.buyerSavings !== undefined ? AppState.calcInputs.buyerSavings : 650000;
+    const buyerIncome = AppState.calcInputs.buyerIncome !== undefined ? AppState.calcInputs.buyerIncome : 70000;
+    const buyerObligations = AppState.calcInputs.buyerObligations !== undefined ? AppState.calcInputs.buyerObligations : 0;
+
+    AppState.tenureUnits = AppState.tenureUnits || {};
+    const tenureUnit = AppState.tenureUnits['fpp-tenure'] || 'years';
+    const isMos = tenureUnit === 'months';
+    const dispTenure = isMos ? (loanTenure <= 30 ? Math.round(loanTenure * 12) : loanTenure) : loanTenure;
+
+    return `
+      <!-- Click-outside Overlay for Fullscreen Mode -->
+      <div id="overlay"></div>
+
+      <!-- Main Planner Container -->
+      <div id="plannerContainer" class="planner home-purchase-planner-container">
+        
+        <!-- Fullscreen Header (visible when in fullscreen mode) -->
+        <div id="hppFullscreenHeader" class="hpp-fullscreen-header" style="display: none; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 14px 20px; background: var(--bg-surface-elevated, #1a2234); border-radius: 12px; border: 1px solid var(--border-card, #2d3748);">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <h2 style="margin: 0; font-size: 1.35rem; font-weight: 800; color: var(--text-primary);">Home Purchase Planner</h2>
+            <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 0.75rem; padding: 3px 10px; border-radius: 999px; font-weight: 700;">Fullscreen Prototype</span>
+          </div>
+          <button type="button" id="closeBtn" class="btn-secondary" style="display: none; align-items: center; gap: 8px; cursor: pointer; padding: 6px 14px; font-weight: 600;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <span>Exit Fullscreen (Esc)</span>
+          </button>
+        </div>
+
+        <!-- Master Controls Bar -->
+        <div class="fpp-master-bar">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em;">
+              Agreement Property Value
+            </label>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <div class="input-with-addons" style="width: 180px;">
+                <span class="input-addon-prefix">${currSym}</span>
+                <input type="number" class="form-input has-prefix" id="fpp-flat-price" value="${flatPrice}" min="500000" max="200000000" step="50000">
+              </div>
+              <div class="fpp-quick-chips">
+                <button type="button" class="fpp-chip-btn ${flatPrice == 4000000 ? 'active' : ''}" data-val="4000000">₹40L</button>
+                <button type="button" class="fpp-chip-btn ${flatPrice == 5000000 ? 'active' : ''}" data-val="5000000">₹50L</button>
+                <button type="button" class="fpp-chip-btn ${flatPrice == 6250000 ? 'active' : ''}" data-val="6250000">₹62.5L</button>
+                <button type="button" class="fpp-chip-btn ${flatPrice == 7500000 ? 'active' : ''}" data-val="7500000">₹75L</button>
+                <button type="button" class="fpp-chip-btn ${flatPrice == 10000000 ? 'active' : ''}" data-val="10000000">₹1 Cr</button>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <!-- Fullscreen Prototype Toggle Button -->
+            <button type="button" id="btn-toggle-fullscreen" class="btn-secondary" style="font-size: 0.82rem; padding: 0.5rem 1rem; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border-radius: 8px;" title="View Fullscreen">
+              <span>Fullscreen Prototype View</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3 Side-By-Side Comparison Cards (Mockup Structure) -->
+        <div class="fpp-comparison-container">
+          <!-- CARD 1: Developer Schedule -->
+          <div class="fpp-card" id="fpp-card-developer">
+            <div class="fpp-card-header">
+              <h3 class="fpp-card-title">
+                ${getIconSvg('landmark', 18)} Developer Schedule
+              </h3>
+              <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; font-weight: 700;">Milestones</span>
+            </div>
+            <div class="fpp-quick-chips" style="margin-bottom: 8px;">
+              <button type="button" class="fpp-chip-btn active" data-fpp-plan="clp">CLP</button>
+              <button type="button" class="fpp-chip-btn" data-fpp-plan="subvention">20:80</button>
+              <button type="button" class="fpp-chip-btn" data-fpp-plan="ninety">10:90</button>
+              <button type="button" class="fpp-chip-btn" data-fpp-plan="empty">Clear</button>
+            </div>
+            <div class="fpp-table-container">
+              <table class="fpp-table" id="developerSchedule">
+                <thead>
+                  <tr>
+                    <th style="text-align: left;">Milestone</th>
+                    <th>%</th>
+                    <th>Due Date</th>
+                  </tr>
+                </thead>
+                <tbody id="fpp-milestones-body">
+                  <!-- Dynamically populated by generateDeveloperSchedule() -->
+                </tbody>
+              </table>
+            </div>
+            <div class="fpp-status" style="color: var(--emerald);">
+              <span style="font-size: 0.8rem; color: var(--text-secondary);">Total Demand</span>
+              <span id="fpp-total-demand-label" style="font-size: 1.15rem; font-family: 'JetBrains Mono', monospace;">${currSym}${Number(flatPrice).toLocaleString(AppState.getLocale())}</span>
+            </div>
+          </div>
+
+          <!-- CARD 2: Bank Loan EMI -->
+          <div class="fpp-card" id="fpp-card-loan">
+            <div class="fpp-card-header">
+              <h3 class="fpp-card-title">
+                ${getIconSvg('wallet', 18)} Bank Loan EMI
+              </h3>
+              <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #6366f1; font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; font-weight: 700;">Loan Math</span>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <div class="form-label-row">
+                  <label class="form-label" for="fpp-downpayment-pct">Down Payment (%)</label>
+                  <span class="form-value-display" id="fpp-disp-downpayment">${downPct}% (${currSym}${(flatPrice * downPct / 100).toLocaleString(AppState.getLocale())})</span>
+                </div>
+                <input type="range" class="form-range-slider" id="fpp-slider-downpayment" value="${downPct}" min="10" max="80" step="1">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <div class="form-label-row">
+                  <label class="form-label" for="fpp-loan-rate">Interest Rate (% p.a.)</label>
+                  <span class="form-value-display" id="fpp-disp-rate">${loanRate}%</span>
+                </div>
+                <input type="range" class="form-range-slider" id="fpp-slider-rate" value="${loanRate}" min="6" max="15" step="0.05">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <div class="form-label-row">
+                  <label class="form-label" for="fpp-loan-tenure">
+                    <span id="fpp-label-tenure">${isMos ? 'Tenure (Months)' : 'Tenure (Years)'}</span>
+                  </label>
+                  <div class="form-label-controls">
+                    <div class="tenure-toggle-container" id="fpp-tenure-toggle" role="group">
+                      <button type="button" class="tenure-unit-btn ${!isMos ? 'active' : ''}" id="fpp-btn-tenure-yr" data-unit="years">YR</button>
+                      <button type="button" class="tenure-unit-btn ${isMos ? 'active' : ''}" id="fpp-btn-tenure-mo" data-unit="months">MO</button>
+                    </div>
+                    <span class="form-value-display" id="fpp-disp-tenure">${dispTenure} ${isMos ? 'Mos' : 'Yrs'}</span>
+                  </div>
+                </div>
+                <input type="range" class="form-range-slider" id="fpp-slider-tenure" value="${dispTenure}" min="${isMos ? 12 : 1}" max="${isMos ? 360 : 30}" step="${isMos ? 6 : 1}">
+              </div>
+            </div>
+
+            <!-- Summary Table -->
+            <div class="fpp-table-container">
+              <table class="fpp-table">
+                <thead>
+                  <tr>
+                    <th>Loan Amount</th>
+                    <th>Rate</th>
+                    <th>Tenure</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="fpp-val-mono" id="fpp-tbl-loan-amt">${currSym}${Math.round(flatPrice * (1 - downPct/100)).toLocaleString(AppState.getLocale())}</td>
+                    <td class="fpp-val-mono" id="fpp-tbl-loan-rate">${loanRate}%</td>
+                    <td class="fpp-val-mono" id="fpp-tbl-loan-tenure">${dispTenure} ${isMos ? 'mos' : 'yrs'}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="fpp-status" style="color: var(--emerald);">
+              <span id="fpp-emi-status-line" style="font-size: 1.15rem; font-family: 'JetBrains Mono', monospace; font-weight: 800;">Monthly EMI: ₹28,988</span>
+              <span id="fpp-subtext-loan" style="font-size: 0.78rem; color: var(--text-secondary);">Total Interest: ₹50,96,453</span>
+            </div>
+          </div>
+
+          <!-- CARD 3: Buyer Capacity -->
+          <div class="fpp-card" id="fpp-card-buyer">
+            <div class="fpp-card-header">
+              <h3 class="fpp-card-title">
+                ${getIconSvg('award', 18)} Buyer Capacity
+              </h3>
+              <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; font-weight: 700;">Affordability</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <div class="form-label-row">
+                  <label class="form-label" for="fpp-savings">Liquid Savings (${currSym})</label>
+                  <span class="form-value-display" id="fpp-disp-savings">${currSym}${Number(buyerSavings).toLocaleString(AppState.getLocale())}</span>
+                </div>
+                <input type="range" class="form-range-slider" id="fpp-slider-savings" value="${buyerSavings}" min="100000" max="10000000" step="50000">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <div class="form-label-row">
+                  <label class="form-label" for="fpp-income">Monthly Take-Home (${currSym})</label>
+                  <span class="form-value-display" id="fpp-disp-income">${currSym}${Number(buyerIncome).toLocaleString(AppState.getLocale())}</span>
+                </div>
+                <input type="range" class="form-range-slider" id="fpp-slider-income" value="${buyerIncome}" min="25000" max="500000" step="5000">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <div class="form-label-row">
+                  <label class="form-label" for="fpp-obligations">Existing Monthly EMIs (${currSym})</label>
+                  <span class="form-value-display" id="fpp-disp-obligations">${currSym}${Number(buyerObligations).toLocaleString(AppState.getLocale())}</span>
+                </div>
+                <input type="range" class="form-range-slider" id="fpp-slider-obligations" value="${buyerObligations}" min="0" max="100000" step="2000">
+              </div>
+            </div>
+
+            <!-- Summary Table -->
+            <div class="fpp-table-container">
+              <table class="fpp-table">
+                <thead>
+                  <tr>
+                    <th>Savings</th>
+                    <th>Monthly Income</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="fpp-val-mono" id="fpp-tbl-savings">${currSym}${Number(buyerSavings).toLocaleString(AppState.getLocale())}</td>
+                    <td class="fpp-val-mono" id="fpp-tbl-income">${currSym}${Number(buyerIncome).toLocaleString(AppState.getLocale())}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="fpp-status">
+              <p style="font-size: 1.05rem;" id="fpp-affordability-status-line">
+                Affordability: <span class="fpp-surplus" id="fpp-verdict-highlight">Surplus +₹2,50,000</span>
+              </p>
+              <span id="fpp-subtext-buyer" style="font-size: 0.78rem; color: var(--emerald);">Down payment of ₹4,00,000 fully covered by available savings.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Overall Verdict Banner -->
+        <div class="fpp-decision-banner" id="fpp-decision-banner">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div id="fpp-decision-badge" style="font-size: 1.8rem;">✅</div>
+            <div>
+              <h4 id="fpp-decision-title" style="font-size: 1.05rem; font-weight: 800; margin-bottom: 2px;">Purchase Viability: Approved</h4>
+              <p id="fpp-decision-desc" style="font-size: 0.84rem; color: var(--text-secondary); max-width: 600px;">
+                Down payment of ₹4,00,000 is comfortably covered by ₹6,50,000 liquid savings, and monthly EMI is well within safe income ratios.
+              </p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <div style="background: var(--bg-surface); padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border-subtle); display: flex; flex-direction: column;">
+              <span style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Upfront Cash Position</span>
+              <strong id="fpp-stat-upfront" class="fpp-surplus" style="font-family: 'JetBrains Mono', monospace; font-size: 1.1rem;">+₹2,50,000</strong>
+            </div>
+            <div style="background: var(--bg-surface); padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border-subtle); display: flex; flex-direction: column;">
+              <span style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Monthly FOIR</span>
+              <strong id="fpp-stat-foir" style="font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; color: var(--emerald);">41.4%</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  renderFlatPurchasePlannerUi(calc) {
+    return this.renderHomePurchasePlannerUi(calc);
+  },
+
+  initHomePurchasePlannerBehavior(calc) {
+    const currSym = AppState.getCurrencySymbol();
+    AppState.calcInputs = AppState.calcInputs || {};
+    AppState.tenureUnits = AppState.tenureUnits || {};
+
+    let flatPrice = AppState.calcInputs.flatPrice !== undefined ? Number(AppState.calcInputs.flatPrice) : 4000000;
+    let downPct = AppState.calcInputs.downPaymentPct !== undefined ? Number(AppState.calcInputs.downPaymentPct) : 10;
+    let loanRate = AppState.calcInputs.interestRate !== undefined ? Number(AppState.calcInputs.interestRate) : 8.5;
+    let tenureVal = AppState.calcInputs.loanTenure !== undefined ? Number(AppState.calcInputs.loanTenure) : 25;
+    let buyerSavings = AppState.calcInputs.buyerSavings !== undefined ? Number(AppState.calcInputs.buyerSavings) : 650000;
+    let buyerIncome = AppState.calcInputs.buyerIncome !== undefined ? Number(AppState.calcInputs.buyerIncome) : 70000;
+    let buyerObligations = AppState.calcInputs.buyerObligations !== undefined ? Number(AppState.calcInputs.buyerObligations) : 0;
+    let tenureUnit = AppState.tenureUnits['fpp-tenure'] || 'years';
+
+    // -------------------------------------------------------------
+    // 1. DEVELOPER SCHEDULE MILESTONES & GENERATE FUNCTION
+    // -------------------------------------------------------------
+    const MILESTONE_PRESETS = {
+      clp: [
+        { name: "Booking & Foundation", percent: 20, dueDate: "01-Nov-2026" },
+        { name: "Structure Slabs", percent: 40, dueDate: "01-Jul-2027" },
+        { name: "Brickwork & Finishing", percent: 30, dueDate: "01-Jan-2028" },
+        { name: "Possession & Handover", percent: 10, dueDate: "01-Oct-2028" }
+      ],
+      subvention: [
+        { name: "Booking / Advance", percent: 20, dueDate: "01-Nov-2026" },
+        { name: "Possession & Handover", percent: 80, dueDate: "01-Oct-2028" }
+      ],
+      ninety: [
+        { name: "Booking / Advance", percent: 10, dueDate: "01-Nov-2026" },
+        { name: "Possession & Handover", percent: 90, dueDate: "01-Oct-2028" }
+      ],
+      empty: []
+    };
+
+    function generateDeveloperSchedule(milestones) {
+      const tbody = document.querySelector("#developerSchedule tbody") || document.getElementById("fpp-milestones-body");
+      if (!milestones || milestones.length === 0) {
+        if (tbody) {
+          tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-muted, #94a3b8); padding: 16px 8px; font-style: italic;">No developer schedule available</td></tr>`;
+        }
+        return [{ milestone: "No schedule available", amountDue: 0, dueDate: "-" }];
+      }
+
+      if (tbody) {
+        tbody.innerHTML = "";
+        milestones.forEach(m => {
+          const row = `<tr>
+            <td style="text-align: left; font-weight: 500;">${m.name}</td>
+            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">${m.percent}%</td>
+            <td style="color: var(--text-secondary); font-size: 0.82rem;">${m.dueDate}</td>
+          </tr>`;
+          tbody.innerHTML += row;
+        });
+      }
+
+      return milestones.map(m => ({
+        milestone: m.name,
+        amountDue: (m.percent / 100),
+        dueDate: m.dueDate
+      }));
+    }
+
+    // Expose globally for direct integration testing
+    window.generateDeveloperSchedule = generateDeveloperSchedule;
+
+    // Milestone preset buttons (CLP, 20:80, 10:90, Clear)
+    const planChips = document.querySelectorAll('[data-fpp-plan]');
+    planChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const planKey = chip.getAttribute('data-fpp-plan');
+        planChips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        const selected = MILESTONE_PRESETS[planKey] || [];
+        generateDeveloperSchedule(selected);
+      });
+    });
+
+    // Populate default developer schedule
+    generateDeveloperSchedule(MILESTONE_PRESETS.clp);
+
+    // -------------------------------------------------------------
+    // 2. FULLSCREEN PROTOTYPE VIEW TOGGLE & ESC / OVERLAY HANDLERS
+    // -------------------------------------------------------------
+    function toggleFullscreen() {
+      const container = document.getElementById("plannerContainer");
+      const closeBtn = document.getElementById("closeBtn");
+      const overlay = document.getElementById("overlay");
+      const fsHeader = document.getElementById("hppFullscreenHeader");
+
+      if (!container) return;
+
+      if (container.classList.contains("fullscreen")) {
+        container.classList.add("fadeOut");
+        if (overlay) overlay.style.display = "none";
+        setTimeout(() => {
+          container.classList.remove("fullscreen", "fadeOut");
+          if (closeBtn) closeBtn.style.display = "none";
+          if (fsHeader) fsHeader.style.display = "none";
+        }, 400);
+      } else {
+        container.classList.add("fullscreen");
+        if (overlay) overlay.style.display = "block";
+        if (closeBtn) closeBtn.style.display = "inline-flex";
+        if (fsHeader) fsHeader.style.display = "flex";
+      }
+    }
+
+    function exitFullscreen() {
+      const container = document.getElementById("plannerContainer");
+      const closeBtn = document.getElementById("closeBtn");
+      const overlay = document.getElementById("overlay");
+      const fsHeader = document.getElementById("hppFullscreenHeader");
+
+      if (container && container.classList.contains("fullscreen")) {
+        container.classList.add("fadeOut");
+        if (overlay) overlay.style.display = "none";
+        setTimeout(() => {
+          container.classList.remove("fullscreen", "fadeOut");
+          if (closeBtn) closeBtn.style.display = "none";
+          if (fsHeader) fsHeader.style.display = "none";
+        }, 400);
+      }
+    }
+
+    // Expose fullscreen methods globally
+    window.toggleFullscreen = toggleFullscreen;
+    window.exitFullscreen = exitFullscreen;
+
+    // Wire up Fullscreen button
+    const btnFullscreen = document.getElementById("btn-toggle-fullscreen");
+    if (btnFullscreen) {
+      btnFullscreen.addEventListener("click", toggleFullscreen);
+    }
+
+    // Wire up Close button
+    const closeBtn = document.getElementById("closeBtn");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", exitFullscreen);
+    }
+
+    // Click-outside overlay close
+    const overlay = document.getElementById("overlay");
+    if (overlay) {
+      overlay.addEventListener("click", exitFullscreen);
+    }
+
+    // ESC key shortcut
+    const escKeyHandler = (e) => {
+      if (e.key === "Escape") {
+        exitFullscreen();
+      }
+    };
+    document.removeEventListener("keydown", escKeyHandler);
+    document.addEventListener("keydown", escKeyHandler);
+
+    // -------------------------------------------------------------
+    // 3. MASTER CALCULATIONS & INPUT LISTENERS
+    // -------------------------------------------------------------
+    const flatPriceInput = document.getElementById('fpp-flat-price');
+    const chipBtns = document.querySelectorAll('.fpp-chip-btn[data-val]');
+    const sliderDown = document.getElementById('fpp-slider-downpayment');
+    const sliderRate = document.getElementById('fpp-slider-rate');
+    const sliderTenure = document.getElementById('fpp-slider-tenure');
+    const sliderSavings = document.getElementById('fpp-slider-savings');
+    const sliderIncome = document.getElementById('fpp-slider-income');
+    const sliderObligations = document.getElementById('fpp-slider-obligations');
+    const btnTenureYr = document.getElementById('fpp-btn-tenure-yr');
+    const btnTenureMo = document.getElementById('fpp-btn-tenure-mo');
+
+    const updateCalculations = () => {
+      const requiredDown = flatPrice * (downPct / 100);
+      const loanAmount = Math.max(0, flatPrice - requiredDown);
+      const tenureMonths = tenureUnit === 'years' ? Math.round(tenureVal * 12) : Math.round(tenureVal);
+
+      // EMI
+      const r = loanRate / 12 / 100;
+      const emi = r > 0 && tenureMonths > 0 
+        ? (loanAmount * r * Math.pow(1 + r, tenureMonths)) / (Math.pow(1 + r, tenureMonths) - 1)
+        : (tenureMonths > 0 ? loanAmount / tenureMonths : 0);
+      const totalPayment = emi * tenureMonths;
+      const totalInterest = Math.max(0, totalPayment - loanAmount);
+
+      // Affordability
+      const upfrontDiff = buyerSavings - requiredDown;
+      const isShortfall = upfrontDiff < 0;
+      const safeMaxEmi = Math.max(0, (buyerIncome * 0.50) - buyerObligations);
+      const monthlyDiff = safeMaxEmi - emi;
+      const foir = buyerIncome > 0 ? ((emi + buyerObligations) / buyerIncome) * 100 : 0;
+
+      // Update DOM
+      const dispDown = document.getElementById('fpp-disp-downpayment');
+      if (dispDown) dispDown.textContent = `${downPct}% (${currSym}${Math.round(requiredDown).toLocaleString(AppState.getLocale())})`;
+
+      const dispRate = document.getElementById('fpp-disp-rate');
+      if (dispRate) dispRate.textContent = `${loanRate}%`;
+
+      const dispTenure = document.getElementById('fpp-disp-tenure');
+      if (dispTenure) dispTenure.textContent = `${tenureVal} ${tenureUnit === 'years' ? 'Yrs' : 'Mos'}`;
+
+      const dispSavings = document.getElementById('fpp-disp-savings');
+      if (dispSavings) dispSavings.textContent = `${currSym}${Number(buyerSavings).toLocaleString(AppState.getLocale())}`;
+
+      const dispIncome = document.getElementById('fpp-disp-income');
+      if (dispIncome) dispIncome.textContent = `${currSym}${Number(buyerIncome).toLocaleString(AppState.getLocale())}`;
+
+      const dispOblig = document.getElementById('fpp-disp-obligations');
+      if (dispOblig) dispOblig.textContent = `${currSym}${Number(buyerObligations).toLocaleString(AppState.getLocale())}`;
+
+      const tblAmt = document.getElementById('fpp-tbl-loan-amt');
+      if (tblAmt) tblAmt.textContent = `${currSym}${Math.round(loanAmount).toLocaleString(AppState.getLocale())}`;
+
+      const tblRate = document.getElementById('fpp-tbl-loan-rate');
+      if (tblRate) tblRate.textContent = `${loanRate}%`;
+
+      const tblTenure = document.getElementById('fpp-tbl-loan-tenure');
+      if (tblTenure) tblTenure.textContent = `${tenureVal} ${tenureUnit === 'years' ? 'yrs' : 'mos'}`;
+
+      const emiLine = document.getElementById('fpp-emi-status-line');
+      if (emiLine) emiLine.textContent = `Monthly EMI: ${currSym}${Math.round(emi).toLocaleString(AppState.getLocale())}`;
+
+      const subtextLoan = document.getElementById('fpp-subtext-loan');
+      if (subtextLoan) subtextLoan.textContent = `Total Interest: ${currSym}${Math.round(totalInterest).toLocaleString(AppState.getLocale())}`;
+
+      const tblSav = document.getElementById('fpp-tbl-savings');
+      if (tblSav) tblSav.textContent = `${currSym}${Number(buyerSavings).toLocaleString(AppState.getLocale())}`;
+
+      const tblInc = document.getElementById('fpp-tbl-income');
+      if (tblInc) tblInc.textContent = `${currSym}${Number(buyerIncome).toLocaleString(AppState.getLocale())}`;
+
+      const totalDemand = document.getElementById('fpp-total-demand-label');
+      if (totalDemand) totalDemand.textContent = `${currSym}${Math.round(flatPrice).toLocaleString(AppState.getLocale())}`;
+
+      const verdictHighlight = document.getElementById('fpp-verdict-highlight');
+      if (verdictHighlight) {
+        if (isShortfall) {
+          verdictHighlight.className = 'fpp-shortfall';
+          verdictHighlight.textContent = `Shortfall ${currSym}${Math.round(Math.abs(upfrontDiff)).toLocaleString(AppState.getLocale())}`;
+        } else {
+          verdictHighlight.className = 'fpp-surplus';
+          verdictHighlight.textContent = `Surplus +${currSym}${Math.round(upfrontDiff).toLocaleString(AppState.getLocale())}`;
+        }
+      }
+
+      const subtextBuyer = document.getElementById('fpp-subtext-buyer');
+      if (subtextBuyer) {
+        if (isShortfall) {
+          subtextBuyer.style.color = '#ef4444';
+          subtextBuyer.textContent = `Down payment required is ${currSym}${Math.round(requiredDown).toLocaleString(AppState.getLocale())} vs ${currSym}${Math.round(buyerSavings).toLocaleString(AppState.getLocale())} available.`;
+        } else {
+          subtextBuyer.style.color = 'var(--emerald)';
+          subtextBuyer.textContent = `Down payment of ${currSym}${Math.round(requiredDown).toLocaleString(AppState.getLocale())} fully covered by available savings.`;
+        }
+      }
+
+      const statUpfront = document.getElementById('fpp-stat-upfront');
+      if (statUpfront) {
+        statUpfront.textContent = (isShortfall ? '-' : '+') + `${currSym}${Math.round(Math.abs(upfrontDiff)).toLocaleString(AppState.getLocale())}`;
+        statUpfront.className = isShortfall ? 'fpp-shortfall' : 'fpp-surplus';
+      }
+
+      const statFoir = document.getElementById('fpp-stat-foir');
+      if (statFoir) {
+        statFoir.textContent = `${foir.toFixed(1)}%`;
+        statFoir.style.color = foir > 55 ? '#ef4444' : (foir > 45 ? 'var(--amber)' : 'var(--emerald)');
+      }
+
+      const badge = document.getElementById('fpp-decision-badge');
+      const title = document.getElementById('fpp-decision-title');
+      const desc = document.getElementById('fpp-decision-desc');
+      if (badge && title && desc) {
+        if (isShortfall && monthlyDiff < 0) {
+          badge.textContent = '⚠️';
+          title.textContent = 'High Financial Burden: Dual Shortfall';
+          desc.textContent = `You face an upfront down payment deficit of ${currSym}${Math.round(Math.abs(upfrontDiff)).toLocaleString(AppState.getLocale())} and projected EMI consumes ${foir.toFixed(1)}% of your monthly take-home.`;
+        } else if (isShortfall) {
+          badge.textContent = '⚠️';
+          title.textContent = 'Action Required: Upfront Down Payment Shortfall';
+          desc.textContent = `You require ${currSym}${Math.round(requiredDown).toLocaleString(AppState.getLocale())} for the ${downPct}% down payment, creating a gap of ${currSym}${Math.round(Math.abs(upfrontDiff)).toLocaleString(AppState.getLocale())}.`;
+        } else if (monthlyDiff < 0) {
+          badge.textContent = '⚠️';
+          title.textContent = 'Stretched Cashflow: High Monthly EMI';
+          desc.textContent = `Down payment is covered, but monthly EMI of ${currSym}${Math.round(emi).toLocaleString(AppState.getLocale())} exceeds 50% safe borrowing guidelines.`;
+        } else {
+          badge.textContent = '✅';
+          title.textContent = 'Purchase Viability: Approved';
+          desc.textContent = `Down payment of ${currSym}${Math.round(requiredDown).toLocaleString(AppState.getLocale())} is comfortably funded (+${currSym}${Math.round(upfrontDiff).toLocaleString(AppState.getLocale())} surplus) and monthly EMI is well within safe income ratios.`;
+        }
+      }
+
+      // Persist state
+      AppState.calcInputs.flatPrice = flatPrice;
+      AppState.calcInputs.downPaymentPct = downPct;
+      AppState.calcInputs.interestRate = loanRate;
+      AppState.calcInputs.loanTenure = tenureUnit === 'years' ? tenureVal : (tenureVal / 12);
+      AppState.calcInputs.buyerSavings = buyerSavings;
+      AppState.calcInputs.buyerIncome = buyerIncome;
+      AppState.calcInputs.buyerObligations = buyerObligations;
+    };
+
+    if (flatPriceInput) {
+      flatPriceInput.addEventListener('input', () => {
+        flatPrice = parseFloat(flatPriceInput.value) || 4000000;
+        chipBtns.forEach(b => b.classList.toggle('active', parseFloat(b.getAttribute('data-val')) === flatPrice));
+        updateCalculations();
+      });
+    }
+
+    chipBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        flatPrice = parseFloat(btn.getAttribute('data-val')) || 4000000;
+        if (flatPriceInput) flatPriceInput.value = flatPrice;
+        chipBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateCalculations();
+      });
+    });
+
+    if (sliderDown) {
+      sliderDown.addEventListener('input', () => {
+        downPct = parseFloat(sliderDown.value) || 10;
+        updateCalculations();
+      });
+    }
+
+    if (sliderRate) {
+      sliderRate.addEventListener('input', () => {
+        loanRate = parseFloat(sliderRate.value) || 8.5;
+        updateCalculations();
+      });
+    }
+
+    // Tenure Toggle Pill (Years <-> Months)
+    if (btnTenureYr) {
+      btnTenureYr.addEventListener('click', () => {
+        if (tenureUnit === 'years') return;
+        tenureUnit = 'years';
+        AppState.tenureUnits['fpp-tenure'] = 'years';
+        btnTenureYr.classList.add('active');
+        if (btnTenureMo) btnTenureMo.classList.remove('active');
+        tenureVal = Math.max(1, Math.min(30, Math.round(tenureVal / 12) || 25));
+        if (sliderTenure) {
+          sliderTenure.min = "1";
+          sliderTenure.max = "30";
+          sliderTenure.step = "1";
+          sliderTenure.value = tenureVal;
+        }
+        const lbl = document.getElementById('fpp-label-tenure');
+        if (lbl) lbl.textContent = 'Tenure (Years)';
+        updateCalculations();
+      });
+    }
+
+    if (btnTenureMo) {
+      btnTenureMo.addEventListener('click', () => {
+        if (tenureUnit === 'months') return;
+        tenureUnit = 'months';
+        AppState.tenureUnits['fpp-tenure'] = 'months';
+        btnTenureMo.classList.add('active');
+        if (btnTenureYr) btnTenureYr.classList.remove('active');
+        tenureVal = Math.max(12, Math.min(360, Math.round(tenureVal * 12) || 300));
+        if (sliderTenure) {
+          sliderTenure.min = "12";
+          sliderTenure.max = "360";
+          sliderTenure.step = "6";
+          sliderTenure.value = tenureVal;
+        }
+        const lbl = document.getElementById('fpp-label-tenure');
+        if (lbl) lbl.textContent = 'Tenure (Months)';
+        updateCalculations();
+      });
+    }
+
+    if (sliderTenure) {
+      sliderTenure.addEventListener('input', () => {
+        tenureVal = parseFloat(sliderTenure.value) || (tenureUnit === 'years' ? 25 : 300);
+        updateCalculations();
+      });
+    }
+
+    if (sliderSavings) {
+      sliderSavings.addEventListener('input', () => {
+        buyerSavings = parseFloat(sliderSavings.value) || 650000;
+        updateCalculations();
+      });
+    }
+
+    if (sliderIncome) {
+      sliderIncome.addEventListener('input', () => {
+        buyerIncome = parseFloat(sliderIncome.value) || 70000;
+        updateCalculations();
+      });
+    }
+
+    if (sliderObligations) {
+      sliderObligations.addEventListener('input', () => {
+        buyerObligations = parseFloat(sliderObligations.value) || 0;
+        updateCalculations();
+      });
+    }
+
+    // Initial Compute
+    updateCalculations();
+  },
+
+  initFlatPurchasePlannerBehavior(calc) {
+    this.initHomePurchasePlannerBehavior(calc);
+  },
+
+  resetHomePurchasePlanner(calc) {
+    AppState.calcInputs.flatPrice = 4000000;
+    AppState.calcInputs.downPaymentPct = 10;
+    AppState.calcInputs.interestRate = 8.5;
+    AppState.calcInputs.loanTenure = 25;
+    AppState.calcInputs.buyerSavings = 650000;
+    AppState.calcInputs.buyerIncome = 70000;
+    AppState.calcInputs.buyerObligations = 0;
+    if (AppState.tenureUnits) AppState.tenureUnits['fpp-tenure'] = 'years';
+    this.initHomePurchasePlannerBehavior(calc);
+  },
+
+  resetFlatPurchasePlanner(calc) {
+    this.resetHomePurchasePlanner(calc);
+  },
+
+  // ==========================================
   // COMPARE EMI LOANS CUSTOM UI & BEHAVIOR
   // ==========================================
   renderCompareLoanUi(calc) {
@@ -8775,20 +10045,38 @@ const AppUI = {
               <div class="field-validation-msg" id="validation-msg-interestRateA"></div>
             </div>
 
+            ${(() => {
+              AppState.tenureUnits = AppState.tenureUnits || {};
+              const unitA = AppState.tenureUnits.tenureYearsA || 'years';
+              const isMosA = unitA === 'months';
+              const valA = isMosA ? Math.round(Number(loanATenure) * (loanATenure <= 30 ? 12 : 1)) : loanATenure;
+              const minA = isMosA ? 12 : 1;
+              const maxA = isMosA ? 360 : 30;
+              const suffixA = isMosA ? 'Mos' : 'Yrs';
+              return `
             <div class="compare-form-group">
               <div class="form-label-row">
-                <label class="form-label" for="input-tenureYearsA">Loan Tenure (Years)</label>
-                <span class="form-value-display" id="val-display-tenureYearsA">${loanATenure} Yrs</span>
+                <label class="form-label" for="input-tenureYearsA">
+                  <span id="label-text-tenureYearsA">${isMosA ? 'Loan A Tenure (Months)' : 'Loan A Tenure (Years)'}</span>
+                </label>
+                <div class="form-label-controls">
+                  <div class="tenure-toggle-container" id="tenure-toggle-tenureYearsA" role="group" aria-label="Loan A tenure toggle">
+                    <button type="button" class="tenure-unit-btn ${!isMosA ? 'active' : ''}" data-compare-field="tenureYearsA" data-unit="years" aria-pressed="${!isMosA}">Yr</button>
+                    <button type="button" class="tenure-unit-btn ${isMosA ? 'active' : ''}" data-compare-field="tenureYearsA" data-unit="months" aria-pressed="${isMosA}">Mo</button>
+                  </div>
+                  <span class="form-value-display" id="val-display-tenureYearsA">${valA} ${suffixA}</span>
+                </div>
               </div>
               <div class="compare-input-controls">
                 <div class="input-with-addons" style="flex: 1;">
-                  <input type="number" class="form-input has-suffix" id="input-tenureYearsA" data-id="tenureYearsA" value="${loanATenure}" min="1" max="30" step="1">
-                  <span class="input-addon-suffix">Yrs</span>
+                  <input type="number" class="form-input has-suffix" id="input-tenureYearsA" data-id="tenureYearsA" value="${valA}" min="${minA}" max="${maxA}" step="1">
+                  <span class="input-addon-suffix">${suffixA}</span>
                 </div>
-                <input type="range" class="form-range-slider" id="range-tenureYearsA" data-id="tenureYearsA" value="${loanATenure}" min="1" max="30" step="1" style="flex: 1.2;">
+                <input type="range" class="form-range-slider" id="range-tenureYearsA" data-id="tenureYearsA" value="${valA}" min="${minA}" max="${maxA}" step="1" style="flex: 1.2;">
               </div>
               <div class="field-validation-msg" id="validation-msg-tenureYearsA"></div>
-            </div>
+            </div>`;
+            })()}
 
             <div class="compare-form-group">
               <div class="form-label-row">
@@ -8872,20 +10160,38 @@ const AppUI = {
               <div class="field-validation-msg" id="validation-msg-interestRateB"></div>
             </div>
 
+            ${(() => {
+              AppState.tenureUnits = AppState.tenureUnits || {};
+              const unitB = AppState.tenureUnits.tenureYearsB || 'years';
+              const isMosB = unitB === 'months';
+              const valB = isMosB ? Math.round(Number(loanBTenure) * (loanBTenure <= 30 ? 12 : 1)) : loanBTenure;
+              const minB = isMosB ? 12 : 1;
+              const maxB = isMosB ? 360 : 30;
+              const suffixB = isMosB ? 'Mos' : 'Yrs';
+              return `
             <div class="compare-form-group">
               <div class="form-label-row">
-                <label class="form-label" for="input-tenureYearsB">Loan Tenure (Years)</label>
-                <span class="form-value-display" id="val-display-tenureYearsB">${loanBTenure} Yrs</span>
+                <label class="form-label" for="input-tenureYearsB">
+                  <span id="label-text-tenureYearsB">${isMosB ? 'Loan B Tenure (Months)' : 'Loan B Tenure (Years)'}</span>
+                </label>
+                <div class="form-label-controls">
+                  <div class="tenure-toggle-container" id="tenure-toggle-tenureYearsB" role="group" aria-label="Loan B tenure toggle">
+                    <button type="button" class="tenure-unit-btn ${!isMosB ? 'active' : ''}" data-compare-field="tenureYearsB" data-unit="years" aria-pressed="${!isMosB}">Yr</button>
+                    <button type="button" class="tenure-unit-btn ${isMosB ? 'active' : ''}" data-compare-field="tenureYearsB" data-unit="months" aria-pressed="${isMosB}">Mo</button>
+                  </div>
+                  <span class="form-value-display" id="val-display-tenureYearsB">${valB} ${suffixB}</span>
+                </div>
               </div>
               <div class="compare-input-controls">
                 <div class="input-with-addons" style="flex: 1;">
-                  <input type="number" class="form-input has-suffix" id="input-tenureYearsB" data-id="tenureYearsB" value="${loanBTenure}" min="1" max="30" step="1">
-                  <span class="input-addon-suffix">Yrs</span>
+                  <input type="number" class="form-input has-suffix" id="input-tenureYearsB" data-id="tenureYearsB" value="${valB}" min="${minB}" max="${maxB}" step="1">
+                  <span class="input-addon-suffix">${suffixB}</span>
                 </div>
-                <input type="range" class="form-range-slider" id="range-tenureYearsB" data-id="tenureYearsB" value="${loanBTenure}" min="1" max="30" step="1" style="flex: 1.2;">
+                <input type="range" class="form-range-slider" id="range-tenureYearsB" data-id="tenureYearsB" value="${valB}" min="${minB}" max="${maxB}" step="1" style="flex: 1.2;">
               </div>
               <div class="field-validation-msg" id="validation-msg-tenureYearsB"></div>
-            </div>
+            </div>`;
+            })()}
 
             <div class="compare-form-group">
               <div class="form-label-row">
@@ -8997,12 +10303,17 @@ const AppUI = {
     const updateAndCompute = () => {
       const safeInputs = {};
       paramDefs.forEach(p => {
-        const val = parseFloat(AppState.calcInputs[p.id]);
+        let val = parseFloat(AppState.calcInputs[p.id]);
         if (isNaN(val)) {
-          safeInputs[p.id] = p.default;
-        } else {
-          safeInputs[p.id] = Math.min(Math.max(val, p.min), p.max);
+          val = p.default;
         }
+        if (p.id === 'tenureYearsA' || p.id === 'tenureYearsB') {
+          const u = (AppState.tenureUnits && AppState.tenureUnits[p.id]) || 'years';
+          if (u === 'months') {
+            val = val / 12;
+          }
+        }
+        safeInputs[p.id] = Math.min(Math.max(val, p.min), p.max);
       });
 
       const result = CalculatorEngine.compute('compare-loan-calculator', safeInputs);
@@ -9014,6 +10325,61 @@ const AppUI = {
     };
 
     this.updateCompareCalculation = updateAndCompute;
+
+    // Attach tenure toggle button listeners for Loan A and Loan B
+    document.querySelectorAll('.compare-loans-container .tenure-unit-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const fieldId = btn.getAttribute('data-compare-field');
+        const targetUnit = btn.getAttribute('data-unit');
+        AppState.tenureUnits = AppState.tenureUnits || {};
+        const currentUnit = AppState.tenureUnits[fieldId] || 'years';
+        if (currentUnit === targetUnit) return;
+
+        AppState.tenureUnits[fieldId] = targetUnit;
+        const toggleWrap = document.getElementById(`tenure-toggle-${fieldId}`);
+        if (toggleWrap) {
+          toggleWrap.querySelectorAll('.tenure-unit-btn').forEach(b => {
+            const isAct = b.getAttribute('data-unit') === targetUnit;
+            b.classList.toggle('active', isAct);
+            b.setAttribute('aria-pressed', isAct ? 'true' : 'false');
+          });
+        }
+
+        const numEl = document.getElementById(`input-${fieldId}`);
+        const rangeEl = document.getElementById(`range-${fieldId}`);
+        const dispEl = document.getElementById(`val-display-${fieldId}`);
+        const labelEl = document.getElementById(`label-text-${fieldId}`);
+        const suffixEl = numEl?.parentElement?.querySelector('.input-addon-suffix');
+
+        let val = parseFloat(AppState.calcInputs[fieldId]);
+        if (isNaN(val)) val = 15;
+
+        let newVal = val;
+        let min = 1, max = 30, step = 1, suffix = 'Yrs';
+        if (targetUnit === 'months') {
+          newVal = Math.round(val * 12);
+          min = 12; max = 360; step = 1; suffix = 'Mos';
+          if (labelEl) labelEl.textContent = fieldId === 'tenureYearsA' ? 'Loan A Tenure (Months)' : 'Loan B Tenure (Months)';
+        } else {
+          newVal = Math.round((val / 12) * 10) / 10;
+          min = 1; max = 30; step = 1; suffix = 'Yrs';
+          if (labelEl) labelEl.textContent = fieldId === 'tenureYearsA' ? 'Loan A Tenure (Years)' : 'Loan B Tenure (Years)';
+        }
+
+        if (numEl) {
+          numEl.min = min; numEl.max = max; numEl.step = step; numEl.value = newVal;
+        }
+        if (rangeEl) {
+          rangeEl.min = min; rangeEl.max = max; rangeEl.step = step; rangeEl.value = newVal;
+        }
+        if (suffixEl) suffixEl.textContent = suffix;
+        if (dispEl) dispEl.textContent = `${newVal} ${suffix}`;
+
+        AppState.calcInputs[fieldId] = newVal;
+        updateAndCompute();
+      });
+    });
 
     // Attach sync & validation listeners for both inputs and sliders
     paramDefs.forEach(p => {
@@ -9034,20 +10400,30 @@ const AppUI = {
             valMsg.style.display = 'block';
           }
           if (numInput) numInput.classList.add('has-error');
-        } else if (numVal < p.min) {
-          isValid = false;
-          if (valMsg) {
-            valMsg.textContent = this.getFieldValidationMessage(calc, p, 'min');
-            valMsg.style.display = 'block';
+        } else {
+          let effMin = p.min;
+          let effMax = p.max;
+          if (p.id === 'tenureYearsA' || p.id === 'tenureYearsB') {
+            const u = (AppState.tenureUnits && AppState.tenureUnits[p.id]) || 'years';
+            if (u === 'months') {
+              effMin = 12; effMax = 360;
+            }
           }
-          if (numInput) numInput.classList.add('has-error');
-        } else if (numVal > p.max) {
-          isValid = false;
-          if (valMsg) {
-            valMsg.textContent = this.getFieldValidationMessage(calc, p, 'max');
-            valMsg.style.display = 'block';
+          if (numVal < effMin) {
+            isValid = false;
+            if (valMsg) {
+              valMsg.textContent = this.getFieldValidationMessage(calc, p, 'min');
+              valMsg.style.display = 'block';
+            }
+            if (numInput) numInput.classList.add('has-error');
+          } else if (numVal > effMax) {
+            isValid = false;
+            if (valMsg) {
+              valMsg.textContent = this.getFieldValidationMessage(calc, p, 'max');
+              valMsg.style.display = 'block';
+            }
+            if (numInput) numInput.classList.add('has-error');
           }
-          if (numInput) numInput.classList.add('has-error');
         }
 
         if (isValid) {
@@ -9407,18 +10783,38 @@ const AppUI = {
               </div>
 
               <!-- Field 3B: Loan Tenure Months (Only in Interest Mode) -->
+              ${(() => {
+                AppState.tenureUnits = AppState.tenureUnits || {};
+                const revUnit = AppState.tenureUnits['reverse-tenure'] || 'months';
+                const isYr = revUnit === 'years';
+                const revVal = isYr ? Math.round((Number(tenureMonths) / 12) * 10) / 10 : tenureMonths;
+                const revMin = isYr ? 0.5 : 1;
+                const revMax = isYr ? 30 : 360;
+                const revStep = isYr ? 0.5 : 1;
+                const revSuffix = isYr ? 'Yrs' : 'Mos';
+                const dispText = isYr ? `${revVal} Years (${Math.round(revVal * 12)} Mos)` : `${revVal} Months (${(revVal / 12).toFixed(1)} Yrs)`;
+                return `
               <div class="form-group" id="group-reverse-tenureMonths" style="display: ${mode === 'interest' ? 'block' : 'none'};">
                 <div class="form-label-row">
-                  <label class="form-label" for="input-reverse-tenureMonths">Loan Period (Tenure)</label>
-                  <span class="form-value-display" id="val-display-reverse-tenureMonths">${tenureMonths} Months (${(tenureMonths / 12).toFixed(1)} Yrs)</span>
+                  <label class="form-label" for="input-reverse-tenureMonths">
+                    <span id="label-reverse-tenureMonths">${isYr ? 'Loan Period (Years)' : 'Loan Period (Tenure)'}</span>
+                  </label>
+                  <div class="form-label-controls">
+                    <div class="tenure-toggle-container" id="tenure-toggle-reverse-tenure" role="group" aria-label="Reverse loan tenure toggle">
+                      <button type="button" class="tenure-unit-btn ${isYr ? 'active' : ''}" data-reverse-tenure-btn="years" aria-pressed="${isYr}">Yr</button>
+                      <button type="button" class="tenure-unit-btn ${!isYr ? 'active' : ''}" data-reverse-tenure-btn="months" aria-pressed="${!isYr}">Mo</button>
+                    </div>
+                    <span class="form-value-display" id="val-display-reverse-tenureMonths">${dispText}</span>
+                  </div>
                 </div>
                 <div class="input-with-addons">
-                  <input type="number" class="form-input has-suffix" id="input-reverse-tenureMonths" data-id="tenureMonths" value="${tenureMonths}" min="1" max="360" step="1">
-                  <span class="input-addon-suffix">Mos</span>
+                  <input type="number" class="form-input has-suffix" id="input-reverse-tenureMonths" data-id="tenureMonths" value="${revVal}" min="${revMin}" max="${revMax}" step="${revStep}">
+                  <span class="input-addon-suffix">${revSuffix}</span>
                 </div>
-                <input type="range" class="form-range-slider" id="range-reverse-tenureMonths" data-id="tenureMonths" value="${tenureMonths}" min="1" max="360" step="1">
+                <input type="range" class="form-range-slider" id="range-reverse-tenureMonths" data-id="tenureMonths" value="${revVal}" min="${revMin}" max="${revMax}" step="${revStep}">
                 <div class="field-validation-msg" id="validation-msg-reverse-tenureMonths"></div>
-              </div>
+              </div>`;
+              })()}
 
               <!-- Inline Validation Error Box (Visible in red #ff4d4d when EMI <= P*r or EMI*n < P) -->
               <div id="reverse-inline-error-box" class="reverse-inline-error-banner" style="display: none;">
@@ -9481,7 +10877,12 @@ const AppUI = {
       const P = parseFloat(AppState.calcInputs.principal) || 0;
       const emi = parseFloat(AppState.calcInputs.monthlyEmi) || 0;
       const rate = parseFloat(AppState.calcInputs.interestRate) || 0;
-      const tenure = parseInt(AppState.calcInputs.tenureMonths, 10) || 1;
+      const revUnit = (AppState.tenureUnits && AppState.tenureUnits['reverse-tenure']) || 'months';
+      let tenure = parseFloat(AppState.calcInputs.tenureMonths) || 60;
+      let engineTenure = tenure;
+      if (revUnit === 'years') {
+        engineTenure = Math.round(tenure * 12);
+      }
 
       // Update value displays
       const currSym = (typeof AppState !== 'undefined' && AppState.getCurrencySymbol) ? AppState.getCurrencySymbol() : '₹';
@@ -9497,10 +10898,15 @@ const AppUI = {
       if (dispR) dispR.textContent = `${rate}%`;
 
       const dispT = document.getElementById('val-display-reverse-tenureMonths');
-      if (dispT) dispT.textContent = `${tenure} Months (${(tenure / 12).toFixed(1)} Yrs)`;
+      if (dispT) {
+        dispT.textContent = revUnit === 'years'
+          ? `${tenure} Years (${Math.round(tenure * 12)} Mos)`
+          : `${tenure} Months (${(tenure / 12).toFixed(1)} Yrs)`;
+      }
 
       // Compute result from engine
-      const result = CalculatorEngine.compute('loan-reverse-calculator', AppState.calcInputs);
+      const engineInputs = { ...AppState.calcInputs, tenureMonths: Math.max(1, engineTenure) };
+      const result = CalculatorEngine.compute('loan-reverse-calculator', engineInputs);
       this.updateReverseLoanUi(result);
     };
 
@@ -9566,6 +10972,64 @@ const AppUI = {
     setupFieldSync('monthlyEmi');
     setupFieldSync('interestRate');
     setupFieldSync('tenureMonths');
+
+    // Reverse Loan Tenure Toggle Listener
+    document.querySelectorAll('[data-reverse-tenure-btn]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetUnit = btn.getAttribute('data-reverse-tenure-btn');
+        AppState.tenureUnits = AppState.tenureUnits || {};
+        const currentUnit = AppState.tenureUnits['reverse-tenure'] || 'months';
+        if (currentUnit === targetUnit) return;
+
+        AppState.tenureUnits['reverse-tenure'] = targetUnit;
+        const toggleWrap = document.getElementById('tenure-toggle-reverse-tenure');
+        if (toggleWrap) {
+          toggleWrap.querySelectorAll('.tenure-unit-btn').forEach(b => {
+            const isAct = b.getAttribute('data-reverse-tenure-btn') === targetUnit;
+            b.classList.toggle('active', isAct);
+            b.setAttribute('aria-pressed', isAct ? 'true' : 'false');
+          });
+        }
+
+        const numEl = document.getElementById('input-reverse-tenureMonths');
+        const rangeEl = document.getElementById('range-reverse-tenureMonths');
+        const dispEl = document.getElementById('val-display-reverse-tenureMonths');
+        const labelEl = document.getElementById('label-reverse-tenureMonths');
+        const suffixEl = numEl?.parentElement?.querySelector('.input-addon-suffix');
+
+        let val = parseFloat(AppState.calcInputs.tenureMonths);
+        if (isNaN(val)) val = 60;
+
+        let newVal = val;
+        let min = 1, max = 360, step = 1, suffix = 'Mos';
+        if (targetUnit === 'years') {
+          newVal = Math.round((val / 12) * 10) / 10;
+          min = 0.5; max = 30; step = 0.5; suffix = 'Yrs';
+          if (labelEl) labelEl.textContent = 'Loan Period (Years)';
+        } else {
+          newVal = Math.round(val * 12);
+          min = 1; max = 360; step = 1; suffix = 'Mos';
+          if (labelEl) labelEl.textContent = 'Loan Period (Tenure)';
+        }
+
+        if (numEl) {
+          numEl.min = min; numEl.max = max; numEl.step = step; numEl.value = newVal;
+        }
+        if (rangeEl) {
+          rangeEl.min = min; rangeEl.max = max; rangeEl.step = step; rangeEl.value = newVal;
+        }
+        if (suffixEl) suffixEl.textContent = suffix;
+        if (dispEl) {
+          dispEl.textContent = targetUnit === 'years'
+            ? `${newVal} Years (${Math.round(newVal * 12)} Mos)`
+            : `${newVal} Months (${(newVal / 12).toFixed(1)} Yrs)`;
+        }
+
+        AppState.calcInputs.tenureMonths = newVal;
+        syncAndCompute();
+      });
+    });
 
     // Preset Edge Cases
     const setFields = (p, e, r, t, mode) => {
@@ -10351,11 +11815,20 @@ Computed on letscalculate.in`;
     let results = [];
     const q = (query || '').trim();
     if (!q) {
-      // Suggest top popular calculators when search is first opened
-      results = CALCULATORS_DATA.filter(c => ['sip-calculator', 'emi-calculator', 'loan-calculator', 'bmi-calculator', 'percentage-calculator', 'gst-calculator', 'compound-interest-calculator', 'fd-calculator'].includes(c.id));
+      // Suggest top popular calculators when search is first opened, with US Stocks Calculator prominently at the top
+      results = [
+        getCalculatorById('us-stocks-calculator'),
+        ...CALCULATORS_DATA.filter(c => ['sip-calculator', 'emi-calculator', 'loan-calculator', 'bmi-calculator', 'percentage-calculator', 'gst-calculator', 'compound-interest-calculator', 'fd-calculator'].includes(c.id))
+      ].filter(Boolean);
       if (results.length === 0) results = CALCULATORS_DATA.slice(0, 8);
     } else {
       results = searchCalculators(q);
+      // Ensure US Stocks Calculator appears at the top of search results whenever matched
+      results.sort((a, b) => {
+        if (a.id === 'us-stocks-calculator') return -1;
+        if (b.id === 'us-stocks-calculator') return 1;
+        return 0;
+      });
     }
 
     if (countEl) countEl.textContent = `${results.length} found`;

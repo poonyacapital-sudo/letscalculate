@@ -65,6 +65,148 @@ const CalculatorEngine = {
   // FINANCIAL CALCULATORS
   // ==========================================
   
+  // US STOCKS CALCULATOR (Convert INR to USD & Fractional Share Buying)
+  'us-stocks-calculator'(inputs) {
+    const amountInr = parseFloat(inputs.amountInr) > 0 ? parseFloat(inputs.amountInr) : 50000;
+    const usdInrRate = parseFloat(inputs.usdInrRate) > 0 ? parseFloat(inputs.usdInrRate) : 86.50;
+    const stockName = (inputs.stockName && String(inputs.stockName).trim()) ? String(inputs.stockName).trim() : 'Apple Inc. (AAPL)';
+    const stockPriceUsd = parseFloat(inputs.stockPriceUsd) > 0 ? parseFloat(inputs.stockPriceUsd) : 230.00;
+
+    // 1. Convert INR to USD using the exchange rate
+    const totalUsd = amountInr / usdInrRate;
+
+    // 2. Divide converted USD amount by stock price to determine total purchasable shares
+    const totalShares = stockPriceUsd > 0 ? (totalUsd / stockPriceUsd) : 0;
+
+    // 3. Full and fractional shares breakdown
+    const fullShares = Math.floor(totalShares);
+    const fractionalShares = totalShares - fullShares;
+
+    // 4. Value allocations in USD and INR
+    const fullSharesUsd = fullShares * stockPriceUsd;
+    const fullSharesInr = fullSharesUsd * usdInrRate;
+
+    const fractionalUsd = fractionalShares * stockPriceUsd;
+    const fractionalInr = fractionalUsd * usdInrRate;
+
+    // Equivalent total INR value of those acquired shares
+    const equivalentInr = totalShares * stockPriceUsd * usdInrRate;
+
+    // Cost of 1 single full share in INR
+    const costPerFullShareInr = stockPriceUsd * usdInrRate;
+
+    // Additional INR needed to round up to the next full share
+    const nextShareDeficit = fractionalShares > 0 ? (1 - fractionalShares) : (fullShares === 0 ? 1 : 0);
+    const additionalInrNeeded = nextShareDeficit * costPerFullShareInr;
+
+    // Formatting helpers
+    const fmtUsd = (num) => `$${Number(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const fmtInr = (num) => `₹${Number(num).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const fmtShares = (num, dec = 4) => Number(num).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+
+    const fullSharePct = totalShares > 0 ? ((fullSharesUsd / totalUsd) * 100).toFixed(1) : '0';
+    const fracSharePct = totalShares > 0 ? (100 - parseFloat(fullSharePct)).toFixed(1) : '0';
+
+    return {
+      primaryResult: {
+        label: 'Total Shares You Can Buy',
+        value: `${fmtShares(totalShares, 4)} Shares`,
+        subtext: `${fullShares} Full Shares + ${fmtShares(fractionalShares, 4)} Fractional Share of ${stockName}`
+      },
+      stats: [
+        { label: 'Total USD Available', value: fmtUsd(totalUsd), highlight: true },
+        { label: 'Equivalent INR Value', value: fmtInr(equivalentInr), highlight: true },
+        { label: 'Full Shares Count', value: `${fullShares} Shares (${fmtUsd(fullSharesUsd)})` },
+        { label: 'Fractional Share Portion', value: `${fmtShares(fractionalShares, 4)} (${fmtUsd(fractionalUsd)})` },
+        { label: '1 Full Share Price (INR)', value: fmtInr(costPerFullShareInr) },
+        { label: 'Exchange Rate Applied', value: `1 USD = ${fmtInr(usdInrRate)}` }
+      ],
+      chartData: {
+        type: 'donut',
+        labels: ['Full Shares Value', 'Fractional Share Value'],
+        values: [fullSharesUsd, fractionalUsd],
+        colors: ['#10b981', '#00bfff']
+      },
+      customHtml: `
+        <div class="us-stocks-dashboard glass-panel" style="padding: 1.25rem; border-radius: var(--radius-xl); background: rgba(13, 18, 30, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); margin-top: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem;">
+              <span>🇺🇸 Popular US Stocks (Tap to Auto-Fill)</span>
+            </div>
+            <span style="font-size: 0.75rem; color: #00bfff; font-weight: 600;">Benchmark Presets</span>
+          </div>
+
+          <div class="us-stock-presets-grid" style="display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 1.25rem;">
+            <button type="button" class="us-stock-chip" data-name="Apple Inc. (AAPL)" data-price="230" style="padding: 0.4rem 0.75rem; border-radius: var(--radius-full); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-primary); font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s ease;">
+              <span>🍏 AAPL</span> <span style="color: #10b981; font-weight: 700;">$230</span>
+            </button>
+            <button type="button" class="us-stock-chip" data-name="Nvidia Corp. (NVDA)" data-price="138" style="padding: 0.4rem 0.75rem; border-radius: var(--radius-full); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-primary); font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s ease;">
+              <span>⚡ NVDA</span> <span style="color: #10b981; font-weight: 700;">$138</span>
+            </button>
+            <button type="button" class="us-stock-chip" data-name="Microsoft Corp. (MSFT)" data-price="420" style="padding: 0.4rem 0.75rem; border-radius: var(--radius-full); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-primary); font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s ease;">
+              <span>🪟 MSFT</span> <span style="color: #10b981; font-weight: 700;">$420</span>
+            </button>
+            <button type="button" class="us-stock-chip" data-name="Tesla Inc. (TSLA)" data-price="220" style="padding: 0.4rem 0.75rem; border-radius: var(--radius-full); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-primary); font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s ease;">
+              <span>🚗 TSLA</span> <span style="color: #10b981; font-weight: 700;">$220</span>
+            </button>
+            <button type="button" class="us-stock-chip" data-name="Alphabet (GOOGL)" data-price="185" style="padding: 0.4rem 0.75rem; border-radius: var(--radius-full); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-primary); font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s ease;">
+              <span>🔍 GOOGL</span> <span style="color: #10b981; font-weight: 700;">$185</span>
+            </button>
+            <button type="button" class="us-stock-chip" data-name="Amazon.com (AMZN)" data-price="190" style="padding: 0.4rem 0.75rem; border-radius: var(--radius-full); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-primary); font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s ease;">
+              <span>📦 AMZN</span> <span style="color: #10b981; font-weight: 700;">$190</span>
+            </button>
+            <button type="button" class="us-stock-chip" data-name="Meta Platforms (META)" data-price="585" style="padding: 0.4rem 0.75rem; border-radius: var(--radius-full); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-primary); font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s ease;">
+              <span>🌐 META</span> <span style="color: #10b981; font-weight: 700;">$585</span>
+            </button>
+            <button type="button" class="us-stock-chip" data-name="S&P 500 ETF (SPY)" data-price="585" style="padding: 0.4rem 0.75rem; border-radius: var(--radius-full); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-primary); font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s ease;">
+              <span>📈 SPY (Index)</span> <span style="color: #10b981; font-weight: 700;">$585</span>
+            </button>
+          </div>
+
+          <!-- Fractional Allocation Progress Bar -->
+          <div style="margin-bottom: 0.5rem;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 0.35rem;">
+              <span style="color: #10b981; font-weight: 600;">Full Shares: ${fullShares} (${fullSharePct}%)</span>
+              <span style="color: #00bfff; font-weight: 600;">Fractional: ${fmtShares(fractionalShares, 4)} (${fracSharePct}%)</span>
+            </div>
+            <div style="height: 10px; border-radius: 999px; background: rgba(255,255,255,0.1); overflow: hidden; display: flex;">
+              <div style="width: ${fullSharePct}%; background: linear-gradient(90deg, #10b981, #059669); transition: width 0.3s ease;"></div>
+              <div style="width: ${fracSharePct}%; background: linear-gradient(90deg, #00bfff, #0284c7); transition: width 0.3s ease;"></div>
+            </div>
+          </div>
+
+          ${fractionalShares > 0 ? `
+            <div style="margin-top: 0.85rem; padding: 0.65rem 0.85rem; border-radius: var(--radius-md); background: rgba(0, 191, 255, 0.08); border: 1px solid rgba(0, 191, 255, 0.2); font-size: 0.82rem; color: var(--text-secondary); line-height: 1.45;">
+              💡 <strong>Next Full Share Tip:</strong> You need an additional <strong>${fmtInr(additionalInrNeeded)}</strong> (${fmtUsd(nextShareDeficit * stockPriceUsd)}) to round up to <strong>${fullShares + 1} full shares</strong> of ${stockName}.
+            </div>
+          ` : ''}
+        </div>
+      `,
+      breakdownTable: {
+        title: 'US Stock Investment Summary',
+        subtitle: `Conversion from INR to USD and allocation for ${stockName}`,
+        badge: '100% Capital Allocated',
+        headers: ['Metric / Parameter', 'USD Value ($)', 'INR Equivalent (₹)'],
+        rows: [
+          ['Total Capital Allocated', fmtUsd(totalUsd), fmtInr(amountInr)],
+          ['Exchange Rate Applied', '$1.00 USD', fmtInr(usdInrRate)],
+          ['Stock Market Price', fmtUsd(stockPriceUsd), fmtInr(costPerFullShareInr)],
+          ['Full Shares Purchased', `${fullShares} Shares (${fmtUsd(fullSharesUsd)})`, fmtInr(fullSharesInr)],
+          ['Fractional Share Portion', `${fmtShares(fractionalShares, 4)} Share (${fmtUsd(fractionalUsd)})`, fmtInr(fractionalInr)],
+          {
+            highlight: true,
+            cells: [
+              `Total Shares Acquired: ${fmtShares(totalShares, 4)}`,
+              fmtUsd(totalUsd),
+              fmtInr(equivalentInr)
+            ]
+          }
+        ],
+        footerNote: 'Note: US brokerages (DriveWealth, INDmoney, Vested, Interactive Brokers) support fractional investing up to 4 decimal places. Bank remittance charges (LRS / TCS) and broker fees may apply during overseas fund transfers.'
+      }
+    };
+  },
+
   // ==========================================
   // EMI CALCULATOR SUITE ENGINES (PHASE 1)
   // ==========================================
@@ -235,6 +377,51 @@ const CalculatorEngine = {
         rows: schedule
       }
     };
+  },
+
+  'home-purchase-planner'(inputs) {
+    const flatPrice = parseFloat(inputs.flatPrice) || 6250000;
+    const downPct = parseFloat(inputs.downPaymentPct) || 20;
+    const requiredDown = flatPrice * (downPct / 100);
+    const loanAmount = Math.max(0, flatPrice - requiredDown);
+    const rate = parseFloat(inputs.interestRate) || 8.5;
+    const tenureMonths = (parseFloat(inputs.loanTenure) || 20) * 12;
+    const r = rate / 12 / 100;
+    const emi = r > 0 ? (loanAmount * r * Math.pow(1 + r, tenureMonths)) / (Math.pow(1 + r, tenureMonths) - 1) : loanAmount / tenureMonths;
+    const totalPayment = emi * tenureMonths;
+    const totalInterest = Math.max(0, totalPayment - loanAmount);
+    const savings = parseFloat(inputs.buyerSavings) || 1000000;
+    const income = parseFloat(inputs.buyerIncome) || 80000;
+    const safeMaxEmi = income * 0.50;
+    const upfrontDiff = savings - requiredDown;
+    const isShortfall = upfrontDiff < 0;
+
+    return {
+      primaryResult: {
+        label: isShortfall ? 'Down Payment Shortfall' : 'Down Payment Surplus',
+        value: `${isShortfall ? '-' : '+'}${this.formatCurrency(Math.abs(upfrontDiff))}`,
+        subtext: `Monthly EMI: ${this.formatCurrency(emi)} | Required Down: ${this.formatCurrency(requiredDown)}`
+      },
+      summary: [
+        { label: 'Home Agreement Value', value: this.formatCurrency(flatPrice) },
+        { label: `Down Payment (${downPct}%)`, value: this.formatCurrency(requiredDown) },
+        { label: 'Sanctioned Loan Amount', value: this.formatCurrency(loanAmount) },
+        { label: 'Monthly Loan EMI', value: this.formatCurrency(emi) },
+        { label: 'Total Loan Interest', value: this.formatCurrency(totalInterest) },
+        { label: 'Available Buyer Savings', value: this.formatCurrency(savings) },
+        { label: 'Upfront Net Balance', value: `${isShortfall ? '-' : '+'}${this.formatCurrency(Math.abs(upfrontDiff))}` },
+        { label: 'Net Monthly Income', value: this.formatCurrency(income) },
+        { label: 'Safe EMI Capacity (50% FOIR)', value: this.formatCurrency(safeMaxEmi) }
+      ],
+      chartData: {
+        labels: ['Buyer Down Payment', 'Bank Loan Principal', 'Total Interest'],
+        values: [Math.round(requiredDown), Math.round(loanAmount), Math.round(totalInterest)]
+      }
+    };
+  },
+
+  'flat-purchase-planner'(inputs) {
+    return this['home-purchase-planner'](inputs);
   },
 
   'compare-loan-calculator'(inputs) {
