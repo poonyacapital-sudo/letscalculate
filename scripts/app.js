@@ -5532,6 +5532,11 @@ const AppUI = {
               <h3 style="color: var(--text-primary); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.4rem;">3. Fair Use &amp; Intellectual Property</h3>
               <p>All content, algorithms, and interface elements are protected by applicable intellectual property laws. You may not scrape, frame, or republish our calculation engines without prior written authorization.</p>
             </section>
+
+            <section>
+              <h3 style="color: var(--text-primary); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.4rem;">4. Mutual Fund Services</h3>
+              <p>Mutual Fund-related content, information, and service operations available on this website are managed and overseen by Anshul Singhal. While we strive to ensure the accuracy and timeliness of information presented, users are advised to review all scheme-related documents, disclosures, and risk factors before making any investment decisions.</p>
+            </section>
           </div>
         </div>
       </div>
@@ -5576,6 +5581,11 @@ const AppUI = {
             <section>
               <h3 style="color: var(--text-primary); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.4rem;">3. Local Storage</h3>
               <p>If you bookmark a favorite calculator or view recent calculation history, this data is saved exclusively inside your browser's LocalStorage and can be cleared by you at any time.</p>
+            </section>
+
+            <section>
+              <h3 style="color: var(--text-primary); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.4rem;">4. Mutual Fund Services &amp; Inquiries</h3>
+              <p>For matters specifically related to Mutual Fund services offered through this website, operational oversight is handled by Anshul Singhal. Any personal information collected in connection with Mutual Fund inquiries, transactions, or service requests will be processed in accordance with this Privacy Policy, applicable regulations, and industry standards.</p>
             </section>
           </div>
         </div>
@@ -5940,19 +5950,19 @@ const AppUI = {
                 <div class="invest-card-icon-box icon-emerald">
                   ${getIconSvg('wallet', 26)}
                 </div>
-                <span class="invest-badge">Direct Plans</span>
+                <span class="invest-badge">Mutual Funds</span>
               </div>
               <h3 class="invest-card-title">Want to start SIP in Mutual Funds?</h3>
               <p class="invest-card-desc">
-                Automate monthly wealth creation in direct mutual funds via Coin. Save up to 1.5% in distributor commissions every single year.
+                Automate monthly wealth creation in mutual funds. Start your systematic investment journey with disciplined goal-based investing.
               </p>
               <ul class="invest-perks-list">
-                <li><span class="perk-bullet">✓</span> 0% distributor commissions</li>
+                <li><span class="perk-bullet">✓</span> Goal-based portfolio planning</li>
                 <li><span class="perk-bullet">✓</span> Flexible SIP pause &amp; top-up</li>
               </ul>
             </div>
             <div class="invest-card-bottom">
-              <a href="https://zerodha.com/open-account?c=ZAPCVV" target="_blank" rel="noopener noreferrer" class="invest-cta-btn btn-cta-default">
+              <a href="https://www.assetplus.in/mfd/ARN-145622?productSource=Default" target="_blank" rel="noopener noreferrer" class="invest-cta-btn btn-cta-default">
                 <span>Start SIP Now</span>
                 ${getIconSvg('arrow-right', 16)}
               </a>
@@ -7436,7 +7446,7 @@ const AppUI = {
               </p>
             </div>
             <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-              <a href="https://zerodha.com/open-account?c=ZAPCVV" target="_blank" rel="noopener noreferrer" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.4rem; border-radius: var(--radius-full); font-weight: 700; font-size: 0.92rem; text-decoration: none; box-shadow: 0 4px 14px var(--emerald-glow);">
+              <a href="https://www.assetplus.in/mfd/ARN-145622?productSource=Default" target="_blank" rel="noopener noreferrer" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.4rem; border-radius: var(--radius-full); font-weight: 700; font-size: 0.92rem; text-decoration: none; box-shadow: 0 4px 14px var(--emerald-glow);">
                 <span>Invest in Mutual Funds</span>
                 ${getIconSvg('arrow-right', 14)}
               </a>

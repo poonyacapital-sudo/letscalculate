@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added fluid typography `clamp(1.65rem, 5.5vw, 2.75rem)` with `word-break: break-word` on `.primary-result-value` to prevent large figures (e.g., ₹1,83,39,584.00) from overflowing screen borders.
   - Ensured `.calc-inputs-card`, `.calc-results-card`, inputs, sliders, and `.summary-grid` metric cards strictly respect 100% viewport width without horizontal scrollbars.
   - Applied flex-wrap to `.card-title` and `.calc-header-actions` to keep control buttons aligned inside mobile viewports.
+- **Mutual Fund Terms & Compliance**: Added Section 4 "Mutual Fund Services" to Terms of Service and Section 4 "Mutual Fund Services & Inquiries" to Privacy Policy disclosing Anshul Singhal's management and operational oversight. Updated Mutual Fund investment CTAs to direct to official AssetPlus MFD portal (`ARN-145622`).
 - **Drawer Close Button Enhancement**: Added dedicated touch (`touchend`) and click listeners for the close buttons on the Favorites drawer (`#close-favorites-drawer`) and History drawer (`#close-history-drawer`), properly scoped modal close handlers, and added Escape key shortcuts for instant dismissal on both mobile and desktop.
 - **Cross-Environment Sync**: Deployed changes to localhost:3000, localhost:3001, and production (`letscalculate.in`).
 

@@ -339,16 +339,16 @@ const BROKERS_DATA = {
       {
         id: 'sip-mf',
         title: 'Want to start SIP in Mutual Funds?',
-        desc: 'Automate monthly wealth creation in direct mutual funds via Coin. Save up to 1.5% in distributor commissions every single year.',
-        badge: 'Direct Plans',
+        desc: 'Automate monthly wealth creation in mutual funds. Start your systematic investment journey with disciplined goal-based investing.',
+        badge: 'Mutual Funds',
         badgeClass: '',
         featured: '',
         icon: 'wallet',
         iconColor: 'icon-emerald',
-        perks: ['0% distributor commissions', 'Flexible SIP pause & top-up'],
+        perks: ['Goal-based portfolio planning', 'Flexible SIP pause & top-up'],
         btnText: 'Start SIP Now',
         btnClass: 'btn-cta-default',
-        url: 'https://zerodha.com/open-account?c=ZAPCVV'
+        url: 'https://www.assetplus.in/mfd/ARN-145622?productSource=Default'
       },
       {
         id: 'sip-etf',
