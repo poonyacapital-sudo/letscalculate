@@ -7794,6 +7794,25 @@ const AppUI = {
 
       <!-- Breakdown Table Container (if exists) -->
       <div id="calc-table-area"></div>
+
+      ${calc.id === 'us-stocks-returns' ? `
+      <!-- US Stocks Investing via Zerodha CTA -->
+      <div class="us-stocks-zerodha-cta" id="us-stocks-zerodha-banner">
+        <div class="us-stocks-zerodha-cta-content">
+          <h3 class="us-stocks-zerodha-cta-title">
+            <span>🌐</span> Invest in US Stocks & Global Markets
+          </h3>
+          <p class="us-stocks-zerodha-cta-desc">
+            Ready to build a global portfolio with Apple, Google, Microsoft & Tesla? Open your trading & demat account with Zerodha and begin your global investing journey today.
+          </p>
+        </div>
+        <div class="us-stocks-zerodha-cta-action">
+          <a href="https://zerodha.com/?c=XJ5491&s=CONSOLE" target="_blank" rel="noopener noreferrer" class="us-stocks-zerodha-btn">
+            Invest in US Stocks on Zerodha <span>→</span>
+          </a>
+        </div>
+      </div>
+      ` : ''}
     `;
   },
 
