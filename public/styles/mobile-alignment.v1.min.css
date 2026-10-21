@@ -63,3 +63,4 @@ html,body{width:100%!important;max-width:100vw!important;overflow-x:hidden!impor
 .modal-close-btn svg,.modal-close svg,.close-drawer-btn svg{pointer-events:none!important;display:block!important}
 .modal-close-btn:hover,.modal-close:hover,.close-drawer-btn:hover{color:var(--text-primary,#ffffff)!important;background:var(--bg-surface-elevated,rgba(255,255,255,0.08))!important}
 .modal-close-btn:active,.modal-close:active,.close-drawer-btn:active{transform:scale(0.94)!important}
+#home-broker-module,#broker-calc-box,.us-stocks-broker-callout,.btn-calc-broker-back{display:none!important}

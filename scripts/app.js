@@ -5810,8 +5810,8 @@ const AppUI = {
         </div>
       </section>
 
-      <!-- Broker Selection & Relative Calculations Module -->
-      <section class="container invest-section broker-module-wrapper" id="home-broker-module" style="margin-top: 2rem; margin-bottom: 3.5rem;">
+      <!-- Broker Selection & Relative Calculations Module (Hidden per requirement) -->
+      <section class="container invest-section broker-module-wrapper" id="home-broker-module" style="display: none !important;">
         <div class="section-header">
           <div>
             <div class="invest-section-tagline-badge">

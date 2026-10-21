@@ -7095,6 +7095,10 @@ input:focus, select:focus, textarea:focus {
    ========================================================================== */
 #home-emi-suite-section,
 #home-newly-launched-section,
+#home-broker-module,
+#broker-calc-box,
+.us-stocks-broker-callout,
+.btn-calc-broker-back,
 .nav-item-new-launch,
 a[href="#/new-launch"],
 .nav-item-game,
@@ -9636,6 +9640,7 @@ html,body{width:100%!important;max-width:100vw!important;overflow-x:hidden!impor
 .modal-close-btn svg,.modal-close svg,.close-drawer-btn svg{pointer-events:none!important;display:block!important}
 .modal-close-btn:hover,.modal-close:hover,.close-drawer-btn:hover{color:var(--text-primary,#ffffff)!important;background:var(--bg-surface-elevated,rgba(255,255,255,0.08))!important}
 .modal-close-btn:active,.modal-close:active,.close-drawer-btn:active{transform:scale(0.94)!important}
+#home-broker-module,#broker-calc-box,.us-stocks-broker-callout,.btn-calc-broker-back{display:none!important}
 
 
 /* letscalculate.in - Desktop Alignment & Grid Scaling Patch (v1.0.0) | CDN: desktop-alignment.v1.min.css */
@@ -30026,8 +30031,8 @@ const AppUI = {
         </div>
       </section>
 
-      <!-- Broker Selection & Relative Calculations Module -->
-      <section class="container invest-section broker-module-wrapper" id="home-broker-module" style="margin-top: 2rem; margin-bottom: 3.5rem;">
+      <!-- Broker Selection & Relative Calculations Module (Hidden per requirement) -->
+      <section class="container invest-section broker-module-wrapper" id="home-broker-module" style="display: none !important;">
         <div class="section-header">
           <div>
             <div class="invest-section-tagline-badge">
