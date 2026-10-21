@@ -1521,8 +1521,10 @@ input:focus, select:focus, textarea:focus {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 150;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 10000;
   display: none;
 }
 
@@ -1539,8 +1541,8 @@ input:focus, select:focus, textarea:focus {
   height: 100%;
   background: var(--bg-surface);
   border-left: 1px solid var(--border-card);
-  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
-  z-index: 160;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.4);
+  z-index: 10005;
   transform: translateX(100%);
   transition: transform var(--transition-smooth);
   display: flex;
@@ -1557,6 +1559,54 @@ input:focus, select:focus, textarea:focus {
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--border-card);
+  position: relative;
+  z-index: 10;
+}
+
+/* Universal Modal & Drawer Close (X) Button */
+.modal-close-btn,
+.modal-close,
+.close-drawer-btn {
+  cursor: pointer !important;
+  background: transparent;
+  border: none;
+  outline: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  border-radius: var(--radius-md, 8px);
+  color: var(--text-secondary, #94a3b8);
+  position: relative;
+  z-index: 9999;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: all var(--transition-fast, 0.15s ease);
+}
+
+.modal-close-btn svg,
+.modal-close svg,
+.close-drawer-btn svg {
+  pointer-events: none;
+  display: block;
+}
+
+.modal-close-btn:hover,
+.modal-close:hover,
+.close-drawer-btn:hover {
+  color: var(--text-primary, #ffffff);
+  background: var(--bg-surface-elevated, rgba(255, 255, 255, 0.08));
+}
+
+.modal-close-btn:active,
+.modal-close:active,
+.close-drawer-btn:active {
+  transform: scale(0.94);
 }
 
 .drawer-title {
@@ -9578,6 +9628,14 @@ html,body{width:100%!important;max-width:100vw!important;overflow-x:hidden!impor
 .primary-result-value{font-size:clamp(1.45rem, 5vw, 1.85rem)!important}
 .calc-page-title{font-size:1.55rem!important}
 }
+/* Drawer & Modal Close (X) Button Enhancement */
+.drawer-backdrop{z-index:10000!important}
+.drawer{z-index:10005!important}
+.drawer-header{position:relative!important;z-index:10!important}
+.modal-close-btn,.modal-close,.close-drawer-btn{cursor:pointer!important;background:transparent!important;border:none!important;outline:none!important;display:-webkit-inline-box!important;display:-webkit-inline-flex!important;display:inline-flex!important;-webkit-box-align:center!important;-webkit-align-items:center!important;align-items:center!important;-webkit-box-pack:center!important;-webkit-justify-content:center!important;justify-content:center!important;width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;border-radius:8px!important;color:var(--text-secondary,#94a3b8)!important;position:relative!important;z-index:9999!important;pointer-events:auto!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent!important;user-select:none!important}
+.modal-close-btn svg,.modal-close svg,.close-drawer-btn svg{pointer-events:none!important;display:block!important}
+.modal-close-btn:hover,.modal-close:hover,.close-drawer-btn:hover{color:var(--text-primary,#ffffff)!important;background:var(--bg-surface-elevated,rgba(255,255,255,0.08))!important}
+.modal-close-btn:active,.modal-close:active,.close-drawer-btn:active{transform:scale(0.94)!important}
 
 
 /* letscalculate.in - Desktop Alignment & Grid Scaling Patch (v1.0.0) | CDN: desktop-alignment.v1.min.css */
@@ -9954,13 +10012,13 @@ html,body{width:100%!important;max-width:100vw!important;overflow-x:hidden!impor
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
         <span>Calculation History</span>
       </div>
-      <button class="modal-close-btn" id="close-history-drawer" aria-label="Close history">
+      <button type="button" class="modal-close-btn close-drawer-btn" id="close-history-drawer" aria-label="Close history">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
     </div>
     <div class="drawer-body" id="history-list"></div>
     <div class="drawer-footer">
-      <button class="btn-secondary" id="clear-history-btn" style="width: 100%;">Clear History</button>
+      <button type="button" class="btn-secondary" id="clear-history-btn" style="width: 100%;">Clear History</button>
     </div>
   </aside>
 
@@ -9971,7 +10029,7 @@ html,body{width:100%!important;max-width:100vw!important;overflow-x:hidden!impor
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         <span>Favorites</span>
       </div>
-      <button class="modal-close-btn" id="close-favorites-drawer" aria-label="Close favorites">
+      <button type="button" class="modal-close-btn close-drawer-btn" id="close-favorites-drawer" aria-label="Close favorites">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
     </div>
@@ -26506,8 +26564,8 @@ const AppUI = {
         openSearch('');
         return;
       }
-      // Modal close button
-      if (e.target.closest('#close-search-modal') || e.target.closest('.modal-close-btn')) {
+      // Search modal close button ONLY
+      if (e.target.closest('#close-search-modal') || (e.target.closest('.modal-close-btn') && e.target.closest('#search-modal-backdrop'))) {
         e.preventDefault();
         closeSearch();
         return;
@@ -26537,14 +26595,19 @@ const AppUI = {
       }
     });
 
-    // Keyboard shortcut '/' or 'Cmd+K' / 'Ctrl+K'
+    // Keyboard shortcut '/' or 'Cmd+K' / 'Ctrl+K' & Escape key handler
     window.addEventListener('keydown', (e) => {
       if ((e.key === '/' || (e.key.toLowerCase() === 'k' && (e.ctrlKey || e.metaKey))) && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
         e.preventDefault();
         openSearch('');
       }
-      if (e.key === 'Escape' && searchModal?.classList.contains('open')) {
-        closeSearch();
+      if (e.key === 'Escape') {
+        if (searchModal?.classList.contains('open')) {
+          closeSearch();
+        }
+        if (historyDrawer?.classList.contains('open') || favDrawer?.classList.contains('open') || mobileNavDrawer?.classList.contains('open')) {
+          closeDrawers();
+        }
       }
     });
 
@@ -26568,32 +26631,77 @@ const AppUI = {
     const favDrawer = document.getElementById('favorites-drawer');
     const mobileNavDrawer = document.getElementById('mobile-nav-drawer');
 
-    const closeDrawers = () => {
+    const closeDrawers = (e) => {
+      if (e && typeof e.preventDefault === 'function') e.preventDefault();
       drawerBackdrop?.classList.remove('open');
       historyDrawer?.classList.remove('open');
       favDrawer?.classList.remove('open');
       mobileNavDrawer?.classList.remove('open');
     };
 
-    document.getElementById('header-history-btn')?.addEventListener('click', () => {
+    this.closeDrawers = closeDrawers;
+    window.closeDrawers = closeDrawers;
+
+    document.getElementById('header-history-btn')?.addEventListener('click', (e) => {
+      e.preventDefault();
       drawerBackdrop?.classList.add('open');
       historyDrawer?.classList.add('open');
+      favDrawer?.classList.remove('open');
+      mobileNavDrawer?.classList.remove('open');
       this.renderHistoryDrawer();
     });
 
-    document.getElementById('header-favorites-btn')?.addEventListener('click', () => {
+    document.getElementById('header-favorites-btn')?.addEventListener('click', (e) => {
+      e.preventDefault();
       drawerBackdrop?.classList.add('open');
       favDrawer?.classList.add('open');
+      historyDrawer?.classList.remove('open');
+      mobileNavDrawer?.classList.remove('open');
       this.renderFavoritesDrawer();
     });
 
-    document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
+    document.getElementById('mobile-menu-btn')?.addEventListener('click', (e) => {
+      e.preventDefault();
       drawerBackdrop?.classList.add('open');
       mobileNavDrawer?.classList.add('open');
+      historyDrawer?.classList.remove('open');
+      favDrawer?.classList.remove('open');
     });
 
-    document.querySelectorAll('.close-drawer-btn').forEach(btn => {
-      btn.addEventListener('click', closeDrawers);
+    // Direct event listeners for drawer close buttons (Click & Touchend for desktop + mobile)
+    const drawerCloseSelectors = [
+      '#close-history-drawer',
+      '#close-favorites-drawer',
+      '#close-mobile-nav-drawer',
+      '.close-drawer-btn'
+    ];
+    drawerCloseSelectors.forEach(selector => {
+      document.querySelectorAll(selector).forEach(btn => {
+        ['click', 'touchend'].forEach(evtType => {
+          btn.addEventListener(evtType, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            closeDrawers();
+          }, { passive: false });
+        });
+      });
+    });
+
+    // Bulletproof delegated click & touchend listener on document
+    ['click', 'touchend'].forEach(evtType => {
+      document.addEventListener(evtType, (e) => {
+        if (
+          e.target.closest('#close-history-drawer') ||
+          e.target.closest('#close-favorites-drawer') ||
+          e.target.closest('#close-mobile-nav-drawer') ||
+          e.target.closest('.close-drawer-btn') ||
+          (e.target.closest('.modal-close-btn') && (e.target.closest('#history-drawer') || e.target.closest('#favorites-drawer') || e.target.closest('#mobile-nav-drawer')))
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+          closeDrawers();
+        }
+      }, { passive: false });
     });
 
     mobileNavDrawer?.querySelectorAll?.('a, button')?.forEach(el => {
@@ -26603,6 +26711,10 @@ const AppUI = {
     });
 
     drawerBackdrop?.addEventListener('click', closeDrawers);
+    drawerBackdrop?.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      closeDrawers();
+    }, { passive: false });
 
     // Clear history
     document.getElementById('clear-history-btn')?.addEventListener('click', () => {

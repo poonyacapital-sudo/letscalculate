@@ -2348,8 +2348,8 @@ const AppUI = {
         openSearch('');
         return;
       }
-      // Modal close button
-      if (e.target.closest('#close-search-modal') || e.target.closest('.modal-close-btn')) {
+      // Search modal close button ONLY
+      if (e.target.closest('#close-search-modal') || (e.target.closest('.modal-close-btn') && e.target.closest('#search-modal-backdrop'))) {
         e.preventDefault();
         closeSearch();
         return;
@@ -2379,14 +2379,19 @@ const AppUI = {
       }
     });
 
-    // Keyboard shortcut '/' or 'Cmd+K' / 'Ctrl+K'
+    // Keyboard shortcut '/' or 'Cmd+K' / 'Ctrl+K' & Escape key handler
     window.addEventListener('keydown', (e) => {
       if ((e.key === '/' || (e.key.toLowerCase() === 'k' && (e.ctrlKey || e.metaKey))) && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
         e.preventDefault();
         openSearch('');
       }
-      if (e.key === 'Escape' && searchModal?.classList.contains('open')) {
-        closeSearch();
+      if (e.key === 'Escape') {
+        if (searchModal?.classList.contains('open')) {
+          closeSearch();
+        }
+        if (historyDrawer?.classList.contains('open') || favDrawer?.classList.contains('open') || mobileNavDrawer?.classList.contains('open')) {
+          closeDrawers();
+        }
       }
     });
 
@@ -2410,32 +2415,77 @@ const AppUI = {
     const favDrawer = document.getElementById('favorites-drawer');
     const mobileNavDrawer = document.getElementById('mobile-nav-drawer');
 
-    const closeDrawers = () => {
+    const closeDrawers = (e) => {
+      if (e && typeof e.preventDefault === 'function') e.preventDefault();
       drawerBackdrop?.classList.remove('open');
       historyDrawer?.classList.remove('open');
       favDrawer?.classList.remove('open');
       mobileNavDrawer?.classList.remove('open');
     };
 
-    document.getElementById('header-history-btn')?.addEventListener('click', () => {
+    this.closeDrawers = closeDrawers;
+    window.closeDrawers = closeDrawers;
+
+    document.getElementById('header-history-btn')?.addEventListener('click', (e) => {
+      e.preventDefault();
       drawerBackdrop?.classList.add('open');
       historyDrawer?.classList.add('open');
+      favDrawer?.classList.remove('open');
+      mobileNavDrawer?.classList.remove('open');
       this.renderHistoryDrawer();
     });
 
-    document.getElementById('header-favorites-btn')?.addEventListener('click', () => {
+    document.getElementById('header-favorites-btn')?.addEventListener('click', (e) => {
+      e.preventDefault();
       drawerBackdrop?.classList.add('open');
       favDrawer?.classList.add('open');
+      historyDrawer?.classList.remove('open');
+      mobileNavDrawer?.classList.remove('open');
       this.renderFavoritesDrawer();
     });
 
-    document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
+    document.getElementById('mobile-menu-btn')?.addEventListener('click', (e) => {
+      e.preventDefault();
       drawerBackdrop?.classList.add('open');
       mobileNavDrawer?.classList.add('open');
+      historyDrawer?.classList.remove('open');
+      favDrawer?.classList.remove('open');
     });
 
-    document.querySelectorAll('.close-drawer-btn').forEach(btn => {
-      btn.addEventListener('click', closeDrawers);
+    // Direct event listeners for drawer close buttons (Click & Touchend for desktop + mobile)
+    const drawerCloseSelectors = [
+      '#close-history-drawer',
+      '#close-favorites-drawer',
+      '#close-mobile-nav-drawer',
+      '.close-drawer-btn'
+    ];
+    drawerCloseSelectors.forEach(selector => {
+      document.querySelectorAll(selector).forEach(btn => {
+        ['click', 'touchend'].forEach(evtType => {
+          btn.addEventListener(evtType, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            closeDrawers();
+          }, { passive: false });
+        });
+      });
+    });
+
+    // Bulletproof delegated click & touchend listener on document
+    ['click', 'touchend'].forEach(evtType => {
+      document.addEventListener(evtType, (e) => {
+        if (
+          e.target.closest('#close-history-drawer') ||
+          e.target.closest('#close-favorites-drawer') ||
+          e.target.closest('#close-mobile-nav-drawer') ||
+          e.target.closest('.close-drawer-btn') ||
+          (e.target.closest('.modal-close-btn') && (e.target.closest('#history-drawer') || e.target.closest('#favorites-drawer') || e.target.closest('#mobile-nav-drawer')))
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+          closeDrawers();
+        }
+      }, { passive: false });
     });
 
     mobileNavDrawer?.querySelectorAll?.('a, button')?.forEach(el => {
@@ -2445,6 +2495,10 @@ const AppUI = {
     });
 
     drawerBackdrop?.addEventListener('click', closeDrawers);
+    drawerBackdrop?.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      closeDrawers();
+    }, { passive: false });
 
     // Clear history
     document.getElementById('clear-history-btn')?.addEventListener('click', () => {

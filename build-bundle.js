@@ -558,13 +558,13 @@ ${combinedCss}
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
         <span>Calculation History</span>
       </div>
-      <button class="modal-close-btn" id="close-history-drawer" aria-label="Close history">
+      <button type="button" class="modal-close-btn close-drawer-btn" id="close-history-drawer" aria-label="Close history">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
     </div>
     <div class="drawer-body" id="history-list"></div>
     <div class="drawer-footer">
-      <button class="btn-secondary" id="clear-history-btn" style="width: 100%;">Clear History</button>
+      <button type="button" class="btn-secondary" id="clear-history-btn" style="width: 100%;">Clear History</button>
     </div>
   </aside>
 
@@ -575,7 +575,7 @@ ${combinedCss}
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         <span>Favorites</span>
       </div>
-      <button class="modal-close-btn" id="close-favorites-drawer" aria-label="Close favorites">
+      <button type="button" class="modal-close-btn close-drawer-btn" id="close-favorites-drawer" aria-label="Close favorites">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
     </div>

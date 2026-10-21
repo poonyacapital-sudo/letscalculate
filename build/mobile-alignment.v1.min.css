@@ -55,3 +55,11 @@ html,body{width:100%!important;max-width:100vw!important;overflow-x:hidden!impor
 .primary-result-value{font-size:clamp(1.45rem, 5vw, 1.85rem)!important}
 .calc-page-title{font-size:1.55rem!important}
 }
+/* Drawer & Modal Close (X) Button Enhancement */
+.drawer-backdrop{z-index:10000!important}
+.drawer{z-index:10005!important}
+.drawer-header{position:relative!important;z-index:10!important}
+.modal-close-btn,.modal-close,.close-drawer-btn{cursor:pointer!important;background:transparent!important;border:none!important;outline:none!important;display:-webkit-inline-box!important;display:-webkit-inline-flex!important;display:inline-flex!important;-webkit-box-align:center!important;-webkit-align-items:center!important;align-items:center!important;-webkit-box-pack:center!important;-webkit-justify-content:center!important;justify-content:center!important;width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;border-radius:8px!important;color:var(--text-secondary,#94a3b8)!important;position:relative!important;z-index:9999!important;pointer-events:auto!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent!important;user-select:none!important}
+.modal-close-btn svg,.modal-close svg,.close-drawer-btn svg{pointer-events:none!important;display:block!important}
+.modal-close-btn:hover,.modal-close:hover,.close-drawer-btn:hover{color:var(--text-primary,#ffffff)!important;background:var(--bg-surface-elevated,rgba(255,255,255,0.08))!important}
+.modal-close-btn:active,.modal-close:active,.close-drawer-btn:active{transform:scale(0.94)!important}
