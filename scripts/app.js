@@ -5625,12 +5625,14 @@ const AppUI = {
           <!-- Quick Navigation Chips -->
           <div class="hero-quick-tags">
             <span style="font-size: 0.85rem; color: var(--text-muted); margin-right: 0.25rem;">Popular:</span>
+            <!-- US Stocks Popular Quick-tag hidden for now:
             <a href="#/calculator/us-stocks-calculator" class="quick-tag quick-tag-popular" title="Popular US Stocks Calculator" style="border-color: rgba(59, 130, 246, 0.45); background: rgba(37, 99, 235, 0.12); color: #93c5fd;">
               <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
                 <span>🇺🇸 US Stocks</span>
               </span>
               <span class="quick-tag-badge-new" style="background: #2563eb; color: #fff;">POPULAR</span>
             </a>
+            -->
             <a href="#/calculator/loan-calculator" class="quick-tag">Loan Calculator</a>
             <a href="#/calculator/emi-calculator" class="quick-tag">EMI Calculator</a>
             <a href="#/calculator/bmi-calculator" class="quick-tag">BMI Calculator</a>
