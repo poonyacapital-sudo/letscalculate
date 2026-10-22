@@ -4,6 +4,10 @@ All notable changes to the **letscalculate.in** platform will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version v1.5 – Dhanteras 6th Nov Festive Banner & Popup Refinement
+- **Dhanteras 6th Nov Notice**: Display "Dhanteras is on 6th Nov 2026" exactly once in both festive banner and popup title, followed by the gold/silver ETF investment advisory copy.
+- **Demat CTA**: Retained Free Demat account opening link and Instagram links.
+
 ## Version v1.4 – Dhanteras Banner Date Logic & Mobile Calculator Alignment
 - **Dhanteras Banner/Popup Date Threshold**: Updated date logic to display "Dhanteras is coming" until 5 Nov 2026 (inclusive) and switch automatically to "Happy Dhanteras" from 6 Nov 2026 onward across seasonal banners and celebratory popups.
 - **Calculator Mobile Responsive Alignment**: Resolved mobile horizontal overflow across the NPS Calculator and all calculator workspaces.
