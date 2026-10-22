@@ -1288,8 +1288,8 @@ const AppUI = {
       instagramText: "Join us on Instagram"
     },
     {
-      title: "✨ Dhanteras ✨",
-      message: "✨ Explore Gold and Silver ETF investment options through a Demat account. Please review all product features, risks, and suitability before investing. ✨",
+      title: "✨ Dhanteras is on 6th Nov 2026 ✨",
+      message: "✨ Dhanteras is on 6th Nov 2026. Explore Gold and Silver ETF investment options through a Demat account. Please review all product features, risks, and suitability before investing. ✨",
       start: "2026-10-21T00:00:00",
       end: "2026-11-05T23:59:59",
       link: "https://zerodha.com/open-account?c=ZAPCVV",
@@ -1301,7 +1301,7 @@ const AppUI = {
     },
     {
       title: "✨ Happy Dhanteras! ✨",
-      message: "✨ Happy Dhanteras! ✨ Explore Gold and Silver ETF investment options through a Demat account. Please review all product features, risks, and suitability before investing. ✨",
+      message: "✨ Happy Dhanteras! Explore Gold and Silver ETF investment options through a Demat account. Please review all product features, risks, and suitability before investing. ✨",
       start: "2026-11-06T00:00:00",
       end: "2026-11-06T12:00:00",
       link: "https://zerodha.com/open-account?c=ZAPCVV",
@@ -1381,7 +1381,9 @@ const AppUI = {
         instagramText: "Join us on Instagram"
       });
     } else if (now >= dhanterasStart && now < dhanterasEnd) {
-      const dhanterasMessage = "✨ Explore Gold and Silver ETF investment options through a Demat account. Please review all product features, risks, and suitability before investing. ✨";
+      const dhanterasMessage = (now <= new Date("2026-11-05T23:59:59"))
+        ? "✨ Dhanteras is on 6th Nov 2026. Explore Gold and Silver ETF investment options through a Demat account. Please review all product features, risks, and suitability before investing. ✨"
+        : "✨ Happy Dhanteras! Explore Gold and Silver ETF investment options through a Demat account. Please review all product features, risks, and suitability before investing. ✨";
 
       this.showBanner(
         dhanterasMessage,
@@ -1727,7 +1729,7 @@ const AppUI = {
     }
 
     const isHappyDhanteras = now >= new Date("2026-11-06T00:00:00");
-    const popupTitle = isHappyDhanteras ? "✨ Happy Dhanteras! ✨" : "✨ Auspicious Dhanteras ✨";
+    const popupTitle = isHappyDhanteras ? "✨ Happy Dhanteras! ✨" : "✨ Dhanteras is on 6th Nov 2026 ✨";
     const popupMessage = "Explore Gold and Silver ETF investment options through a Demat account. Please review all product features, risks, and suitability before investing.";
 
     this.showDhanterasPopup(
